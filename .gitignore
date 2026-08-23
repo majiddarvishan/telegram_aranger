@@ -1,2 +1,6 @@
 .env
 .streamlit/
+
+.venv/
+telegram_manager.db
+
