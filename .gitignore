@@ -4,3 +4,4 @@
 .venv/
 telegram_manager.db
 
+__pycache__/

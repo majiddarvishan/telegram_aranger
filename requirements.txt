@@ -1,5 +1,6 @@
-pyrogram
 streamlit
+pyrogram==2.0.106
+tgcrypto
 cryptography
 python-dotenv
-tgcrypto
+PySocks

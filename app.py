@@ -12,6 +12,29 @@ from database.tags import *
 from runtime.telegram_runtime import get_runtime
 from services.telegram_service import *
 from ui.state import initialize_state
+
+
+def get_proxy_config() -> dict | None:
+    """Build the SOCKS5 proxy configuration from Streamlit state."""
+    if not st.session_state.get("use_proxy", True):
+        return None
+
+    proxy = {
+        "scheme": "socks5",
+        "hostname": st.session_state.get("proxy_host", "127.0.0.1"),
+        "port": int(st.session_state.get("proxy_port", 1080)),
+    }
+
+    username = st.session_state.get("proxy_user", "").strip()
+    password = st.session_state.get("proxy_pass", "").strip()
+
+    if username:
+        proxy["username"] = username
+
+    if password:
+        proxy["password"] = password
+
+    return proxy
 initialize_database(); initialize_state()
 # 21. Page Configuration
 # =========================================================
@@ -282,43 +305,6 @@ if st.session_state.use_proxy:
         )
     )
 
-def get_proxy_config() -> dict | None:
-    """Build the SOCKS5 proxy configuration from Streamlit state."""
-
-    if not st.session_state.get("use_proxy", True):
-        return None
-
-    proxy = {
-        "scheme": "socks5",
-        "hostname": st.session_state.get(
-            "proxy_host",
-            "127.0.0.1",
-        ),
-        "port": int(
-            st.session_state.get(
-                "proxy_port",
-                1080,
-            )
-        ),
-    }
-
-    username = st.session_state.get(
-        "proxy_user",
-        "",
-    ).strip()
-
-    password = st.session_state.get(
-        "proxy_pass",
-        "",
-    ).strip()
-
-    if username:
-        proxy["username"] = username
-
-    if password:
-        proxy["password"] = password
-
-    return proxy
 
 proxy_config = get_proxy_config()
 
@@ -994,15 +980,44 @@ account_id = (
 # =========================================================
 st.sidebar.markdown("---")
 st.sidebar.header("📅 Message Date Range")
-today=date.today()
-default_range=st.session_state.get("message_date_range",(today-timedelta(days=6),today))
-selected_range=st.sidebar.date_input("Select date range",value=default_range,max_value=today,key="message_date_range_picker")
-if isinstance(selected_range,tuple) and len(selected_range)==2:
- start_date,end_date=selected_range
+today = date.today()
+default_start = today - timedelta(days=6)
+
+stored_range = st.session_state.get(
+    "message_date_range",
+    (default_start, today),
+)
+
+if (
+    isinstance(stored_range, (tuple, list))
+    and len(stored_range) == 2
+    and isinstance(stored_range[0], date)
+    and isinstance(stored_range[1], date)
+):
+    default_start, default_end = stored_range
 else:
- start_date=end_date=selected_range
-st.session_state.message_date_range=(start_date,end_date)
-st.sidebar.caption(f"Showing: {start_date.isoformat()} → {end_date.isoformat()}")
+    default_start, default_end = default_start, today
+
+selected_range = st.sidebar.date_input(
+    "Select date range",
+    value=[default_start, default_end],
+    max_value=today,
+    key="message_date_range_picker",
+)
+
+if isinstance(selected_range, (tuple, list)) and len(selected_range) == 2:
+    start_date, end_date = selected_range
+else:
+    start_date = end_date = selected_range
+
+st.session_state.message_date_range = (
+    start_date,
+    end_date,
+)
+
+st.sidebar.caption(
+    f"Showing: {start_date.isoformat()} → {end_date.isoformat()}"
+)
 # =========================================================
 # 33. Fetch Messages for Selected Range
 # =========================================================
