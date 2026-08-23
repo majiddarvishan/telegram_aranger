@@ -978,55 +978,168 @@ account_id = (
 # =========================================================
 # 32. Message Date Range
 # =========================================================
+from datetime import date, timedelta
+
 st.sidebar.markdown("---")
 st.sidebar.header("📅 Message Date Range")
+
 today = date.today()
 default_start = today - timedelta(days=6)
 
-stored_range = st.session_state.get(
-    "message_date_range",
-    (default_start, today),
+def _normalize_range(value):
+    if isinstance(value, (tuple, list)) and len(value) == 2:
+        first, second = value
+        if isinstance(first, date) and isinstance(second, date):
+            return first, second
+    if isinstance(value, date):
+        return value, value
+    return default_start, today
+
+stored_range = _normalize_range(
+    st.session_state.get("message_date_range", (default_start, today))
 )
 
-if (
-    isinstance(stored_range, (tuple, list))
-    and len(stored_range) == 2
-    and isinstance(stored_range[0], date)
-    and isinstance(stored_range[1], date)
-):
-    default_start, default_end = stored_range
-else:
-    default_start, default_end = default_start, today
+# Keep the widget state and application state separate. Streamlit does not
+# allow modifying a widget's keyed session-state value after the widget is
+# instantiated during the same script run.
+if "message_date_range_picker" not in st.session_state:
+    st.session_state.message_date_range_picker = list(stored_range)
 
 selected_range = st.sidebar.date_input(
     "Select date range",
-    value=[default_start, default_end],
+    value=st.session_state.message_date_range_picker,
     max_value=today,
     key="message_date_range_picker",
 )
 
-if isinstance(selected_range, (tuple, list)) and len(selected_range) == 2:
-    start_date, end_date = selected_range
-else:
-    start_date = end_date = selected_range
+start_date, end_date = _normalize_range(selected_range)
 
-st.session_state.message_date_range = (
-    start_date,
-    end_date,
-)
+if start_date > end_date:
+    start_date, end_date = end_date, start_date
+
+st.session_state.message_date_range = (start_date, end_date)
 
 st.sidebar.caption(
     f"Showing: {start_date.isoformat()} → {end_date.isoformat()}"
 )
-# =========================================================
-# 33. Fetch Messages for Selected Range
-# =========================================================
-if not st.session_state.messages or st.sidebar.button("🔄 Refresh Selected Range",use_container_width=True):
- with st.spinner("Fetching Saved Messages..."):
-  try: st.session_state.messages=fetch_saved_messages_for_range(start_date,end_date)
-  except Exception as e: st.error(f"Failed to fetch messages: {e}"); st.session_state.messages=[]
 
 # =========================================================
+# 33. Date Navigation
+# =========================================================
+def shift_message_range(days: int):
+    """Shift the current date range by the requested number of days."""
+    current_start, current_end = _normalize_range(
+        st.session_state.get("message_date_range", (default_start, today))
+    )
+
+    delta = timedelta(days=days)
+    new_start = current_start + delta
+    new_end = current_end + delta
+
+    # Do not allow navigation into the future.
+    if new_end > today:
+        new_end = today
+        duration = current_end - current_start
+        new_start = new_end - duration
+
+    st.session_state.message_date_range = (new_start, new_end)
+    st.session_state.message_date_range_picker = [new_start, new_end]
+    st.session_state.messages = []
+
+
+def go_previous_range():
+    shift_message_range(-1)
+
+
+def go_next_range():
+    shift_message_range(1)
+
+# The controls are rendered at the bottom of the main content. CSS makes
+# this dedicated navigation bar fixed to the viewport instead of scrolling
+# with the message list.
+st.markdown(
+    """
+    <style>
+    .message-navigation-spacer {
+        height: 90px;
+    }
+
+    div[data-testid="stHorizontalBlock"]:has(.message-navigation-marker) {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 999999;
+        padding: 12px 24px;
+        background: rgba(255, 255, 255, 0.97);
+        border-top: 1px solid rgba(128, 128, 128, 0.35);
+        box-shadow: 0 -4px 14px rgba(0, 0, 0, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+        div[data-testid="stHorizontalBlock"]:has(.message-navigation-marker) {
+            background: rgba(14, 17, 23, 0.97);
+        }
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Marker is placed in the first column so CSS can identify this specific
+# horizontal block without affecting other column layouts in the page.
+nav_col_prev, nav_col_date, nav_col_next = st.columns([1, 2, 1])
+
+with nav_col_prev:
+    st.markdown('<span class="message-navigation-marker"></span>', unsafe_allow_html=True)
+    previous_clicked = st.button(
+        "◀ Previous",
+        use_container_width=True,
+        on_click=go_previous_range,
+    )
+
+with nav_col_date:
+    if start_date == end_date:
+        navigation_label = start_date.isoformat()
+    else:
+        navigation_label = f"{start_date.isoformat()} → {end_date.isoformat()}"
+
+    st.markdown(
+        f"<div style='text-align:center;padding-top:8px;font-weight:600;'>{navigation_label}</div>",
+        unsafe_allow_html=True,
+    )
+
+with nav_col_next:
+    next_disabled = end_date >= today
+    st.button(
+        "Next ▶",
+        use_container_width=True,
+        disabled=next_disabled,
+        on_click=go_next_range,
+    )
+
+st.markdown('<div class="message-navigation-spacer"></div>', unsafe_allow_html=True)
+
+# =========================================================
+# 34. Fetch Messages for Selected Range
+# =========================================================
+if (
+    not st.session_state.messages
+    or st.sidebar.button(
+        "🔄 Refresh Selected Range",
+        use_container_width=True,
+    )
+):
+    with st.spinner("Fetching Saved Messages..."):
+        try:
+            st.session_state.messages = fetch_saved_messages_for_range(
+                start_date,
+                end_date,
+            )
+        except Exception as e:
+            st.error(f"Failed to fetch messages: {e}")
+            st.session_state.messages = []
+
 # 34. Tags Filter
 # =========================================================
 
