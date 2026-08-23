@@ -5,6 +5,7 @@ import hashlib
 import hmac
 import secrets
 import threading
+from datetime import date
 from concurrent.futures import Future
 
 from dotenv import load_dotenv
@@ -1108,6 +1109,59 @@ def fetch_saved_messages(
 
 
 # =========================================================
+# 18.1 Fetch Saved Messages for a Selected Date
+# =========================================================
+
+async def fetch_saved_messages_for_date_async(
+    selected_date: date,
+) -> list[dict]:
+    """Fetch Saved Messages belonging to the selected calendar date."""
+
+    client = get_runtime_client()
+    me = await client.get_me()
+    messages = []
+
+    async for message in client.get_chat_history("me"):
+        if message.date is None:
+            continue
+
+        message_date = message.date.date()
+
+        if message_date < selected_date:
+            break
+
+        if message_date != selected_date:
+            continue
+
+        content = (
+            message.text
+            or message.caption
+            or "[Media / File]"
+        )
+
+        messages.append({
+            "id": message.id,
+            "text": content,
+            "date": str(message.date),
+            "user_id": me.id,
+        })
+
+    return messages
+
+
+def fetch_saved_messages_for_date(
+    selected_date: date,
+) -> list[dict]:
+    """Fetch Saved Messages for a selected calendar date."""
+
+    return get_runtime().run(
+        fetch_saved_messages_for_date_async(
+            selected_date
+        )
+    )
+
+
+# =========================================================
 # 18. Delete Telegram Message
 # =========================================================
 
@@ -1272,6 +1326,8 @@ def initialize_state():
         "selected_telegram_account_id": None,
 
         "messages": [],
+        "selected_message_date": date.today(),
+        "message_date_loaded": None,
 
         "use_proxy": True,
 
@@ -2235,27 +2291,57 @@ account_id = (
 
 
 # =========================================================
-# 32. Fetch Messages
+# 32. Message Date Filter
+# =========================================================
+
+st.sidebar.markdown("---")
+st.sidebar.header("📅 Message Date")
+
+selected_message_date = st.sidebar.date_input(
+    "Select date",
+    value=st.session_state.selected_message_date,
+    key="message_date_picker",
+)
+
+if selected_message_date != st.session_state.selected_message_date:
+    st.session_state.selected_message_date = selected_message_date
+    st.session_state.messages = []
+    st.session_state.message_date_loaded = None
+
+col_date_info, col_date_action = st.columns([3, 1])
+
+with col_date_info:
+    st.subheader(
+        f"Messages for {selected_message_date.strftime('%Y-%m-%d')}"
+    )
+
+with col_date_action:
+    refresh_date = st.button(
+        "🔄 Refresh Selected Date",
+        use_container_width=True,
+    )
+
+# =========================================================
+# 33. Fetch Messages for Selected Date
 # =========================================================
 
 if (
     not st.session_state.messages
-    or st.button(
-        "🔄 Refresh Messages"
-    )
+    or st.session_state.message_date_loaded != selected_message_date
+    or refresh_date
 ):
 
     with st.spinner(
-        "Fetching Saved Messages..."
+        f"Fetching messages for {selected_message_date}..."
     ):
 
         try:
-
             st.session_state.messages = (
-                fetch_saved_messages(
-                    limit=100
+                fetch_saved_messages_for_date(
+                    selected_message_date
                 )
             )
+            st.session_state.message_date_loaded = selected_message_date
 
         except Exception as e:
 
@@ -2264,10 +2350,16 @@ if (
             )
 
             st.session_state.messages = []
+            st.session_state.message_date_loaded = selected_message_date
+
+if not st.session_state.messages:
+    st.info(
+        f"No Saved Messages found for {selected_message_date.strftime('%Y-%m-%d')}."
+    )
 
 
 # =========================================================
-# 33. Tags Filter
+# 34. Tags Filter
 # =========================================================
 
 all_tags = get_all_tags(
@@ -2281,7 +2373,7 @@ selected_tag = st.sidebar.selectbox(
 
 
 # =========================================================
-# 34. Search
+# 35. Search
 # =========================================================
 
 search_query = st.text_input(
@@ -2290,7 +2382,7 @@ search_query = st.text_input(
 
 
 # =========================================================
-# 35. Render Messages
+# 36. Render Messages
 # =========================================================
 
 for message in st.session_state.messages:
