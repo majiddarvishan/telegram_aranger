@@ -1,4 +1,6 @@
 import streamlit as st
+
+from ui.auth import logout_web_user
 from db.telegram_accounts import list_accounts, get_account, save_account, delete_account
 from services.telegram_service import proxy_config, send_code, verify_code, verify_2fa, export_session, restore, disconnect, logout, get_dialogs
 from pyrogram.errors import PhoneCodeExpired, PhoneCodeInvalid, PhoneNumberInvalid, PasswordHashInvalid
@@ -14,11 +16,14 @@ def _start_login():
 def render_sidebar(settings):
     user=st.session_state.web_user
     st.sidebar.title("👤 Account"); st.sidebar.write(f"**{user['display_name']}**"); st.sidebar.caption(f"@{user['username']}")
-    if st.sidebar.button("🚪 Logout Web Application",use_container_width=True):
+    if st.sidebar.button("🚪 Logout Web Application", use_container_width=True):
         try:
-            if st.session_state.get("telegram_runtime"): st.session_state.telegram_runtime.stop()
-        except Exception: pass
-        st.session_state.clear(); st.rerun()
+            if st.session_state.get("telegram_runtime"):
+                st.session_state.telegram_runtime.stop()
+        except Exception:
+            pass
+        logout_web_user(settings)
+        st.rerun()
     st.sidebar.markdown("---"); st.sidebar.header("⚙️ Network Settings")
     st.session_state.use_proxy=st.sidebar.checkbox("Enable SOCKS5 Proxy",value=st.session_state.use_proxy)
     if st.session_state.use_proxy:

@@ -35,6 +35,16 @@ def initialize_database(db_file: str) -> None:
             UNIQUE(user_id, telegram_user_id),
             FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
         );
+        CREATE TABLE IF NOT EXISTS web_sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token_hash TEXT UNIQUE NOT NULL,
+            expires_at TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_web_sessions_token_hash ON web_sessions(token_hash);
+        CREATE INDEX IF NOT EXISTS idx_web_sessions_user_id ON web_sessions(user_id);
         CREATE TABLE IF NOT EXISTS message_tags (
             telegram_account_id INTEGER NOT NULL,
             message_id INTEGER NOT NULL,

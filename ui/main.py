@@ -19,14 +19,14 @@ def _chat_label(chat):
 
 
 def _set_pending_date_range(start_date, end_date):
-    """Schedule a date-range change for the next Streamlit rerun."""
+    """Schedule a date-range change before the date widget is created."""
     st.session_state.pending_message_date_range = (start_date, end_date)
 
 
-def _prepare_date_range_widget(today):
-    """Apply pending navigation before the date widget is instantiated."""
+def _prepare_date_range(today):
+    """Prepare the date picker value before Streamlit creates the widget."""
     pending = st.session_state.pop("pending_message_date_range", None)
-    if pending:
+    if pending is not None:
         st.session_state.message_date_range_picker = pending
 
     current = normalize_range(
@@ -42,14 +42,204 @@ def _prepare_date_range_widget(today):
     return start_date, end_date
 
 
+def _render_header_styles():
+    st.markdown(
+        """
+        <style>
+        .st-key-message-header {
+            position: fixed;
+            top: 0;
+            left: max(0px, var(--sidebar-width, 21rem));
+            right: 0;
+            z-index: 10000;
+            padding: 10px 24px 12px 24px;
+            background: var(--background-color);
+            border-bottom: 1px solid rgba(128, 128, 128, 0.28);
+            box-shadow: 0 3px 14px rgba(0, 0, 0, 0.10);
+        }
+        .st-key-message-header [data-testid="stHorizontalBlock"] {
+            align-items: end;
+            gap: 10px;
+        }
+        .st-key-message-header label {
+            margin-bottom: 4px;
+        }
+        .st-key-message-header [data-testid="stDateInput"] {
+            width: 100%;
+        }
+        .st-key-message-header [data-testid="stDateInput"] > div {
+            width: 100%;
+        }
+        .message-header-spacer {
+            height: 126px;
+        }
+        .st-key-message-navigation {
+            position: fixed;
+            bottom: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            width: min(300px, calc(100vw - 48px));
+            padding: 8px 12px;
+            background: var(--background-color);
+            border: 1px solid rgba(128, 128, 128, 0.35);
+            border-radius: 12px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+        }
+        .st-key-message-navigation button {
+            min-height: 38px;
+            font-size: 20px;
+        }
+        .message-bottom-spacer {
+            height: 82px;
+        }
+        @media (max-width: 900px) {
+            .st-key-message-header {
+                left: 0;
+                padding-left: 12px;
+                padding-right: 12px;
+            }
+            .message-header-spacer {
+                height: 190px;
+            }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _render_message_header(settings, options, current_chat_id, today):
+    _render_header_styles()
+
+    account_id = st.session_state.selected_telegram_account_id
+    tags = all_tags(settings.db_file, account_id)
+    start_date, end_date = _prepare_date_range(today)
+
+    with st.container(key="message_header"):
+        chat_col, search_col, tag_col = st.columns([2.7, 2.2, 1.2])
+
+        with chat_col:
+            selected_chat_id = st.selectbox(
+                "💬 Chat / Group / Channel",
+                options=list(options),
+                index=list(options).index(current_chat_id),
+                format_func=lambda chat_id: options[chat_id],
+                key="chat_selector",
+            )
+
+        with search_col:
+            search = st.text_input(
+                "🔍 Search message text",
+                key="message_search",
+            )
+
+        with tag_col:
+            tag = st.selectbox(
+                "🏷️ Tag",
+                ["All"] + tags,
+                key="message_tag_filter",
+            )
+
+        picked = st.date_input(
+            "Message Date Range",
+            value=(start_date, end_date),
+            max_value=today,
+            key="message_date_range_picker",
+        )
+
+    if isinstance(picked, (list, tuple)) and len(picked) == 2:
+        start_date, end_date = picked
+    else:
+        start_date = end_date = picked
+
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date
+
+    st.session_state.message_date_range = (start_date, end_date)
+
+    st.markdown(
+        '<div class="message-header-spacer"></div>',
+        unsafe_allow_html=True,
+    )
+
+    return selected_chat_id, search, tag, start_date, end_date
+
+
+def _fetch_messages_if_needed(settings, selected_chat_id, start_date, end_date):
+    signature = (
+        selected_chat_id,
+        start_date.isoformat(),
+        end_date.isoformat(),
+    )
+
+    refresh = st.button("🔄 Refresh Messages")
+    should_fetch = (
+        not st.session_state.messages
+        or st.session_state.get("message_query_signature") != signature
+        or refresh
+    )
+
+    if not should_fetch:
+        return
+
+    with st.spinner("Fetching messages..."):
+        try:
+            start_dt, end_dt = bounds(start_date, end_date)
+            st.session_state.messages = history(
+                selected_chat_id,
+                start_dt,
+                end_dt,
+                settings.default_message_limit,
+            )
+            st.session_state.message_query_signature = signature
+        except Exception as exc:
+            st.error(f"Failed to fetch messages: {exc}")
+            st.session_state.messages = []
+            st.session_state.message_query_signature = signature
+
+
+def _render_navigation(start_date, end_date, today):
+    st.markdown('<div class="message-bottom-spacer"></div>', unsafe_allow_html=True)
+
+    with st.container(key="message_navigation"):
+        previous_col, next_col = st.columns(2)
+
+        with previous_col:
+            if st.button(
+                "◀",
+                help="Previous Day",
+                use_container_width=True,
+                key="previous_day",
+            ):
+                _set_pending_date_range(
+                    start_date - timedelta(days=1),
+                    end_date - timedelta(days=1),
+                )
+                st.rerun()
+
+        with next_col:
+            if st.button(
+                "▶",
+                help="Next Day",
+                use_container_width=True,
+                key="next_day",
+                disabled=end_date >= today,
+            ):
+                new_end = min(end_date + timedelta(days=1), today)
+                new_start = min(start_date + timedelta(days=1), new_end)
+                _set_pending_date_range(new_start, new_end)
+                st.rerun()
+
+
 def render_main(settings):
-    if not st.session_state.telegram_user or not st.session_state.selected_telegram_account_id:
+    if (
+        not st.session_state.telegram_user
+        or not st.session_state.selected_telegram_account_id
+    ):
         st.info("Add or select a Telegram account from the sidebar.")
         return
 
-    # -----------------------------------------------------
-    # Load dialogs
-    # -----------------------------------------------------
     if not st.session_state.dialogs:
         try:
             st.session_state.dialogs = get_dialogs()
@@ -69,113 +259,29 @@ def render_main(settings):
         current_chat_id = next(iter(options))
         st.session_state.selected_chat_id = current_chat_id
 
-    # -----------------------------------------------------
-    # Sticky message toolbar
-    # -----------------------------------------------------
-    # Keep the primary filters independent from the message list so they
-    # remain visible while the user scrolls through messages.
-    st.markdown(
-        """
-        <style>
-        .st-key-message-toolbar {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            padding: 10px 0 12px 0;
-            background: var(--background-color);
-            border-bottom: 1px solid rgba(128, 128, 128, 0.25);
-            margin-bottom: 14px;
-        }
-        .st-key-message-toolbar [data-testid="stHorizontalBlock"] {
-            align-items: end;
-            gap: 10px;
-        }
-        .st-key-message-toolbar label {
-            margin-bottom: 4px;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
     today = date.today()
-    start_date, end_date = _prepare_date_range_widget(today)
-
-    with st.container(key="message_toolbar"):
-        chat_col, search_col, tag_col = st.columns([2.6, 2.2, 1.2])
-
-        with chat_col:
-            selected_chat_id = st.selectbox(
-                "💬 Chat / Group / Channel",
-                options=list(options),
-                index=list(options).index(current_chat_id),
-                format_func=lambda chat_id: options[chat_id],
-                key="chat_selector",
-            )
-
-        with search_col:
-            search = st.text_input(
-                "🔍 Search message text",
-                key="message_search",
-            )
-
-        account_id = st.session_state.selected_telegram_account_id
-        tags = all_tags(settings.db_file, account_id)
-
-        with tag_col:
-            tag = st.selectbox(
-                "🏷️ Tag",
-                ["All"] + tags,
-                key="message_tag_filter",
-            )
-
-    picked = st.sidebar.date_input(
-        "Message Date Range",
-        value=(start_date, end_date),
-        max_value=today,
-        key="message_date_range_picker",
+    selected_chat_id, search, tag, start_date, end_date = _render_message_header(
+        settings,
+        options,
+        current_chat_id,
+        today,
     )
-
-    if isinstance(picked, (list, tuple)) and len(picked) == 2:
-        start_date, end_date = picked
-    else:
-        start_date = end_date = picked
-
-    if start_date > end_date:
-        start_date, end_date = end_date, start_date
-
-    st.session_state.message_date_range = (start_date, end_date)
 
     if selected_chat_id != st.session_state.selected_chat_id:
         st.session_state.selected_chat_id = selected_chat_id
         st.session_state.messages = []
+        st.session_state.message_query_signature = None
         st.rerun()
 
-    # -----------------------------------------------------
-    # Fetch messages
-    # -----------------------------------------------------
-    if (
-        not st.session_state.messages
-        or st.button("🔄 Refresh Messages")
-    ):
-        with st.spinner("Fetching messages..."):
-            try:
-                start_dt, end_dt = bounds(start_date, end_date)
-                st.session_state.messages = history(
-                    selected_chat_id,
-                    start_dt,
-                    end_dt,
-                    settings.default_message_limit,
-                )
-            except Exception as exc:
-                st.error(f"Failed to fetch messages: {exc}")
-                st.session_state.messages = []
+    _fetch_messages_if_needed(
+        settings,
+        selected_chat_id,
+        start_date,
+        end_date,
+    )
 
-    # -----------------------------------------------------
-    # Filter messages
-    # -----------------------------------------------------
-    messages = []
     account_id = st.session_state.selected_telegram_account_id
+    messages = []
 
     for message in st.session_state.messages:
         message_date = message["date"].date()
@@ -192,9 +298,6 @@ def render_main(settings):
 
     st.caption(f"{len(messages)} message(s) in selected range")
 
-    # -----------------------------------------------------
-    # Message cards
-    # -----------------------------------------------------
     for message, current_tags in messages:
         message_id = message["id"]
 
@@ -238,63 +341,4 @@ def render_main(settings):
                     except Exception as exc:
                         st.error(f"Failed to delete message: {exc}")
 
-    # Leave room at the bottom for the fixed navigation bar.
-    st.markdown("<div style='height: 78px'></div>", unsafe_allow_html=True)
-
-    # -----------------------------------------------------
-    # Fixed date navigation
-    # -----------------------------------------------------
-    st.markdown(
-        """
-        <style>
-        .st-key-message-navigation {
-            position: fixed;
-            bottom: 18px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            width: min(560px, calc(100vw - 48px));
-            padding: 8px 12px;
-            background: var(--background-color);
-            border: 1px solid rgba(128, 128, 128, 0.35);
-            border-radius: 12px;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
-        }
-        .st-key-message-navigation [data-testid="stHorizontalBlock"] {
-            align-items: center;
-        }
-        .st-key-message-navigation button {
-            min-height: 38px;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    with st.container(key="message_navigation"):
-        previous_col, date_col, next_col = st.columns([1, 3, 1])
-
-        with previous_col:
-            if st.button("◀", help="Previous Day", use_container_width=True, key="previous_day"):
-                _set_pending_date_range(
-                    start_date - timedelta(days=1),
-                    end_date - timedelta(days=1),
-                )
-                st.rerun()
-
-        with date_col:
-            st.markdown(
-                f"<div style='text-align:center;padding:8px 0;font-weight:600'>"
-                f"{start_date.isoformat()} → {end_date.isoformat()}"
-                f"</div>",
-                unsafe_allow_html=True,
-            )
-
-        with next_col:
-            if st.button("▶", help="Next Day", use_container_width=True, key="next_day"):
-                if end_date < today:
-                    new_end = min(end_date + timedelta(days=1), today)
-                    new_start = min(start_date + timedelta(days=1), new_end)
-                    _set_pending_date_range(new_start, new_end)
-                    st.rerun()
-
+    _render_navigation(start_date, end_date, today)

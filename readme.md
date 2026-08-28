@@ -73,3 +73,24 @@ streamlit run app.py
 Telegram sessions are encrypted at rest with the Fernet key. Keep `TELEGRAM_SESSION_ENCRYPTION_KEY` secret and back it up securely. Losing it makes stored Telegram sessions undecryptable.
 
 The application deliberately does not use Keycloak.
+
+## Web Login Remember Me
+
+The Web login supports a persistent **Remember me** session.
+
+Configure the lifetime in `.env`:
+
+```env
+WEB_REMEMBER_ME_DAYS=7
+```
+
+The browser receives a random persistent token. Only its SHA-256 hash is stored in SQLite. The token is revoked when the user logs out of the Web application.
+
+The project uses `extra-streamlit-components` for the browser cookie required to keep the login across Streamlit sessions.
+
+
+### Remember Me / CookieManager
+
+The CookieManager instance is created once per Streamlit Web session and reused across reruns. This prevents `StreamlitDuplicateElementKey` errors caused by registering the same custom component key multiple times in one run.
+
+`TgCrypto` is optional for Pyrogram. If it is unavailable on Python 3.14, Pyrogram falls back to its pure-Python implementation; functionality remains the same but cryptographic operations are slower.
