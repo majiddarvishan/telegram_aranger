@@ -1,7 +1,7 @@
-.env
-.streamlit/
-
 .venv/
-telegram_manager.db
-
 __pycache__/
+*.pyc
+.env
+telegram_manager.db
+*.db-shm
+*.db-wal

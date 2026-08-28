@@ -1,6 +1,5 @@
-streamlit
+streamlit>=1.48,<2
 pyrogram==2.0.106
-tgcrypto
-cryptography
-python-dotenv
-PySocks
+TgCrypto>=1.2.5
+cryptography>=44,<47
+python-dotenv>=1.0,<2

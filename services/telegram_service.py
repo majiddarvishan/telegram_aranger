@@ -1,424 +1,126 @@
-from datetime import date
+from cryptography.fernet import Fernet
 from pyrogram import Client
 from pyrogram.errors import SessionPasswordNeeded
-from config.settings import API_ID,API_HASH
-from services.auth_service import decrypt_session
-from runtime.telegram_runtime import get_runtime
-# 9. Telegram Client Creation
-# =========================================================
 
-async def create_client(
-    session_string: str | None = None,
-    proxy: dict | None = None,
-) -> Client:
-    """Create a Pyrogram client."""
-
-    kwargs = {
-        "name": "telegram",
-        "api_id": API_ID,
-        "api_hash": API_HASH,
-        "proxy": proxy,
-        "in_memory": True,
-    }
-
-    if session_string:
-        kwargs["session_string"] = session_string
-
-    client = Client(
-        **kwargs
-    )
-
-    await client.connect()
-
-    return client
+from services.telegram_runtime import get_runtime
 
 
-def set_runtime_client(
-    client: Client,
-) -> None:
-    """Store the active client in the runtime."""
-
-    runtime = get_runtime()
-
-    runtime.client = client
+def proxy_config(state) -> dict | None:
+    if not state.get("use_proxy", True): return None
+    p={"scheme":"socks5","hostname":state.get("proxy_host","127.0.0.1"),"port":int(state.get("proxy_port",1080))}
+    if state.get("proxy_user","").strip(): p["username"]=state["proxy_user"].strip()
+    if state.get("proxy_pass","").strip(): p["password"]=state["proxy_pass"].strip()
+    return p
 
 
-def get_runtime_client() -> Client:
-    """Return the current Pyrogram client."""
+def encrypt_session(key: str, session: str) -> bytes: return Fernet(key.encode()).encrypt(session.encode())
+def decrypt_session(key: str, encrypted: bytes) -> str: return Fernet(key.encode()).decrypt(encrypted).decode()
 
-    runtime = get_runtime()
+def user_dict(user) -> dict:
+    return {"id":user.id,"phone_number":user.phone_number or "","username":user.username or "","first_name":user.first_name or "","last_name":user.last_name or ""}
 
-    if runtime.client is None:
-        raise RuntimeError(
-            "Telegram client is not initialized."
-        )
+async def _new_client(settings, session_string=None, proxy=None):
+    kwargs={"name":"telegram","api_id":settings.api_id,"api_hash":settings.api_hash,"proxy":proxy,"in_memory":True}
+    if session_string: kwargs["session_string"]=session_string
+    c=Client(**kwargs)
+    await c.connect()
+    return c
 
-    return runtime.client
+async def _send_code(settings, phone, proxy):
+    rt=get_runtime()
+    if rt.client:
+        try: await rt.client.disconnect()
+        except Exception: pass
+        rt.client=None
+    c=await _new_client(settings, proxy=proxy)
+    sent=await c.send_code(phone)
+    rt.client=c
+    return sent.phone_code_hash
 
+def send_code(settings, phone, proxy): return get_runtime().run(_send_code(settings,phone,proxy))
 
-# =========================================================
-# 10. Telegram Helpers
-# =========================================================
-
-def user_to_dict(
-    user,
-) -> dict:
-    """Convert a Pyrogram User to a dictionary."""
-
-    return {
-        "id": user.id,
-        "phone_number": user.phone_number or "",
-        "username": user.username or "",
-        "first_name": user.first_name or "",
-        "last_name": user.last_name or "",
-    }
-
-
-# =========================================================
-# 11. Restore Telegram Account
-# =========================================================
-
-async def restore_telegram_account_async(
-    account: dict,
-    proxy: dict | None,
-) -> dict:
-    """Restore an encrypted Telegram session."""
-
-    session_string = decrypt_session(
-        account["encrypted_session"]
-    )
-
-    client = await create_client(
-        session_string=session_string,
-        proxy=proxy,
-    )
-
+async def _verify_code(phone, code_hash, code):
+    c=get_runtime().client
     try:
+        await c.sign_in(phone, code_hash, code)
+    except SessionPasswordNeeded:
+        return "2fa", None
+    return "success", user_dict(await c.get_me())
 
-        me = await client.get_me()
+def verify_code(phone, code_hash, code): return get_runtime().run(_verify_code(phone,code_hash,code))
 
-        set_runtime_client(
-            client
-        )
+async def _verify_2fa(password): return user_dict(await get_runtime().client.check_password(password))
+def verify_2fa(password): return get_runtime().run(_verify_2fa(password))
 
-        return user_to_dict(
-            me
-        )
+async def _export(): return await get_runtime().client.export_session_string()
+def export_session(): return get_runtime().run(_export())
 
+async def _restore(settings, encrypted, key, proxy):
+    c=await _new_client(settings, decrypt_session(key, encrypted), proxy)
+    try:
+        me=await c.get_me(); get_runtime().client=c; return user_dict(me)
     except Exception:
-
-        try:
-            await client.disconnect()
-        except Exception:
-            pass
-
+        try: await c.disconnect()
+        except Exception: pass
         raise
 
+def restore(settings, encrypted, key, proxy): return get_runtime().run(_restore(settings,encrypted,key,proxy))
 
-def restore_telegram_account(
-    account: dict,
-    proxy: dict | None,
-) -> dict:
-    """Restore a Telegram account."""
-
-    runtime = get_runtime()
-
-    return runtime.run(
-        restore_telegram_account_async(
-            account,
-            proxy,
-        )
-    )
-
-
-# =========================================================
-# 12. Telegram Login - Send Code
-# =========================================================
-
-async def send_login_code_async(
-    phone_number: str,
-    proxy: dict | None,
-):
-    """Send Telegram authentication code."""
-
-    runtime = get_runtime()
-
-    if runtime.client is not None:
-
-        try:
-            await runtime.client.disconnect()
-        except Exception:
-            pass
-
-        runtime.client = None
-
-    client = await create_client(
-        proxy=proxy,
-    )
-
-    sent_code = await client.send_code(
-        phone_number
-    )
-
-    set_runtime_client(
-        client
-    )
-
-    return sent_code.phone_code_hash
-
-
-def send_login_code(
-    phone_number: str,
-    proxy: dict | None,
-):
-    """Send Telegram authentication code."""
-
-    return get_runtime().run(
-        send_login_code_async(
-            phone_number,
-            proxy,
-        )
-    )
-
-
-# =========================================================
-# 13. Telegram Login - Verify Code
-# =========================================================
-
-async def verify_login_code_async(
-    phone_number: str,
-    phone_code_hash: str,
-    phone_code: str,
-):
-    """Verify Telegram login code."""
-
-    client = get_runtime_client()
-
+async def _disconnect(logout=False):
+    rt=get_runtime(); c=rt.client
+    if not c: return
     try:
+        if logout: await c.log_out()
+        elif c.is_connected: await c.disconnect()
+    finally: rt.client=None
 
-        await client.sign_in(
-            phone_number=phone_number,
-            phone_code_hash=phone_code_hash,
-            phone_code=phone_code,
+def disconnect(): get_runtime().run(_disconnect(False))
+def logout(): get_runtime().run(_disconnect(True))
+
+async def _dialogs():
+    c = get_runtime().client
+    result = []
+
+    async for d in c.get_dialogs():
+        chat = d.chat
+
+        if chat.type.value not in (
+            "private",
+            "group",
+            "supergroup",
+            "channel",
+        ):
+            continue
+
+        title = (
+            chat.title
+            or f"{chat.first_name or ''} {chat.last_name or ''}".strip()
+            or str(chat.id)
         )
 
-    except SessionPasswordNeeded:
-
-        return "2fa", None
-
-    me = await client.get_me()
-
-    return (
-        "success",
-        user_to_dict(me),
-    )
-
-
-def verify_login_code(
-    phone_number: str,
-    phone_code_hash: str,
-    phone_code: str,
-):
-    """Verify Telegram login code."""
-
-    return get_runtime().run(
-        verify_login_code_async(
-            phone_number,
-            phone_code_hash,
-            phone_code,
-        )
-    )
-
-
-# =========================================================
-# 14. Telegram 2FA
-# =========================================================
-
-async def verify_2fa_async(
-    password: str,
-):
-    """Verify Telegram two-step verification password."""
-
-    client = get_runtime_client()
-
-    me = await client.check_password(
-        password
-    )
-
-    return user_to_dict(
-        me
-    )
-
-
-def verify_2fa(
-    password: str,
-):
-    """Verify Telegram 2FA password."""
-
-    return get_runtime().run(
-        verify_2fa_async(
-            password
-        )
-    )
-
-
-# =========================================================
-# 15. Export Telegram Session
-# =========================================================
-
-async def export_current_session_async():
-    """Export the authorized Pyrogram session."""
-
-    client = get_runtime_client()
-
-    return await client.export_session_string()
-
-
-def export_current_session() -> str:
-    """Export the authorized Pyrogram session."""
-
-    return get_runtime().run(
-        export_current_session_async()
-    )
-
-
-# =========================================================
-# 16. Disconnect Telegram
-# =========================================================
-
-async def disconnect_telegram_async():
-    """Disconnect the active Telegram client without logging out."""
-
-    runtime = get_runtime()
-    client = runtime.client
-
-    if client is None:
-        return
-
-    try:
-        if client.is_connected:
-            await client.disconnect()
-    finally:
-        runtime.client = None
-
-
-def disconnect_telegram():
-    """Disconnect the active Telegram client without invalidating the saved session."""
-
-    get_runtime().run(
-        disconnect_telegram_async()
-    )
-
-
-async def logout_telegram_async():
-    """Log out the active Telegram account from Telegram."""
-
-    runtime = get_runtime()
-    client = runtime.client
-
-    if client is None:
-        return
-
-    try:
-        await client.log_out()
-    finally:
-        runtime.client = None
-
-
-def logout_telegram():
-    """Log out the active Telegram account from Telegram."""
-
-    get_runtime().run(
-        logout_telegram_async()
-    )
-
-
-# =========================================================
-# 17. Fetch Saved Messages
-# =========================================================
-
-async def fetch_saved_messages_async(
-    limit: int = 100,
-) -> list[dict]:
-    """Fetch recent Saved Messages."""
-
-    client = get_runtime_client()
-
-    me = await client.get_me()
-
-    messages = []
-
-    async for message in client.get_chat_history(
-        "me",
-        limit=limit,
-    ):
-
-        content = (
-            message.text
-            or message.caption
-            or "[Media / File]"
-        )
-
-        messages.append(
+        result.append(
             {
-                "id": message.id,
-                "text": content,
-                "date": str(message.date),
-                "user_id": me.id,
+                "id": chat.id,
+                "title": title,
+                "type": chat.type.value,
+                "username": chat.username or "",
             }
         )
 
-    return messages
+    return result
 
+def get_dialogs(): return get_runtime().run(_dialogs())
 
-def fetch_saved_messages(
-    limit: int = 100,
-) -> list[dict]:
-    """Fetch recent Saved Messages."""
+async def _history(chat_id, start_dt, end_dt, limit=100):
+    c=get_runtime().client; out=[]
+    async for m in c.get_chat_history(chat_id, limit=limit):
+        if not m.date: continue
+        if m.date < start_dt: break
+        if m.date <= end_dt:
+            out.append({"id":m.id,"chat_id":chat_id,"text":m.text or m.caption or "[Media / File]","date":m.date,"user_id":chat_id})
+    return out
 
-    return get_runtime().run(
-        fetch_saved_messages_async(
-            limit
-        )
-    )
+def history(chat_id,start_dt,end_dt,limit=100): return get_runtime().run(_history(chat_id,start_dt,end_dt,limit))
 
-
-async def fetch_saved_messages_for_range_async(start_date: date,end_date: date,limit:int=10000)->list[dict]:
- if end_date<start_date: raise ValueError("End date cannot be earlier than start date.")
- client=get_runtime_client(); me=await client.get_me(); messages=[]
- async for message in client.get_chat_history("me",limit=limit):
-  d=message.date.date()
-  if d>end_date: continue
-  if d<start_date: break
-  messages.append({"id":message.id,"text":message.text or message.caption or "[Media / File]","date":str(message.date),"user_id":me.id})
- return messages
-def fetch_saved_messages_for_range(start_date:date,end_date:date,limit:int=10000):
- return get_runtime().run(fetch_saved_messages_for_range_async(start_date,end_date,limit))
-# 18. Delete Telegram Message
-# =========================================================
-
-async def delete_message_async(
-    message_id: int,
-):
-    """Delete a Telegram message."""
-
-    client = get_runtime_client()
-
-    await client.delete_messages(
-        "me",
-        message_id,
-    )
-
-
-def delete_message(
-    message_id: int,
-):
-    """Delete a Telegram message."""
-
-    get_runtime().run(
-        delete_message_async(
-            message_id
-        )
-    )
-
-
+async def _delete(chat_id,message_id): await get_runtime().client.delete_messages(chat_id,message_id)
+def delete_message(chat_id,message_id): get_runtime().run(_delete(chat_id,message_id))
