@@ -341,3 +341,19 @@ Git tag tooling note:
 - Intended lightweight/annotated Git tag: `v1.0.0`.
 - It must point to release checkpoint `bd8c8b211aa8e3ee5ca09c864b3e4803eac6807b`, before the sticky-header change.
 - The active GitHub connector exposes branch/file/ref updates but no tag-ref creation action, so the Git tag itself remains pending rather than being falsely recorded as created.
+
+
+## 2026-09-25 — Fixed message header and integrated date navigation
+
+User reported that the previous sticky-header implementation still scrolled out of view and requested moving the bottom date-navigation arrows into the same header.
+
+Changes on `main`:
+- Replaced sticky positioning with a true viewport-fixed message-control header.
+- Header now uses `position: fixed` with high z-index and a dedicated layout spacer below it.
+- Chat selector, message search, tag filter, date-range picker, Previous Day and Next Day controls are all in the same fixed header.
+- Removed the old bottom `message_navigation` container and bottom spacer entirely.
+- Previous/Next date behavior still uses the existing pending-date-range mechanism and retains the future-date guard.
+- Added responsive fixed-header offsets for narrow screens and collapsed sidebar state.
+- Added/updated UI regression coverage for fixed positioning and removal of the bottom navigation container.
+
+Current development version remains `1.0.1-dev`.
