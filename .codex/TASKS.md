@@ -92,6 +92,7 @@ This file began as the 2026-09-24 review backlog and now tracks implementation s
 - [x] Reconcile TgCrypto documentation: upstream can run without it, but this repository installs it and treats it as part of the supported deployment profile.
 
 ## P3 — UX / product definition
+- [x] Replace fragile fixed-overlay header/mask approach with a normal-flow header plus a dedicated 420px Streamlit scroll container for messages, structurally preventing header/message overlap.
 - [x] Prevent scrolled message cards from visually bleeding through the fixed header by adding a shared opaque fixed backdrop, stacking isolation, and regression coverage.
 - [x] Fix fixed-header clipping/overflow with Streamlit toolbar and collapsed sidebar: explicit viewport width override, safe collapsed-sidebar default, expanded-sidebar offset, opaque background, and regression coverage.
 - [x] Keep the message filter/control area truly fixed in the viewport while message content scrolls, and move Previous/Next date navigation from the bottom into the same fixed header; regression coverage included.
