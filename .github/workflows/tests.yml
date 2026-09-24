@@ -77,5 +77,11 @@ jobs:
       - name: History tests
         run: python -m unittest discover -s tests -p "test_history.py" -v
 
+      - name: Date range timezone tests
+        run: python -m unittest discover -s tests -p "test_date_range.py" -v
+
+      - name: Telegram runtime shutdown tests
+        run: python -m unittest discover -s tests -p "test_telegram_runtime.py" -v
+
       - name: UI state smoke tests
         run: python -m unittest discover -s tests -p "test_ui_smoke.py" -v
