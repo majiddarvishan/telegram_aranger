@@ -33,28 +33,28 @@ jobs:
           pip install -r requirements.txt
 
       - name: Media cache tests
-        run: python tests/test_media_cache.py
+        run: python -m unittest discover -s tests -p "test_media_cache.py" -v
 
       - name: Telegram media tests
-        run: python tests/test_telegram_media.py
+        run: python -m unittest discover -s tests -p "test_telegram_media.py" -v
 
       - name: Remember-me restore tests
-        run: python tests/test_remember_me_restore.py
+        run: python -m unittest discover -s tests -p "test_remember_me_restore.py" -v
 
       - name: Authentication tests
-        run: python tests/test_auth.py
+        run: python -m unittest discover -s tests -p "test_auth.py" -v
 
       - name: Login security tests
-        run: python tests/test_login_security.py
+        run: python -m unittest discover -s tests -p "test_login_security.py" -v
 
       - name: Telegram account tests
-        run: python tests/test_telegram_accounts.py
+        run: python -m unittest discover -s tests -p "test_telegram_accounts.py" -v
 
       - name: Tag isolation and migration tests
-        run: python tests/test_tags.py
+        run: python -m unittest discover -s tests -p "test_tags.py" -v
 
       - name: History tests
-        run: python tests/test_history.py
+        run: python -m unittest discover -s tests -p "test_history.py" -v
 
       - name: UI state smoke tests
-        run: python tests/test_ui_smoke.py
+        run: python -m unittest discover -s tests -p "test_ui_smoke.py" -v
