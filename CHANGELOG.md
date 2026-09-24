@@ -4,8 +4,13 @@ All notable Telegram Harbor changes are recorded here.
 
 ## Unreleased
 
+## 1.0.2 - 2026-09-25
+
 - Increase the dedicated message scroll area from 420px to 620px by default.
 - Add `MESSAGE_SCROLL_HEIGHT` so deployments can tune the main message panel height without changing code.
+- Move **Load More Messages** out of the scroll panel and place it beside **Refresh Messages**.
+- Keep the scroll panel dedicated to message-count/status text and message cards.
+- Add regression coverage for the message action-bar layout.
 
 ## 1.0.1 - 2026-09-25
 
