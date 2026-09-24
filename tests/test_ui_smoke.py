@@ -6,7 +6,9 @@ from ui.main import (
     MESSAGE_HEADER_KEY,
     MESSAGE_SCROLL_KEY,
     _delete_state_key,
+    _display_message_text,
     _message_card_key,
+    _message_footer_key,
     _message_matches_filters,
     _tag_editor_state_key,
     _remove_message_from_state,
@@ -95,16 +97,18 @@ class UiMessageSmokeTests(unittest.TestCase):
             )
         )
 
-    def test_message_card_uses_on_demand_tag_editor(self):
+    def test_message_card_uses_compact_on_demand_footer(self):
         import inspect
-        from ui.main import _render_message_card, _render_tag_controls
+        from ui.main import _render_message_card, _render_message_footer
 
         card_source = inspect.getsource(_render_message_card)
-        tag_source = inspect.getsource(_render_tag_controls)
+        footer_source = inspect.getsource(_render_message_footer)
 
-        self.assertIn("tag_chips_html", tag_source)
-        self.assertIn("Edit tags", tag_source)
-        self.assertIn("st.text_input", tag_source)
+        self.assertIn("tag_chips_html", footer_source)
+        self.assertIn("Edit tags", footer_source)
+        self.assertIn("Delete", footer_source)
+        self.assertIn("st.text_input", footer_source)
+        self.assertIn("message_body_html", card_source)
         self.assertNotIn("Tags (comma-separated)", card_source)
 
     def test_media_actions_use_compact_hierarchy(self):
@@ -120,11 +124,31 @@ class UiMessageSmokeTests(unittest.TestCase):
         self.assertNotIn("Load Video", source)
         self.assertNotIn("Prepare Video Download", source)
 
-    def test_message_card_and_editor_keys_are_stable(self):
+    def test_message_card_footer_and_editor_keys_are_stable(self):
         self.assertEqual(_message_card_key(7, 42), "message-card-7-42")
+        self.assertEqual(
+            _message_footer_key(7, 42),
+            "message-footer-7-42",
+        )
         self.assertEqual(
             _tag_editor_state_key(7, -100, 42),
             "7:-100:42",
+        )
+
+    def test_media_only_placeholder_is_hidden_from_card_body(self):
+        message = {
+            "text": "[Video]",
+            "media": {"type": "video"},
+        }
+        captioned = {
+            "text": "Actual caption",
+            "media": {"type": "video"},
+        }
+
+        self.assertEqual(_display_message_text(message), "")
+        self.assertEqual(
+            _display_message_text(captioned),
+            "Actual caption",
         )
 
     def test_delete_confirmation_key_is_scoped_to_account_chat_and_message(self):
