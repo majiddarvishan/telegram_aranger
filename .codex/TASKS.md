@@ -49,6 +49,7 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 
 
 ## P1 — Tests and regression safety
+- [x] Fix and cover Remember Me regression after application restart: refresh browser cookies instead of relying on the CookieManager constructor snapshot.
 - [ ] Add unit tests for password hashing/authentication.
 - [ ] Add tests for remember-me token creation, expiry, restore, and revocation.
 - [ ] Add database tests for ownership isolation between Web users.
