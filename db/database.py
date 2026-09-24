@@ -47,12 +47,45 @@ def initialize_database(db_file: str) -> None:
         CREATE INDEX IF NOT EXISTS idx_web_sessions_user_id ON web_sessions(user_id);
         CREATE TABLE IF NOT EXISTS message_tags (
             telegram_account_id INTEGER NOT NULL,
+            chat_id INTEGER NOT NULL DEFAULT 0,
             message_id INTEGER NOT NULL,
             tags TEXT,
-            PRIMARY KEY(telegram_account_id, message_id),
+            PRIMARY KEY(telegram_account_id, chat_id, message_id),
             FOREIGN KEY(telegram_account_id) REFERENCES telegram_accounts(id) ON DELETE CASCADE
         );
         """)
+        _migrate_message_tags_chat_id(conn)
         conn.commit()
     finally:
         conn.close()
+
+
+def _migrate_message_tags_chat_id(conn: sqlite3.Connection) -> None:
+    """Upgrade the legacy message_tags key without discarding existing tags."""
+    columns = {
+        row[1]
+        for row in conn.execute("PRAGMA table_info(message_tags)").fetchall()
+    }
+    if "chat_id" in columns:
+        return
+
+    conn.executescript(
+        """
+        ALTER TABLE message_tags RENAME TO message_tags_legacy;
+
+        CREATE TABLE message_tags (
+            telegram_account_id INTEGER NOT NULL,
+            chat_id INTEGER NOT NULL DEFAULT 0,
+            message_id INTEGER NOT NULL,
+            tags TEXT,
+            PRIMARY KEY(telegram_account_id, chat_id, message_id),
+            FOREIGN KEY(telegram_account_id) REFERENCES telegram_accounts(id) ON DELETE CASCADE
+        );
+
+        INSERT INTO message_tags(telegram_account_id, chat_id, message_id, tags)
+        SELECT telegram_account_id, 0, message_id, tags
+        FROM message_tags_legacy;
+
+        DROP TABLE message_tags_legacy;
+        """
+    )
