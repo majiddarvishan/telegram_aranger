@@ -6,8 +6,8 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 - [x] Fix tag identity: `message_tags` now uses `(telegram_account_id, chat_id, message_id)` with an in-place migration that preserves legacy rows under `chat_id=0`.
 - [x] Rework historical message retrieval to start from the requested `end_dt` via Pyrogram `offset_date` and apply the result limit inside the requested range.
 - [x] Treat `default_message_limit` as the maximum number of returned messages inside the selected date range; `limit=0` is supported internally for unlimited test/service retrieval.
-- [ ] Verify timezone handling end-to-end between Pyrogram message datetimes and locally constructed date-range bounds.
-- [ ] Ensure stopping a `TelegramRuntime` cleanly disconnects its active Pyrogram client before stopping the loop.
+- [x] Verify timezone handling end-to-end: Streamlit calendar dates, local naive bounds, Pyrogram `datetime.timestamp()` offsets, and `datetime.fromtimestamp()` message dates consistently use the server-local timezone; covered by regression tests.
+- [x] Ensure stopping a `TelegramRuntime` disconnects the active Pyrogram client before stopping/closing the event loop, including failure-safe and idempotent shutdown tests.
 
 
 ## P1 — Media viewing and download
@@ -70,15 +70,15 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 - [x] Document multi-user trust boundaries, host/database access, Telegram session sensitivity, and stronger-isolation requirements in `docs/SECURITY.md`.
 
 ## P2 — Performance / scalability
-- [ ] Eliminate per-message N+1 SQLite tag lookups; load tags for a message set in one query.
-- [ ] Add proper Telegram history pagination and lazy loading.
+- [x] Eliminate per-message N+1 SQLite tag lookups with `get_tags_for_messages()` batch loading.
+- [x] Add range-aware history retrieval plus `Load More Messages` result pagination in increments of `default_message_limit`.
 - [ ] Consider server-side/Telegram-side search strategy for large histories.
 - [ ] Measure the impact of synchronous `.result()` waits on Streamlit responsiveness.
 - [ ] Review SQLite contention under multiple concurrent Streamlit users.
 - [ ] If multi-instance deployment is required, replace local Streamlit session/runtime assumptions and local SQLite with shared infrastructure.
 
 ## P2 — Data model / lifecycle
-- [ ] Add schema versioning and migrations; current initialization only creates missing tables.
+- [x] Add SQLite `schema_meta` / `schema_version` tracking and a versioned migration path for chat-scoped message tags.
 - [ ] Normalize tags if richer tag features are planned instead of comma-separated text.
 - [ ] Define backup/restore for the SQLite database and Fernet key as one operational unit.
 - [ ] Consider indexes after real query profiling.
@@ -92,7 +92,7 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 
 ## P3 — UX / product definition
 - [ ] Clarify whether the intended product is truly "Saved Messages Manager" or a general Telegram chat/message manager; current code lists all supported dialogs.
-- [ ] Surface fetch-limit/pagination state so users do not assume the visible list is complete.
+- [x] Surface loaded/visible counts, current message limit, end-of-range state, and an explicit `Load More Messages` action.
 - [ ] Decide whether message deletion should require confirmation.
 - [ ] Decide whether tag edits should support commas, normalization, rename, and deletion workflows.
 
