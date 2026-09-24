@@ -23,6 +23,52 @@ class RememberMeRestoreTests(unittest.TestCase):
             remember_me_days=7,
         )
 
+    def test_successful_remember_login_does_not_force_immediate_rerun(self):
+        user = {"id": 1, "username": "alice", "display_name": "Alice"}
+        fake_st = SimpleNamespace(
+            session_state=SessionState(
+                web_user=None,
+                remember_token=None,
+            ),
+        )
+
+        with (
+            patch.object(auth, "st", fake_st),
+            patch.object(auth, "_create_remember_session") as create_remember,
+        ):
+            should_rerun = auth._complete_successful_login(
+                self.settings,
+                user,
+                remember_me=True,
+            )
+
+        self.assertFalse(should_rerun)
+        create_remember.assert_called_once_with(self.settings, user)
+        self.assertEqual(fake_st.session_state.web_user, user)
+
+    def test_successful_non_remember_login_can_rerun_immediately(self):
+        user = {"id": 1, "username": "alice", "display_name": "Alice"}
+        fake_st = SimpleNamespace(
+            session_state=SessionState(
+                web_user=None,
+                remember_token=None,
+            ),
+        )
+
+        with (
+            patch.object(auth, "st", fake_st),
+            patch.object(auth, "_clear_remember_cookie") as clear_remember,
+        ):
+            should_rerun = auth._complete_successful_login(
+                self.settings,
+                user,
+                remember_me=False,
+            )
+
+        self.assertTrue(should_rerun)
+        clear_remember.assert_called_once_with(self.settings)
+        self.assertEqual(fake_st.session_state.web_user, user)
+
     def test_restore_refreshes_browser_cookies_instead_of_stale_manager_snapshot(self):
         token = "remember-token"
         user = {"id": 1, "username": "alice", "display_name": "Alice"}
