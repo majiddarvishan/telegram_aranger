@@ -438,3 +438,15 @@ Post-release development:
 - Minimum accepted configured height is 300px.
 - UI reads the scroll height from settings instead of a hard-coded UI constant.
 - Added regression coverage for the default 620px setting and CI coverage for settings defaults.
+
+
+## 2026-09-25 — Move Load More beside Refresh
+
+User requested moving **Load More Messages** out of the scrollable message panel and placing it beside **Refresh Messages**.
+
+Changes:
+- `Refresh Messages` and `Load More Messages` now render together in a compact action row above the message panel.
+- `Load More Messages` is shown only when the currently loaded count reaches the active result limit.
+- The scrollable panel now contains only the message-count caption and message cards.
+- Added regression coverage that asserts Load More belongs to the action-bar renderer and not the scroll-area renderer.
+- Current message panel default remains 620px and is configurable through `MESSAGE_SCROLL_HEIGHT`.
