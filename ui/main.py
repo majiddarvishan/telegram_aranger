@@ -24,6 +24,10 @@ def _media_state_key(account_id: int, chat_id: int, message_id: int, purpose: st
     return f"{account_id}:{chat_id}:{message_id}:{purpose}"
 
 
+def _delete_state_key(account_id: int, chat_id: int, message_id: int) -> str:
+    return f"{account_id}:{chat_id}:{message_id}"
+
+
 def _get_prepared_media(key: str):
     result = st.session_state.media_files.get(key)
     if not result:
@@ -600,9 +604,13 @@ def render_main(settings):
 
             with right:
                 value = st.text_input(
-                    "Tags",
+                    "Tags (comma-separated)",
                     ", ".join(current_tags),
                     key=f"tags_{account_id}_{selected_chat_id}_{message_id}",
+                    help=(
+                        "Commas separate tags. Empty values are ignored and "
+                        "duplicate tags are removed when saved."
+                    ),
                 )
 
                 if st.button(
@@ -618,25 +626,64 @@ def render_main(settings):
                     )
                     st.rerun()
 
-                if st.button(
+                delete_state_key = _delete_state_key(
+                    account_id,
+                    selected_chat_id,
+                    message_id,
+                )
+                if (
+                    st.session_state.get("pending_delete_message")
+                    == delete_state_key
+                ):
+                    st.warning("Delete this Telegram message permanently?")
+                    confirm_col, cancel_col = st.columns(2)
+                    with confirm_col:
+                        confirm_delete = st.button(
+                            "✅ Confirm",
+                            key=(
+                                f"confirm_del_{account_id}_"
+                                f"{selected_chat_id}_{message_id}"
+                            ),
+                            type="primary",
+                            use_container_width=True,
+                        )
+                    with cancel_col:
+                        cancel_delete = st.button(
+                            "Cancel",
+                            key=(
+                                f"cancel_del_{account_id}_"
+                                f"{selected_chat_id}_{message_id}"
+                            ),
+                            use_container_width=True,
+                        )
+
+                    if cancel_delete:
+                        st.session_state.pending_delete_message = None
+                        st.rerun()
+
+                    if confirm_delete:
+                        try:
+                            delete_message(selected_chat_id, message_id)
+                            (
+                                st.session_state.messages,
+                                st.session_state.media_files,
+                            ) = _remove_message_from_state(
+                                st.session_state.messages,
+                                st.session_state.media_files,
+                                account_id,
+                                selected_chat_id,
+                                message_id,
+                            )
+                            st.session_state.pending_delete_message = None
+                            st.rerun()
+                        except Exception as exc:
+                            st.session_state.pending_delete_message = None
+                            st.error(f"Failed to delete message: {exc}")
+                elif st.button(
                     "🗑️ Delete",
                     key=f"del_{account_id}_{selected_chat_id}_{message_id}",
-                    type="primary",
                 ):
-                    try:
-                        delete_message(selected_chat_id, message_id)
-                        (
-                            st.session_state.messages,
-                            st.session_state.media_files,
-                        ) = _remove_message_from_state(
-                            st.session_state.messages,
-                            st.session_state.media_files,
-                            account_id,
-                            selected_chat_id,
-                            message_id,
-                        )
-                        st.rerun()
-                    except Exception as exc:
-                        st.error(f"Failed to delete message: {exc}")
+                    st.session_state.pending_delete_message = delete_state_key
+                    st.rerun()
 
     _render_navigation(start_date, end_date, today)
