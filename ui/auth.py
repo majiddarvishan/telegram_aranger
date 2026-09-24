@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 import extra_streamlit_components as stx
 import streamlit as st
 
-from config.branding import PRODUCT_NAME
+from config.branding import PRODUCT_NAME, PRODUCT_TAGLINE, PRODUCT_VERSION
 from db.auth_sessions import create_session, delete_session, get_user_by_session
 from db.login_attempts import (
     clear_failed_logins,
@@ -16,6 +16,7 @@ from db.users import (
     create_user,
     validate_password,
 )
+from ui.theme import auth_brand_html
 
 COOKIE_NAME = "telegram_manager_remember"
 
@@ -147,75 +148,131 @@ def _complete_successful_login(settings, user: dict, remember_me: bool) -> bool:
 
 
 def render_web_auth(settings):
-    st.title(f"🔐 {PRODUCT_NAME}")
-    login, register = st.tabs(["Login", "Create Account"])
+    left_col, auth_col, right_col = st.columns([1.0, 1.2, 1.0])
 
-    with login:
-        with st.form("web_login"):
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            remember_me = st.checkbox(
-                f"Remember me for {settings.remember_me_days} days",
-                value=True,
+    with auth_col:
+        with st.container(
+            border=True,
+            key="auth-card",
+        ):
+            st.markdown(
+                auth_brand_html(
+                    PRODUCT_NAME,
+                    PRODUCT_TAGLINE,
+                    PRODUCT_VERSION,
+                ),
+                unsafe_allow_html=True,
             )
-            submit = st.form_submit_button("Login", use_container_width=True)
 
-        if submit:
-            if is_login_rate_limited(
-                settings.db_file,
-                username,
-                settings.web_login_max_attempts,
-                settings.web_login_window_minutes,
-            ):
-                st.error(
-                    "Too many failed login attempts. "
-                    "Try again after the login window expires."
-                )
-            else:
-                user = authenticate_user(settings.db_file, username, password)
-                if not user:
-                    record_failed_login(settings.db_file, username)
-                    st.error("Invalid username or password.")
-                else:
-                    clear_failed_logins(settings.db_file, username)
-                    should_rerun = _complete_successful_login(
-                        settings,
-                        user,
-                        remember_me,
+            login, register = st.tabs(
+                ["Login", "Create account"]
+            )
+
+            with login:
+                with st.form("web_login"):
+                    username = st.text_input("Username")
+                    password = st.text_input(
+                        "Password",
+                        type="password",
                     )
-                    if should_rerun:
-                        st.rerun()
+                    remember_me = st.checkbox(
+                        (
+                            "Remember me for "
+                            f"{settings.remember_me_days} days"
+                        ),
+                        value=True,
+                    )
+                    submit = st.form_submit_button(
+                        "Login",
+                        use_container_width=True,
+                    )
 
-    with register:
-        with st.form("web_register"):
-            name = st.text_input("Display Name")
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            confirm_password = st.text_input("Confirm Password", type="password")
-            submit = st.form_submit_button("Create Account", use_container_width=True)
-
-        if submit:
-            if len(password) < MIN_PASSWORD_LENGTH:
-                st.error(
-                    f"Password must contain at least {MIN_PASSWORD_LENGTH} characters."
-                )
-            elif password != confirm_password:
-                st.error("Passwords do not match.")
-            elif not username.strip():
-                st.error("Username is required.")
-            else:
-                try:
-                    validate_password(password)
-                    created = create_user(
+                if submit:
+                    if is_login_rate_limited(
                         settings.db_file,
                         username,
-                        password,
-                        name,
-                    )
-                except ValueError as exc:
-                    st.error(str(exc))
-                else:
-                    if created:
-                        st.success("Account created. You can now login.")
+                        settings.web_login_max_attempts,
+                        settings.web_login_window_minutes,
+                    ):
+                        st.error(
+                            "Too many failed login attempts. "
+                            "Try again after the login window expires."
+                        )
                     else:
-                        st.error("Username already exists.")
+                        user = authenticate_user(
+                            settings.db_file,
+                            username,
+                            password,
+                        )
+                        if not user:
+                            record_failed_login(
+                                settings.db_file,
+                                username,
+                            )
+                            st.error(
+                                "Invalid username or password."
+                            )
+                        else:
+                            clear_failed_logins(
+                                settings.db_file,
+                                username,
+                            )
+                            should_rerun = (
+                                _complete_successful_login(
+                                    settings,
+                                    user,
+                                    remember_me,
+                                )
+                            )
+                            if should_rerun:
+                                st.rerun()
+
+            with register:
+                with st.form("web_register"):
+                    name = st.text_input("Display name")
+                    username = st.text_input("Username")
+                    password = st.text_input(
+                        "Password",
+                        type="password",
+                    )
+                    confirm_password = st.text_input(
+                        "Confirm password",
+                        type="password",
+                    )
+                    submit = st.form_submit_button(
+                        "Create account",
+                        use_container_width=True,
+                    )
+
+                if submit:
+                    if len(password) < MIN_PASSWORD_LENGTH:
+                        st.error(
+                            "Password must contain at least "
+                            f"{MIN_PASSWORD_LENGTH} characters."
+                        )
+                    elif password != confirm_password:
+                        st.error("Passwords do not match.")
+                    elif not username.strip():
+                        st.error("Username is required.")
+                    else:
+                        try:
+                            validate_password(password)
+                            created = create_user(
+                                settings.db_file,
+                                username,
+                                password,
+                                name,
+                            )
+                        except ValueError as exc:
+                            st.error(str(exc))
+                        else:
+                            if created:
+                                st.success(
+                                    "Account created. "
+                                    "You can now login."
+                                )
+                            else:
+                                st.error(
+                                    "Username already exists."
+                                )
+
