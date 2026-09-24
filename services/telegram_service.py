@@ -2,7 +2,7 @@ import secrets
 import threading
 
 from cryptography.fernet import Fernet
-from pyrogram import Client
+from pyrogram import Client, raw
 from pyrogram.errors import PeerIdInvalid, SessionPasswordNeeded
 
 from services.media_cache import (
@@ -124,9 +124,27 @@ def export_session():
     )
 
 
-async def _restore(runtime, settings, encrypted, key, proxy):
+async def _hydrate_peer_cache(
+    client,
+    peer_records: list[tuple[int, int, str, str, str]] | None,
+) -> None:
+    """Restore persisted Pyrogram peers into the in-memory session."""
+    if not peer_records:
+        return
+    await client.storage.update_peers(peer_records)
+
+
+async def _restore(
+    runtime,
+    settings,
+    encrypted,
+    key,
+    proxy,
+    peer_records=None,
+):
     client = await _new_client(settings, decrypt_session(key, encrypted), proxy)
     try:
+        await _hydrate_peer_cache(client, peer_records)
         me = await client.get_me()
         runtime.client = client
         return user_dict(me)
@@ -138,10 +156,17 @@ async def _restore(runtime, settings, encrypted, key, proxy):
         raise
 
 
-def restore(settings, encrypted, key, proxy):
+def restore(settings, encrypted, key, proxy, peer_records=None):
     runtime = get_runtime()
     return runtime.run(
-        _restore(runtime, settings, encrypted, key, proxy),
+        _restore(
+            runtime,
+            settings,
+            encrypted,
+            key,
+            proxy,
+            peer_records=peer_records,
+        ),
         operation="restore_session",
     )
 
@@ -175,6 +200,38 @@ def logout():
     )
 
 
+def _peer_record_from_input_peer(
+    chat_id: int,
+    chat_type: str,
+    username: str,
+    input_peer,
+) -> dict:
+    """Normalize a resolved Pyrogram InputPeer for persistent caching."""
+    if isinstance(input_peer, raw.types.InputPeerChannel):
+        peer_type = (
+            chat_type
+            if chat_type in ("channel", "supergroup")
+            else "channel"
+        )
+        access_hash = int(input_peer.access_hash)
+    elif isinstance(input_peer, raw.types.InputPeerUser):
+        peer_type = "user"
+        access_hash = int(input_peer.access_hash)
+    elif isinstance(input_peer, raw.types.InputPeerChat):
+        peer_type = "group"
+        access_hash = 0
+    else:
+        return {
+            "peer_access_hash": None,
+            "peer_type": "",
+        }
+
+    return {
+        "peer_access_hash": access_hash,
+        "peer_type": peer_type,
+    }
+
+
 async def _dialogs(client, limit: int):
     """Return Telegram dialogs without relying on version-specific Dialog attributes."""
     if client is None:
@@ -195,12 +252,22 @@ async def _dialogs(client, limit: int):
         if not title:
             title = str(chat.id)
 
+        username = chat.username or ""
+        input_peer = await client.resolve_peer(chat.id)
+        peer_record = _peer_record_from_input_peer(
+            chat.id,
+            chat_type,
+            username,
+            input_peer,
+        )
+
         result.append(
             {
                 "id": chat.id,
                 "title": title,
                 "type": chat_type,
-                "username": chat.username or "",
+                "username": username,
+                **peer_record,
             }
         )
 
