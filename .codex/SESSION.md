@@ -615,3 +615,27 @@ Files added/updated:
 - `.codex/START_HERE.md`, `.codex/PROJECT_CONTEXT.md`, `.codex/TASKS.md` — branch/context updates.
 
 No production UI behavior or application code was changed during this planning step.
+
+
+## 2026-09-25 — GUI-P0 design foundation implementation
+
+Implementation started on branch `gui`.
+
+Completed:
+- added `ui/theme.py` as the single presentation-layer foundation;
+- introduced semantic design tokens for spacing, radii, control height, surfaces, borders, text and semantic status colors;
+- based primary visual colors on Streamlit theme variables so Light/Dark themes can inherit correctly;
+- centralized the message header and message-scroll CSS previously embedded in `ui/main.py`;
+- applied the theme globally from `app.py`;
+- standardized baseline form, button, input, alert, sidebar, caption and divider styling;
+- added focus-visible treatment for keyboard accessibility;
+- added reduced-motion support;
+- added safe reusable HTML helpers for status badges and section titles;
+- preserved the existing normal-flow message header + dedicated scroll-container architecture;
+- added `tests/test_theme.py`;
+- enabled GitHub Actions push validation for the `gui` branch and added a dedicated theme-foundation test step.
+
+Still open:
+- manual Light/Dark visual inspection is required before closing GUI-P0.
+
+No Telegram, database, authentication, dialog-cache, message-history, tag or media behavior was changed.
