@@ -418,3 +418,23 @@ Final architecture change:
 - Updated UI regression coverage to ensure no fixed header/backdrop/spacer CSS returns.
 
 This replaces the earlier fixed-overlay approach; those earlier fixes should be considered superseded.
+
+
+## 2026-09-25 — v1.0.1 checkpoint and larger message panel
+
+User confirmed the dedicated message-scroll architecture works correctly.
+
+Release checkpoint:
+- Telegram Harbor v1.0.1 metadata finalized.
+- Release checkpoint SHA: `a7648e64f1cd8efc0c098b4eb0a689e6bd94d873`.
+- VERSION at that checkpoint is `1.0.1`.
+- README and CHANGELOG mark v1.0.1 as the latest release.
+- The connector still does not expose Git tag-ref creation; the intended tag `v1.0.1` must point exactly to the checkpoint above.
+
+Post-release development:
+- Current development version moved to `1.0.2-dev`.
+- Main message panel default height increased from 420px to 620px.
+- Added `MESSAGE_SCROLL_HEIGHT` environment setting.
+- Minimum accepted configured height is 300px.
+- UI reads the scroll height from settings instead of a hard-coded UI constant.
+- Added regression coverage for the default 620px setting and CI coverage for settings defaults.
