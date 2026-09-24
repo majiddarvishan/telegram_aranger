@@ -2,8 +2,10 @@ import asyncio
 import unittest
 from datetime import datetime, timedelta
 from types import SimpleNamespace
+from unittest.mock import AsyncMock, patch
 
-from services.telegram_service import _history
+import services.telegram_service as telegram_service
+from services.telegram_service import _history, _history_with_peer_recovery
 
 
 class FakeHistoryClient:
@@ -89,6 +91,55 @@ class TelegramHistoryTests(unittest.TestCase):
         )
 
         self.assertEqual([item["id"] for item in result], [5, 4])
+
+    def test_peer_id_invalid_is_recovered_once_then_history_retried(self):
+        class FakePeerIdInvalid(Exception):
+            pass
+
+        recovered = [{"id": 99}]
+
+        with (
+            patch.object(
+                telegram_service,
+                "PeerIdInvalid",
+                FakePeerIdInvalid,
+            ),
+            patch.object(
+                telegram_service,
+                "_history",
+                new=AsyncMock(
+                    side_effect=[
+                        FakePeerIdInvalid(),
+                        recovered,
+                    ]
+                ),
+            ) as history_call,
+            patch.object(
+                telegram_service,
+                "_warm_peer_for_history",
+                new=AsyncMock(),
+            ) as warm_peer,
+        ):
+            result = asyncio.run(
+                _history_with_peer_recovery(
+                    client=object(),
+                    chat_id=-1003075722346,
+                    start_dt=datetime(2026, 9, 20),
+                    end_dt=datetime(2026, 9, 21),
+                    limit=100,
+                    peer_username="cached_channel",
+                    dialog_limit=100,
+                )
+            )
+
+        self.assertEqual(result, recovered)
+        self.assertEqual(history_call.await_count, 2)
+        warm_peer.assert_awaited_once_with(
+            unittest.mock.ANY,
+            -1003075722346,
+            username="cached_channel",
+            dialog_limit=100,
+        )
 
     def test_history_supports_unlimited_results_when_limit_is_zero(self):
         start = datetime(2026, 9, 20, 0, 0, 0)
