@@ -63,8 +63,7 @@ async def _new_client(settings, session_string=None, proxy=None):
     return client
 
 
-async def _send_code(settings, phone, proxy):
-    runtime = get_runtime()
+async def _send_code(runtime, settings, phone, proxy):
     if runtime.client:
         try:
             await runtime.client.disconnect()
@@ -78,11 +77,14 @@ async def _send_code(settings, phone, proxy):
 
 
 def send_code(settings, phone, proxy):
-    return get_runtime().run(_send_code(settings, phone, proxy))
+    runtime = get_runtime()
+    return runtime.run(
+        _send_code(runtime, settings, phone, proxy),
+        operation="send_code",
+    )
 
 
-async def _verify_code(phone, code_hash, code):
-    client = get_runtime().client
+async def _verify_code(client, phone, code_hash, code):
     try:
         await client.sign_in(phone, code_hash, code)
     except SessionPasswordNeeded:
@@ -91,30 +93,42 @@ async def _verify_code(phone, code_hash, code):
 
 
 def verify_code(phone, code_hash, code):
-    return get_runtime().run(_verify_code(phone, code_hash, code))
+    runtime = get_runtime()
+    return runtime.run(
+        _verify_code(runtime.client, phone, code_hash, code),
+        operation="verify_code",
+    )
 
 
-async def _verify_2fa(password):
-    return user_dict(await get_runtime().client.check_password(password))
+async def _verify_2fa(client, password):
+    return user_dict(await client.check_password(password))
 
 
 def verify_2fa(password):
-    return get_runtime().run(_verify_2fa(password))
+    runtime = get_runtime()
+    return runtime.run(
+        _verify_2fa(runtime.client, password),
+        operation="verify_2fa",
+    )
 
 
-async def _export():
-    return await get_runtime().client.export_session_string()
+async def _export(client):
+    return await client.export_session_string()
 
 
 def export_session():
-    return get_runtime().run(_export())
+    runtime = get_runtime()
+    return runtime.run(
+        _export(runtime.client),
+        operation="export_session",
+    )
 
 
-async def _restore(settings, encrypted, key, proxy):
+async def _restore(runtime, settings, encrypted, key, proxy):
     client = await _new_client(settings, decrypt_session(key, encrypted), proxy)
     try:
         me = await client.get_me()
-        get_runtime().client = client
+        runtime.client = client
         return user_dict(me)
     except Exception:
         try:
@@ -125,11 +139,14 @@ async def _restore(settings, encrypted, key, proxy):
 
 
 def restore(settings, encrypted, key, proxy):
-    return get_runtime().run(_restore(settings, encrypted, key, proxy))
-
-
-async def _disconnect(logout=False):
     runtime = get_runtime()
+    return runtime.run(
+        _restore(runtime, settings, encrypted, key, proxy),
+        operation="restore_session",
+    )
+
+
+async def _disconnect(runtime, logout=False):
     client = runtime.client
     if not client:
         return
@@ -143,16 +160,23 @@ async def _disconnect(logout=False):
 
 
 def disconnect():
-    get_runtime().run(_disconnect(False))
+    runtime = get_runtime()
+    runtime.run(
+        _disconnect(runtime, False),
+        operation="disconnect",
+    )
 
 
 def logout():
-    get_runtime().run(_disconnect(True))
+    runtime = get_runtime()
+    runtime.run(
+        _disconnect(runtime, True),
+        operation="logout",
+    )
 
 
-async def _dialogs():
+async def _dialogs(client):
     """Return Telegram dialogs without relying on version-specific Dialog attributes."""
-    client = get_runtime().client
     if client is None:
         raise RuntimeError("Telegram client is not connected.")
 
@@ -184,7 +208,11 @@ async def _dialogs():
 
 
 def get_dialogs():
-    return get_runtime().run(_dialogs())
+    runtime = get_runtime()
+    return runtime.run(
+        _dialogs(runtime.client),
+        operation="get_dialogs",
+    )
 
 
 _MEDIA_FIELDS = (
@@ -245,7 +273,6 @@ def _message_text(message, media: dict | None) -> str:
 
 
 async def _history(chat_id, start_dt, end_dt, limit=100, client=None):
-    client = client or get_runtime().client
     if client is None:
         raise RuntimeError("Telegram client is not connected.")
 
@@ -286,7 +313,17 @@ async def _history(chat_id, start_dt, end_dt, limit=100, client=None):
 
 
 def history(chat_id, start_dt, end_dt, limit=100):
-    return get_runtime().run(_history(chat_id, start_dt, end_dt, limit))
+    runtime = get_runtime()
+    return runtime.run(
+        _history(
+            chat_id,
+            start_dt,
+            end_dt,
+            limit,
+            client=runtime.client,
+        ),
+        operation="history",
+    )
 
 
 class MediaDownloadProgress:
@@ -310,6 +347,7 @@ def _size_limit_bytes(max_megabytes: int) -> int:
 
 
 async def _download_media(
+    client,
     chat_id: int,
     message_id: int,
     account_id: int,
@@ -320,8 +358,6 @@ async def _download_media(
     progress_callback=None,
     force_download: bool = False,
 ):
-    runtime = get_runtime()
-    client = runtime.client
     if client is None:
         raise RuntimeError("Telegram client is not connected.")
 
@@ -441,6 +477,7 @@ def start_media_download(
     progress = MediaDownloadProgress()
     future = runtime.submit(
         _download_media(
+            client=runtime.client,
             chat_id=chat_id,
             message_id=message_id,
             account_id=account_id,
@@ -474,9 +511,13 @@ def download_media(
     return future.result()
 
 
-async def _delete(chat_id, message_id):
-    await get_runtime().client.delete_messages(chat_id, message_id)
+async def _delete(client, chat_id, message_id):
+    await client.delete_messages(chat_id, message_id)
 
 
 def delete_message(chat_id, message_id):
-    get_runtime().run(_delete(chat_id, message_id))
+    runtime = get_runtime()
+    runtime.run(
+        _delete(runtime.client, chat_id, message_id),
+        operation="delete_message",
+    )
