@@ -1,5 +1,6 @@
 import streamlit as st
 
+from config.branding import PRODUCT_NAME
 from ui.auth import logout_web_user
 from db.telegram_accounts import list_accounts, get_account, save_account, delete_account
 from services.telegram_service import proxy_config, send_code, verify_code, verify_2fa, export_session, restore, disconnect, logout, get_dialogs
@@ -28,7 +29,12 @@ def _apply_account_selection(state, selected_account_id: int) -> bool:
 
 def render_sidebar(settings):
     user=st.session_state.web_user
-    st.sidebar.title("👤 Account"); st.sidebar.write(f"**{user['display_name']}**"); st.sidebar.caption(f"@{user['username']}")
+    st.sidebar.title(f"⚓ {PRODUCT_NAME}")
+    st.sidebar.caption("Telegram message & media manager")
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("👤 Account")
+    st.sidebar.write(f"**{user['display_name']}**")
+    st.sidebar.caption(f"@{user['username']}")
     if st.sidebar.button("🚪 Logout Web Application", use_container_width=True):
         try:
             if st.session_state.get("telegram_runtime"):
