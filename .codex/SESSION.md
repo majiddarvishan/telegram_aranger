@@ -286,3 +286,31 @@ Validation required:
 - Fully stop/start the application.
 - Reopen the same browser profile and application URL.
 - Confirm Web login is restored automatically.
+
+
+## 2026-09-24 — Product renamed to Telegram Harbor
+
+User selected **Telegram Harbor** as the product name.
+
+Applied on `main`:
+- Added `config/branding.py` as the central product identity source.
+- Streamlit browser/page title now uses Telegram Harbor.
+- Login screen now shows Telegram Harbor.
+- Sidebar now shows Telegram Harbor branding.
+- Structured logger namespaces changed from `telegram_aranger.*` to `telegram_harbor.*`.
+- Docker Compose service renamed to `telegram-harbor`.
+- CI Docker image/container names renamed to `telegram-harbor`.
+- Backup directory prefix changed to `telegram-harbor-backup-*`.
+- README and operational docs updated to Telegram Harbor.
+- `.codex` context/decisions/tasks/agent notes updated.
+- Added a small branding regression test.
+- GitHub Actions push workflow now targets `main` only after the media feature branch was merged.
+
+Backward compatibility intentionally preserved:
+- GitHub repository remains `majiddarvishan/telegram_aranger`.
+- Existing remember-me cookie/component identifiers are retained so the rename itself does not invalidate existing browser state.
+- Default database filename `telegram_manager.db` is retained so existing installations continue using the same database.
+- Docker volume `telegram_data` is retained so existing persistent data is not hidden behind a new volume name.
+
+Brand note:
+- README identifies Telegram Harbor as an independent project not affiliated with or endorsed by Telegram.
