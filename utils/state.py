@@ -17,6 +17,7 @@ def initialize_state():
         "selected_telegram_account_id": None,
         "selected_chat_id": None,
         "dialogs": [],
+        "force_refresh_dialogs": False,
         "messages": [],
         "message_query_signature": None,
         "message_range_signature": None,
