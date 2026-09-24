@@ -250,63 +250,23 @@ def _prepare_date_range(today):
 
 
 MESSAGE_HEADER_KEY = "message-header"
+MESSAGE_SCROLL_KEY = "message-scroll-area"
+MESSAGE_SCROLL_HEIGHT = 500
 
 MESSAGE_HEADER_CSS = """
-:root {
-    --telegram-harbor-header-top: 4rem;
-    --telegram-harbor-header-left: 5rem;
-    --telegram-harbor-header-right: 5rem;
-    --telegram-harbor-header-height: 210px;
-}
-
-/* Expanded sidebar shifts both the visual header and its opaque backdrop. */
-body:has([data-testid="stSidebar"][aria-expanded="true"]) {
-    --telegram-harbor-header-left: 26rem;
-}
-
 /*
- * Opaque shield below the fixed controls. Message cards are allowed to scroll
- * underneath in the document, but they are never visible through the header
- * area.
- */
-.message-header-backdrop {
-    position: fixed;
-    top: var(--telegram-harbor-header-top);
-    left: var(--telegram-harbor-header-left);
-    right: var(--telegram-harbor-header-right);
-    height: var(--telegram-harbor-header-height);
-    z-index: 9998;
-    background: var(--background-color);
-    pointer-events: none;
-}
-
-/*
- * Streamlit gives keyed containers their own width. Once the container becomes
- * position: fixed, inherited 100% width can overflow the viewport when insets
- * are also applied. Let the fixed insets determine the real width.
+ * Header stays in normal document flow. Messages scroll inside their own
+ * Streamlit fixed-height container below, so overlap is structurally impossible.
  */
 .st-key-message-header {
-    position: fixed;
-    top: var(--telegram-harbor-header-top);
-    left: var(--telegram-harbor-header-left);
-    right: var(--telegram-harbor-header-right);
-    width: auto !important;
-    max-width: none !important;
-    box-sizing: border-box;
-    z-index: 10000 !important;
-    isolation: isolate;
+    position: relative;
+    z-index: 2;
     padding: 12px 14px 14px 14px;
-    background: var(--background-color) !important;
+    margin-bottom: 10px;
+    background: var(--background-color);
     border: 1px solid rgba(128, 128, 128, 0.22);
     border-radius: 12px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.10);
-    overflow: visible !important;
-}
-
-/* Ensure Streamlit's internal vertical block also paints an opaque surface. */
-.st-key-message-header > div,
-.st-key-message-header [data-testid="stVerticalBlock"] {
-    background: var(--background-color) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .st-key-message-header [data-testid="stHorizontalBlock"] {
@@ -326,23 +286,11 @@ body:has([data-testid="stSidebar"][aria-expanded="true"]) {
     min-height: 40px;
 }
 
-.message-header-fixed-spacer {
-    height: calc(var(--telegram-harbor-header-height) + 0.5rem);
-}
-
-@media (max-width: 900px) {
-    :root,
-    body:has([data-testid="stSidebar"][aria-expanded="true"]) {
-        --telegram-harbor-header-top: 3.5rem;
-        --telegram-harbor-header-left: 0.75rem;
-        --telegram-harbor-header-right: 0.75rem;
-        --telegram-harbor-header-height: 285px;
-    }
-
-    .st-key-message-header {
-        width: auto !important;
-        padding: 8px 10px 10px 10px;
-    }
+/* Keep the official Streamlit scroll container visually integrated. */
+.st-key-message-scroll-area {
+    border: 1px solid rgba(128, 128, 128, 0.18) !important;
+    border-radius: 12px !important;
+    background: var(--background-color);
 }
 """
 
@@ -360,11 +308,6 @@ def _render_message_header(settings, options, current_chat_id, today):
     account_id = st.session_state.selected_telegram_account_id
     tags = all_tags(settings.db_file, account_id)
     start_date, end_date = _prepare_date_range(today)
-
-    st.markdown(
-        '<div class="message-header-backdrop" aria-hidden="true"></div>',
-        unsafe_allow_html=True,
-    )
 
     with st.container(key=MESSAGE_HEADER_KEY):
         chat_col, search_col, tag_col = st.columns([2.7, 2.2, 1.2])
@@ -436,11 +379,6 @@ def _render_message_header(settings, options, current_chat_id, today):
         start_date, end_date = end_date, start_date
 
     st.session_state.message_date_range = (start_date, end_date)
-
-    st.markdown(
-        '<div class="message-header-fixed-spacer"></div>',
-        unsafe_allow_html=True,
-    )
 
     return selected_chat_id, search, tag, start_date, end_date
 
@@ -528,6 +466,161 @@ def _remove_message_from_state(
     return remaining, cleaned_media
 
 
+def _render_message_scroll_area(
+    settings,
+    account_id,
+    selected_chat_id,
+    messages,
+):
+    loaded_count = len(st.session_state.messages)
+    result_limit = (
+        st.session_state.get("message_result_limit")
+        or settings.default_message_limit
+    )
+
+    with st.container(
+        height=MESSAGE_SCROLL_HEIGHT,
+        border=True,
+        key=MESSAGE_SCROLL_KEY,
+    ):
+        if loaded_count >= result_limit:
+            st.caption(
+                f"{len(messages)} visible message(s) · "
+                f"{loaded_count} loaded · current limit {result_limit}"
+            )
+            if st.button(
+                "➕ Load More Messages",
+                key="load_more_messages",
+                use_container_width=True,
+            ):
+                st.session_state.message_result_limit = (
+                    result_limit + settings.default_message_limit
+                )
+                st.session_state.message_query_signature = None
+                st.rerun()
+        else:
+            st.caption(
+                f"{len(messages)} visible message(s) · "
+                f"{loaded_count} loaded · end of selected range"
+            )
+
+        for message, current_tags in messages:
+            message_id = message["id"]
+
+            with st.container(border=True):
+                left, right = st.columns([4, 1])
+
+                with left:
+                    st.write(message["text"])
+                    _render_media(settings, account_id, message)
+                    st.caption(
+                        f"📅 {message['date'].strftime('%Y-%m-%d %H:%M:%S')} | "
+                        f"ID: {message_id}"
+                    )
+
+                with right:
+                    value = st.text_input(
+                        "Tags (comma-separated)",
+                        ", ".join(current_tags),
+                        key=(
+                            f"tags_{account_id}_"
+                            f"{selected_chat_id}_{message_id}"
+                        ),
+                        help=(
+                            "Commas separate tags. Empty values are ignored and "
+                            "duplicate tags are removed when saved."
+                        ),
+                    )
+
+                    if st.button(
+                        "Save Tags",
+                        key=(
+                            f"save_{account_id}_"
+                            f"{selected_chat_id}_{message_id}"
+                        ),
+                    ):
+                        save_tags(
+                            settings.db_file,
+                            account_id,
+                            selected_chat_id,
+                            message_id,
+                            value.split(","),
+                        )
+                        st.rerun()
+
+                    delete_state_key = _delete_state_key(
+                        account_id,
+                        selected_chat_id,
+                        message_id,
+                    )
+                    if (
+                        st.session_state.get("pending_delete_message")
+                        == delete_state_key
+                    ):
+                        st.warning(
+                            "Delete this Telegram message permanently?"
+                        )
+                        confirm_col, cancel_col = st.columns(2)
+                        with confirm_col:
+                            confirm_delete = st.button(
+                                "✅ Confirm",
+                                key=(
+                                    f"confirm_del_{account_id}_"
+                                    f"{selected_chat_id}_{message_id}"
+                                ),
+                                type="primary",
+                                use_container_width=True,
+                            )
+                        with cancel_col:
+                            cancel_delete = st.button(
+                                "Cancel",
+                                key=(
+                                    f"cancel_del_{account_id}_"
+                                    f"{selected_chat_id}_{message_id}"
+                                ),
+                                use_container_width=True,
+                            )
+
+                        if cancel_delete:
+                            st.session_state.pending_delete_message = None
+                            st.rerun()
+
+                        if confirm_delete:
+                            try:
+                                delete_message(
+                                    selected_chat_id,
+                                    message_id,
+                                )
+                                (
+                                    st.session_state.messages,
+                                    st.session_state.media_files,
+                                ) = _remove_message_from_state(
+                                    st.session_state.messages,
+                                    st.session_state.media_files,
+                                    account_id,
+                                    selected_chat_id,
+                                    message_id,
+                                )
+                                st.session_state.pending_delete_message = None
+                                st.rerun()
+                            except Exception as exc:
+                                st.session_state.pending_delete_message = None
+                                st.error(
+                                    f"Failed to delete message: {exc}"
+                                )
+                    elif st.button(
+                        "🗑️ Delete",
+                        key=(
+                            f"del_{account_id}_"
+                            f"{selected_chat_id}_{message_id}"
+                        ),
+                    ):
+                        st.session_state.pending_delete_message = (
+                            delete_state_key
+                        )
+                        st.rerun()
+
+
 def render_main(settings):
     if (
         not st.session_state.telegram_user
@@ -601,127 +694,9 @@ def render_main(settings):
 
         messages.append((message, message_tags))
 
-    loaded_count = len(st.session_state.messages)
-    result_limit = (
-        st.session_state.get("message_result_limit")
-        or settings.default_message_limit
+    _render_message_scroll_area(
+        settings,
+        account_id,
+        selected_chat_id,
+        messages,
     )
-    if loaded_count >= result_limit:
-        st.caption(
-            f"{len(messages)} visible message(s) · "
-            f"{loaded_count} loaded · current limit {result_limit}"
-        )
-        if st.button(
-            "➕ Load More Messages",
-            key="load_more_messages",
-            use_container_width=True,
-        ):
-            st.session_state.message_result_limit = (
-                result_limit + settings.default_message_limit
-            )
-            st.session_state.message_query_signature = None
-            st.rerun()
-    else:
-        st.caption(
-            f"{len(messages)} visible message(s) · "
-            f"{loaded_count} loaded · end of selected range"
-        )
-
-    for message, current_tags in messages:
-        message_id = message["id"]
-
-        with st.container(border=True):
-            left, right = st.columns([4, 1])
-
-            with left:
-                st.write(message["text"])
-                _render_media(settings, account_id, message)
-                st.caption(
-                    f"📅 {message['date'].strftime('%Y-%m-%d %H:%M:%S')} | "
-                    f"ID: {message_id}"
-                )
-
-            with right:
-                value = st.text_input(
-                    "Tags (comma-separated)",
-                    ", ".join(current_tags),
-                    key=f"tags_{account_id}_{selected_chat_id}_{message_id}",
-                    help=(
-                        "Commas separate tags. Empty values are ignored and "
-                        "duplicate tags are removed when saved."
-                    ),
-                )
-
-                if st.button(
-                    "Save Tags",
-                    key=f"save_{account_id}_{selected_chat_id}_{message_id}",
-                ):
-                    save_tags(
-                        settings.db_file,
-                        account_id,
-                        selected_chat_id,
-                        message_id,
-                        value.split(","),
-                    )
-                    st.rerun()
-
-                delete_state_key = _delete_state_key(
-                    account_id,
-                    selected_chat_id,
-                    message_id,
-                )
-                if (
-                    st.session_state.get("pending_delete_message")
-                    == delete_state_key
-                ):
-                    st.warning("Delete this Telegram message permanently?")
-                    confirm_col, cancel_col = st.columns(2)
-                    with confirm_col:
-                        confirm_delete = st.button(
-                            "✅ Confirm",
-                            key=(
-                                f"confirm_del_{account_id}_"
-                                f"{selected_chat_id}_{message_id}"
-                            ),
-                            type="primary",
-                            use_container_width=True,
-                        )
-                    with cancel_col:
-                        cancel_delete = st.button(
-                            "Cancel",
-                            key=(
-                                f"cancel_del_{account_id}_"
-                                f"{selected_chat_id}_{message_id}"
-                            ),
-                            use_container_width=True,
-                        )
-
-                    if cancel_delete:
-                        st.session_state.pending_delete_message = None
-                        st.rerun()
-
-                    if confirm_delete:
-                        try:
-                            delete_message(selected_chat_id, message_id)
-                            (
-                                st.session_state.messages,
-                                st.session_state.media_files,
-                            ) = _remove_message_from_state(
-                                st.session_state.messages,
-                                st.session_state.media_files,
-                                account_id,
-                                selected_chat_id,
-                                message_id,
-                            )
-                            st.session_state.pending_delete_message = None
-                            st.rerun()
-                        except Exception as exc:
-                            st.session_state.pending_delete_message = None
-                            st.error(f"Failed to delete message: {exc}")
-                elif st.button(
-                    "🗑️ Delete",
-                    key=f"del_{account_id}_{selected_chat_id}_{message_id}",
-                ):
-                    st.session_state.pending_delete_message = delete_state_key
-                    st.rerun()
-
