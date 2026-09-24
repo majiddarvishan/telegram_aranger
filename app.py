@@ -17,11 +17,13 @@ from services.telegram_runtime import get_runtime
 from ui.auth import render_web_auth, restore_remembered_user
 from ui.main import render_main
 from ui.sidebar import render_sidebar
+from ui.theme import apply_theme
 from utils.logging import configure_logging, log_event
 from utils.state import initialize_state
 
 
 st.set_page_config(page_title=PRODUCT_NAME, layout="wide")
+apply_theme()
 
 configure_logging()
 logger = logging.getLogger("telegram_harbor.app")
