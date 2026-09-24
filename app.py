@@ -8,6 +8,7 @@ except RuntimeError:
 import streamlit as st
 
 from config.settings import load_settings
+from db.auth_sessions import cleanup_expired_sessions
 from db.database import initialize_database
 from services.telegram_runtime import get_runtime
 from ui.auth import render_web_auth, restore_remembered_user
@@ -20,6 +21,7 @@ st.set_page_config(page_title="Telegram Saved Messages Manager", layout="wide")
 
 settings = load_settings()
 initialize_database(settings.db_file)
+cleanup_expired_sessions(settings.db_file)
 initialize_state()
 
 if st.session_state.web_user is None:
