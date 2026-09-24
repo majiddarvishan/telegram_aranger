@@ -4,6 +4,11 @@ All notable Telegram Harbor changes are recorded here.
 
 ## Unreleased
 
+- Remove Streamlit ScriptRunContext access from Telegram runtime coroutines.
+- Pass runtime/client objects from the Streamlit thread into background async Telegram operations instead of re-reading `st.session_state` inside `TelegramRuntime`.
+- Add operation names to slow Telegram wait logs, so long calls identify `restore_session`, `get_dialogs`, `history`, etc.
+- Add regression coverage preventing Streamlit access from Telegram background coroutines.
+
 - Replace legacy `TgCrypto` with maintained `tgcrypto2` while preserving the `tgcrypto` import used by Pyrogram.
 - Add Windows + Python 3.14 CI coverage for crypto acceleration.
 - Add Windows recovery instructions for existing environments that show the Pyrogram "TgCrypto is missing" warning.
