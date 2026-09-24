@@ -662,3 +662,75 @@ Still open in GUI-P3:
 - manually inspect representative text/photo/video cards in the running application.
 
 No Telegram message/tag/media persistence semantics were changed.
+
+
+## 2026-09-25 — Screenshot-driven GUI iteration
+
+User provided a desktop screenshot of the message workspace and asked to continue.
+
+Visual findings from the screenshot:
+- excessive visual whitespace above the workspace;
+- message action bar lacked information hierarchy;
+- message counts were buried inside the scroll panel;
+- media controls (play/prepare/download/redownload) had similar visual weight;
+- sidebar was not visually contributing in the captured state;
+- the screenshot still showed the pre-P3 always-visible tag form, so it predated the latest content-first message-card commits.
+
+Implemented on `gui` after the screenshot:
+
+### Toolbar/action bar
+- simplified control labels by removing decorative emoji from Chat/Search/Tag/Date labels;
+- compacted previous/next date navigation;
+- moved visible/loaded message counts to the action bar;
+- removed the count caption from inside the message scroll panel;
+- kept Refresh secondary and Load more as the growth action;
+- reduced top application content padding.
+
+### Media hierarchy
+- replaced verbose media buttons with compact actions:
+  - Preview photo;
+  - Play video;
+  - Prepare download;
+  - Download;
+  - Redownload;
+- arranged media actions in compact horizontal groups;
+- moved media metadata to the shared semantic style layer;
+- made Redownload a tertiary action.
+
+### Sidebar
+- replaced title/caption stack with a compact Telegram Harbor brand block;
+- rendered the Web user as a compact account card;
+- reduced Sign out prominence;
+- moved SOCKS5 settings into a collapsed Network & proxy expander with an On/Off badge;
+- made Telegram account selection the main sidebar control;
+- added a compact Connected/Disconnected status badge;
+- grouped Refresh chats and Add account;
+- moved Disconnect and Logout & remove account into a collapsed Account actions section;
+- kept destructive account removal visually distinct;
+- refactored the Telegram add-account flow without changing Telegram authentication behavior.
+
+### Auth/state presentation
+- replaced the plain auth title with a centered branded auth card;
+- retained Login/Create-account tabs and all existing Remember Me/auth security behavior;
+- added dedicated empty states for:
+  - no Telegram account selected;
+  - no chats available;
+  - no messages matching current filters;
+- added first responsive polish and reduced top whitespace.
+
+### Regression coverage
+- updated UI smoke tests for the renamed compact toolbar actions;
+- added coverage for:
+  - visible/loaded action summary;
+  - media action hierarchy;
+  - sidebar grouping/destructive-action hierarchy;
+  - auth card structure;
+  - empty message workspace state;
+  - safe auth/sidebar/media markup.
+
+Validation:
+- the earlier toolbar/sidebar commits showed transient CI failures only because old smoke tests still expected the previous button labels;
+- after updating those tests, the combined refined toolbar/media/sidebar run passed unit tests and Docker health;
+- latest auth/empty-state runs were started and must be checked before claiming final green status.
+
+No Telegram service/runtime/database/history/cache/authentication semantics were changed in this visual iteration.
