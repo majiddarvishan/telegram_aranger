@@ -35,8 +35,14 @@ jobs:
       - name: Media cache tests
         run: python -m unittest discover -s tests -p "test_media_cache.py" -v
 
-      - name: Telegram media tests
-        run: python -m unittest discover -s tests -p "test_telegram_media.py" -v
+      - name: Import Telegram service
+        run: python -c "import services.telegram_service"
+
+      - name: Telegram media metadata tests
+        run: python -m unittest -v tests.test_telegram_media.TelegramMediaMetadataTests
+
+      - name: Telegram media download tests
+        run: python -m unittest -v tests.test_telegram_media.TelegramMediaDownloadTests
 
       - name: Remember-me restore tests
         run: python -m unittest discover -s tests -p "test_remember_me_restore.py" -v
