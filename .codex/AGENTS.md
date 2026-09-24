@@ -1,14 +1,13 @@
 # Agent Working Notes
 
 ## Scope
-This file is guidance for future coding/review sessions on `majiddarvishan/telegram_aranger`, currently on branch `feature/media-support`.
+This file is guidance for future coding/review sessions on **Telegram Harbor** (`majiddarvishan/telegram_aranger`), currently on branch `main`.
 
 ## Before changing code
 - Read `.codex/START_HERE.md`, then `.codex/TASKS.md`.
 - Re-fetch the current branch HEAD before editing; repository state may be newer than these notes.
 - Prefer current code and green CI over historical review notes.
 - Preserve modular boundaries across `config/`, `db/`, `services/`, `ui/`, `utils/`, `scripts/`, and `docs/`.
-- Do not mark the final manual media-validation task complete without a real Telegram/browser run.
 
 ## Security invariants
 Never expose or commit:
