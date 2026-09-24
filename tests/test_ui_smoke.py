@@ -166,6 +166,27 @@ class UiMessageSmokeTests(unittest.TestCase):
         self.assertIn("8:-100:42:preview", cleaned)
 
 
+class AuthAndStateSmokeTests(unittest.TestCase):
+    def test_auth_screen_uses_centered_branded_card(self):
+        import inspect
+        from ui.auth import render_web_auth
+
+        source = inspect.getsource(render_web_auth)
+
+        self.assertIn('key="auth-card"', source)
+        self.assertIn("auth_brand_html", source)
+        self.assertNotIn("st.title", source)
+
+    def test_message_workspace_has_dedicated_empty_state(self):
+        import inspect
+        from ui.main import _render_message_scroll_area
+
+        source = inspect.getsource(_render_message_scroll_area)
+
+        self.assertIn("No messages found", source)
+        self.assertIn("empty_state_html", source)
+
+
 class SidebarHierarchySmokeTests(unittest.TestCase):
     def test_sidebar_groups_network_and_destructive_actions(self):
         import inspect
