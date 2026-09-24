@@ -1,6 +1,6 @@
 # Tasks / Technical Findings
 
-This file began as the 2026-09-24 review backlog and now tracks implementation status on `feature/media-support`. Completed items reflect committed code/docs/tests; do not mark real-device/manual validation complete unless it was actually performed.
+This file began as the 2026-09-24 review backlog and now tracks implementation status for **Telegram Harbor** on `main`. Completed items reflect committed code/docs/tests; do not mark real-device/manual validation complete unless it was actually performed.
 
 ## P0 — Correctness
 - [x] Fix tag identity: `message_tags` now uses `(telegram_account_id, chat_id, message_id)` with an in-place migration that preserves legacy rows under `chat_id=0`.
@@ -39,7 +39,7 @@ This file began as the 2026-09-24 review backlog and now tracks implementation s
 ### P1 media validation status
 - Pure cache tests were executed successfully in the available local runtime.
 - The full automated regression suite has executed successfully in GitHub Actions; subsequent commits continue to run the same CI plus Docker health verification.
-- Real Telegram/browser manual verification remains open below.
+- Real Telegram/browser manual verification completed successfully.
 
 ### Media implementation preference
 - Prefer **lazy loading**: listing messages must not automatically download full-size photos/videos.
@@ -92,7 +92,7 @@ This file began as the 2026-09-24 review backlog and now tracks implementation s
 - [x] Reconcile TgCrypto documentation: upstream can run without it, but this repository installs it and treats it as part of the supported deployment profile.
 
 ## P3 — UX / product definition
-- [x] Clarify product scope as a general Telegram message manager while preserving the legacy display title until an explicit rename is requested.
+- [x] Rename the product to **Telegram Harbor** across UI, documentation, Docker/CI naming, logger namespaces, and project context while preserving persisted compatibility identifiers.
 - [x] Surface loaded/visible counts, current message limit, end-of-range state, and an explicit `Load More Messages` action.
 - [x] Require an explicit second-step confirmation before permanently deleting a Telegram message.
 - [x] Define current tag semantics: commas are separators; values are trimmed/deduplicated; removing a tag from the field removes it from that message; global rename/delete remains intentionally out of scope until richer tag management is requested.
@@ -103,7 +103,7 @@ This file began as the 2026-09-24 review backlog and now tracks implementation s
 - P2 performance/data lifecycle: complete for current single-instance scope.
 - P3 operations/UX: complete for current scope.
 - GitHub Actions regression + Docker health: green on recent branch commits.
-- Real Telegram/browser validation has been completed successfully; the feature branch is ready for merge review.
+- Real Telegram/browser validation has been completed successfully; the feature work is merged into `main`.
 
 ## Review baseline
 Branch before context commit:
