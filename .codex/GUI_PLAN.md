@@ -36,19 +36,20 @@ Target style:
 - [ ] Manually review the resulting UI in both Light and Dark themes before closing GUI-P0.
 
 ### GUI-P1 — Sidebar
-- [ ] Compact brand block.
-- [ ] Web-account presentation.
-- [ ] Telegram account/status hierarchy.
-- [ ] Move destructive account actions into a lower-emphasis group.
-- [ ] Put proxy settings in an expander.
-- [ ] Normalize spacing/dividers/button priorities.
+- [x] Compact brand block.
+- [x] Web-account presentation.
+- [x] Telegram account/status hierarchy.
+- [x] Move destructive account actions into a lower-emphasis Account actions group.
+- [x] Put proxy settings in a Network & proxy expander.
+- [x] Normalize spacing/dividers/button priorities.
+- [ ] Manually review the expanded sidebar on desktop and a narrow viewport.
 
 ### GUI-P2 — Toolbar
-- [ ] Redesign Chat/Search/Tag hierarchy.
-- [ ] Compact date navigation.
-- [ ] Integrate message counts into action bar.
-- [ ] Normalize primary/secondary action styling.
-- [ ] Consider active-filter chips after baseline styling.
+- [x] Redesign Chat/Search/Tag hierarchy with shorter labels.
+- [x] Compact date navigation.
+- [x] Integrate visible/loaded message counts into the action bar.
+- [x] Normalize Refresh vs Load more hierarchy.
+- [ ] Consider active-filter chips after manual review of the simplified toolbar.
 
 ### GUI-P3 — Message cards
 - [x] Make message content the dominant visual element.
@@ -56,22 +57,23 @@ Target style:
 - [x] Render tags as read-mode chips.
 - [x] Make tag editing on-demand.
 - [x] De-emphasize delete until requested.
-- [ ] Standardize media action hierarchy.
+- [x] Standardize media action hierarchy for preview/play/download/redownload.
 - [x] Normalize baseline card spacing.
 - [ ] Manually review message cards with text, photo and video messages before closing GUI-P3.
 
 ### GUI-P4 — Auth and state screens
-- [ ] Centered branded auth card.
-- [ ] Dedicated empty states.
-- [ ] Unified warning/error/success treatment.
-- [ ] Consistent loading feedback.
+- [x] Centered branded auth card.
+- [x] Dedicated empty states for no account, no chats and no matching messages.
+- [x] Apply shared radius/surface treatment to warning/error/success components.
+- [ ] Review loading feedback after the visual pass; existing media progress remains unchanged.
 
 ### GUI-P5 — Responsive/accessibility
-- [ ] Desktop/laptop/tablet breakpoints.
-- [ ] Toolbar wrapping rules.
-- [ ] Stacked message-card controls on narrow screens.
-- [ ] Contrast/focus/hit-target review.
-- [ ] Manual screenshot review at multiple widths.
+- [x] Add a first responsive breakpoint at 900px for spacing/action alignment.
+- [x] Keep Streamlit column stacking as the safe narrow-layout fallback.
+- [x] Add keyboard focus-visible treatment and reduced-motion support.
+- [x] Keep baseline control hit targets at 40px.
+- [ ] Manual Light/Dark contrast review.
+- [ ] Manual screenshot review at desktop and narrow widths.
 
 ### GUI-P6 — Polish
 - [ ] Subtle hover/transition behavior.
