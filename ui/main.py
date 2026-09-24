@@ -8,7 +8,7 @@ import streamlit as st
 from db.dialogs import load_dialogs as load_cached_dialogs, replace_dialogs
 from db.tags import all_tags, get_tags_for_messages, save_tags
 from services.telegram_service import delete_message, get_dialogs, history, start_media_download
-from ui.theme import MESSAGE_HEADER_CSS
+from ui.theme import MESSAGE_HEADER_CSS, message_meta_html, tag_chips_html
 from utils.date_range import bounds, normalize_range
 
 
@@ -32,6 +32,18 @@ def _media_state_key(account_id: int, chat_id: int, message_id: int, purpose: st
 
 def _delete_state_key(account_id: int, chat_id: int, message_id: int) -> str:
     return f"{account_id}:{chat_id}:{message_id}"
+
+
+def _tag_editor_state_key(
+    account_id: int,
+    chat_id: int,
+    message_id: int,
+) -> str:
+    return f"{account_id}:{chat_id}:{message_id}"
+
+
+def _message_card_key(account_id: int, message_id: int) -> str:
+    return f"message-card-{account_id}-{message_id}"
 
 
 def _get_prepared_media(key: str):
@@ -481,6 +493,197 @@ def _remove_message_from_state(
     return remaining, cleaned_media
 
 
+def _render_tag_controls(
+    settings,
+    account_id: int,
+    chat_id: int,
+    message_id: int,
+    current_tags: list[str],
+) -> None:
+    editor_state_key = _tag_editor_state_key(
+        account_id,
+        chat_id,
+        message_id,
+    )
+    input_key = f"tag-editor-input-{account_id}-{chat_id}-{message_id}"
+    is_editing = (
+        st.session_state.get("editing_tag_message")
+        == editor_state_key
+    )
+
+    if current_tags:
+        st.markdown(
+            tag_chips_html(current_tags),
+            unsafe_allow_html=True,
+        )
+    else:
+        st.caption("No tags")
+
+    if is_editing:
+        if input_key not in st.session_state:
+            st.session_state[input_key] = ", ".join(current_tags)
+
+        value = st.text_input(
+            "Tags",
+            key=input_key,
+            help="Separate tags with commas.",
+        )
+        save_col, cancel_col, spacer_col = st.columns([1.0, 1.0, 6.0])
+
+        with save_col:
+            if st.button(
+                "Save",
+                key=f"save-tags-{account_id}-{chat_id}-{message_id}",
+                use_container_width=True,
+            ):
+                save_tags(
+                    settings.db_file,
+                    account_id,
+                    chat_id,
+                    message_id,
+                    value.split(","),
+                )
+                st.session_state.editing_tag_message = None
+                st.session_state.pop(input_key, None)
+                st.rerun()
+
+        with cancel_col:
+            if st.button(
+                "Cancel",
+                key=f"cancel-tags-{account_id}-{chat_id}-{message_id}",
+                use_container_width=True,
+            ):
+                st.session_state.editing_tag_message = None
+                st.session_state.pop(input_key, None)
+                st.rerun()
+    else:
+        edit_col, spacer_col = st.columns([1.2, 6.8])
+        with edit_col:
+            if st.button(
+                "Edit tags",
+                key=f"edit-tags-{account_id}-{chat_id}-{message_id}",
+                help="Edit tags for this message.",
+                use_container_width=True,
+            ):
+                st.session_state.editing_tag_message = editor_state_key
+                st.session_state[input_key] = ", ".join(current_tags)
+                st.rerun()
+
+
+def _render_delete_control(
+    account_id: int,
+    chat_id: int,
+    message_id: int,
+) -> None:
+    delete_state_key = _delete_state_key(
+        account_id,
+        chat_id,
+        message_id,
+    )
+
+    if (
+        st.session_state.get("pending_delete_message")
+        == delete_state_key
+    ):
+        st.warning("Delete this Telegram message permanently?")
+        confirm_col, cancel_col, spacer_col = st.columns([1.1, 1.0, 5.9])
+
+        with confirm_col:
+            confirm_delete = st.button(
+                "Delete permanently",
+                key=f"confirm-delete-message-{account_id}-{chat_id}-{message_id}",
+                use_container_width=True,
+            )
+
+        with cancel_col:
+            cancel_delete = st.button(
+                "Cancel",
+                key=f"cancel-delete-message-{account_id}-{chat_id}-{message_id}",
+                use_container_width=True,
+            )
+
+        if cancel_delete:
+            st.session_state.pending_delete_message = None
+            st.rerun()
+
+        if confirm_delete:
+            try:
+                delete_message(chat_id, message_id)
+                (
+                    st.session_state.messages,
+                    st.session_state.media_files,
+                ) = _remove_message_from_state(
+                    st.session_state.messages,
+                    st.session_state.media_files,
+                    account_id,
+                    chat_id,
+                    message_id,
+                )
+                st.session_state.pending_delete_message = None
+                st.rerun()
+            except Exception as exc:
+                st.session_state.pending_delete_message = None
+                st.error(f"Failed to delete message: {exc}")
+        return
+
+    delete_col, spacer_col = st.columns([1.0, 7.0])
+    with delete_col:
+        if st.button(
+            "Delete",
+            key=f"delete-message-{account_id}-{chat_id}-{message_id}",
+            help="Delete this message from Telegram.",
+            use_container_width=True,
+        ):
+            st.session_state.pending_delete_message = delete_state_key
+            st.rerun()
+
+
+def _render_message_card(
+    settings,
+    account_id: int,
+    chat_id: int,
+    message: dict,
+    current_tags: list[str],
+) -> None:
+    message_id = message["id"]
+    media = message.get("media") or {}
+    media_type = media.get("type")
+    media_label = (
+        media_type.replace("_", " ").title()
+        if media_type
+        else None
+    )
+
+    with st.container(
+        border=True,
+        key=_message_card_key(account_id, message_id),
+    ):
+        st.markdown(
+            message_meta_html(
+                message["date"].strftime("%Y-%m-%d %H:%M:%S"),
+                message_id,
+                media_label,
+            ),
+            unsafe_allow_html=True,
+        )
+
+        st.write(message["text"])
+        _render_media(settings, account_id, message)
+
+        _render_tag_controls(
+            settings,
+            account_id,
+            chat_id,
+            message_id,
+            current_tags,
+        )
+        _render_delete_control(
+            account_id,
+            chat_id,
+            message_id,
+        )
+
+
 def _render_message_scroll_area(
     settings,
     account_id,
@@ -510,120 +713,13 @@ def _render_message_scroll_area(
             )
 
         for message, current_tags in messages:
-            message_id = message["id"]
-
-            with st.container(border=True):
-                left, right = st.columns([4, 1])
-
-                with left:
-                    st.write(message["text"])
-                    _render_media(settings, account_id, message)
-                    st.caption(
-                        f"📅 {message['date'].strftime('%Y-%m-%d %H:%M:%S')} | "
-                        f"ID: {message_id}"
-                    )
-
-                with right:
-                    value = st.text_input(
-                        "Tags (comma-separated)",
-                        ", ".join(current_tags),
-                        key=(
-                            f"tags_{account_id}_"
-                            f"{selected_chat_id}_{message_id}"
-                        ),
-                        help=(
-                            "Commas separate tags. Empty values are ignored and "
-                            "duplicate tags are removed when saved."
-                        ),
-                    )
-
-                    if st.button(
-                        "Save Tags",
-                        key=(
-                            f"save_{account_id}_"
-                            f"{selected_chat_id}_{message_id}"
-                        ),
-                    ):
-                        save_tags(
-                            settings.db_file,
-                            account_id,
-                            selected_chat_id,
-                            message_id,
-                            value.split(","),
-                        )
-                        st.rerun()
-
-                    delete_state_key = _delete_state_key(
-                        account_id,
-                        selected_chat_id,
-                        message_id,
-                    )
-                    if (
-                        st.session_state.get("pending_delete_message")
-                        == delete_state_key
-                    ):
-                        st.warning(
-                            "Delete this Telegram message permanently?"
-                        )
-                        confirm_col, cancel_col = st.columns(2)
-                        with confirm_col:
-                            confirm_delete = st.button(
-                                "✅ Confirm",
-                                key=(
-                                    f"confirm_del_{account_id}_"
-                                    f"{selected_chat_id}_{message_id}"
-                                ),
-                                type="primary",
-                                use_container_width=True,
-                            )
-                        with cancel_col:
-                            cancel_delete = st.button(
-                                "Cancel",
-                                key=(
-                                    f"cancel_del_{account_id}_"
-                                    f"{selected_chat_id}_{message_id}"
-                                ),
-                                use_container_width=True,
-                            )
-
-                        if cancel_delete:
-                            st.session_state.pending_delete_message = None
-                            st.rerun()
-
-                        if confirm_delete:
-                            try:
-                                delete_message(
-                                    selected_chat_id,
-                                    message_id,
-                                )
-                                (
-                                    st.session_state.messages,
-                                    st.session_state.media_files,
-                                ) = _remove_message_from_state(
-                                    st.session_state.messages,
-                                    st.session_state.media_files,
-                                    account_id,
-                                    selected_chat_id,
-                                    message_id,
-                                )
-                                st.session_state.pending_delete_message = None
-                                st.rerun()
-                            except Exception as exc:
-                                st.session_state.pending_delete_message = None
-                                st.error(
-                                    f"Failed to delete message: {exc}"
-                                )
-                    elif st.button(
-                        "🗑️ Delete",
-                        key=(
-                            f"del_{account_id}_"
-                            f"{selected_chat_id}_{message_id}"
-                        ),
-                    ):
-                        st.session_state.pending_delete_message = (
-                            delete_state_key
-                        )
-                        st.rerun()
+            _render_message_card(
+                settings,
+                account_id,
+                selected_chat_id,
+                message,
+                current_tags,
+            )
 
 
 def render_main(settings):
