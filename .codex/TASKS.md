@@ -61,13 +61,13 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 - [x] Add a minimal GitHub Actions CI workflow on Python 3.12 running `unittest discover`.
 
 ## P1 — Security hardening
-- [ ] Decide production cookie policy explicitly; review `secure=None`, SameSite, HTTPS assumptions, and reverse-proxy deployment.
-- [ ] Add login throttling/rate limiting or another brute-force mitigation.
-- [ ] Move password policy/validation into a reusable service/domain layer, not UI only.
-- [ ] Add cleanup for expired `web_sessions`.
-- [ ] Define Fernet key rotation and backup procedure.
-- [ ] Review whether sensitive proxy credentials should live in Streamlit session state only or be managed by a secret store.
-- [ ] Document threat model for a multi-user deployment, especially host/database access.
+- [x] Make production cookie policy explicit and configurable with `WEB_COOKIE_SECURE` / `WEB_COOKIE_SAMESITE`; document HTTPS/reverse-proxy requirements.
+- [x] Add persistent username-based Web-login throttling with configurable attempt/window limits; recommend proxy/WAF IP throttling for Internet-facing deployments.
+- [x] Enforce the minimum password policy in `db.users.create_user()` / `validate_password()`, not only in Streamlit UI.
+- [x] Add startup cleanup for expired or malformed `web_sessions`.
+- [x] Define Fernet key backup/rotation and rollback procedure in `docs/SECURITY.md`.
+- [x] Review proxy credentials: keep per-user values session-only today; document secret-manager preference for shared production proxy credentials.
+- [x] Document multi-user trust boundaries, host/database access, Telegram session sensitivity, and stronger-isolation requirements in `docs/SECURITY.md`.
 
 ## P2 — Performance / scalability
 - [ ] Eliminate per-message N+1 SQLite tag lookups; load tags for a message set in one query.
