@@ -566,3 +566,52 @@ Release:
 - Release checkpoint SHA: `0c3144f4d99201a917c9353c788def4df9fb4258`.
 - Intended Git tag: `v1.0.4` on exactly that SHA.
 - The connected GitHub tools still expose tag refs read-only; tag creation requires a local Git push.
+
+
+## 2026-09-25 — GUI branch and visual design audit
+
+User requested:
+- create a dedicated `gui` branch;
+- review Telegram Harbor as a professional product/visual designer;
+- plan visual improvements before implementation.
+
+Branch:
+- created `gui` from `main@2bd6fbd18ac6ab03a38ee5ffc586c2d76c8ccc49`.
+
+Audit summary:
+- functionality is strong, but the interface still visually resembles a capable Streamlit admin panel rather than a fully polished product;
+- primary issue is visual hierarchy, not missing functionality;
+- sidebar is information-dense;
+- toolbar controls have similar visual weight;
+- message cards are form-heavy because tag editing and destructive actions are permanently visible;
+- spacing/radius/color/typography are not governed by one design system;
+- emoji currently act as an inconsistent icon system;
+- auth/empty/loading/error states need a consistent product treatment;
+- responsive behavior should be deliberately designed rather than only patched.
+
+Design direction:
+- clean utility / Harbor Console;
+- content-first;
+- calm, professional, low-decoration interface;
+- subtle Telegram Harbor identity;
+- semantic colors and reusable design tokens;
+- avoid fragile DOM-dependent CSS where possible.
+
+Planned phases:
+1. GUI-P0 design foundation;
+2. GUI-P3 message-card redesign;
+3. GUI-P1 sidebar;
+4. GUI-P2 toolbar/action bar;
+5. GUI-P4 auth and state screens;
+6. GUI-P5 responsive/accessibility;
+7. GUI-P6 polish.
+
+Why message cards are prioritized early:
+- they dominate the user's working time and currently have the largest visual opportunity.
+
+Files added/updated:
+- `docs/GUI_DESIGN_PLAN_FA.md` — full Persian design audit and phased plan;
+- `.codex/GUI_PLAN.md` — executable GUI backlog and guardrails;
+- `.codex/START_HERE.md`, `.codex/PROJECT_CONTEXT.md`, `.codex/TASKS.md` — branch/context updates.
+
+No production UI behavior or application code was changed during this planning step.
