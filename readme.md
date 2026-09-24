@@ -2,6 +2,10 @@
 
 A Streamlit multi-user Telegram archive manager using Pyrogram. No Keycloak is used.
 
+## Product scope
+
+Despite the legacy title **Telegram Saved Messages Manager**, the current product is a general Telegram message manager: it browses private chats, groups, supergroups, channels, and Saved Messages. The legacy display name is kept for now to avoid an unrequested product rename.
+
 ## Features
 
 - Local multi-user web authentication with PBKDF2 password hashing.
@@ -104,7 +108,7 @@ The project uses `extra-streamlit-components` for the browser cookie required to
 
 The CookieManager instance is created once per Streamlit Web session and reused across reruns. This prevents `StreamlitDuplicateElementKey` errors caused by registering the same custom component key multiple times in one run.
 
-`TgCrypto` is optional for Pyrogram. If it is unavailable on Python 3.14, Pyrogram falls back to its pure-Python implementation; functionality remains the same but cryptographic operations are slower.
+`TgCrypto` is installed by this project's `requirements.txt` and is part of the supported deployment profile. Upstream Pyrogram can technically run without it, but this repository does not treat that as the normal installation path. See `docs/DEPENDENCIES.md`.
 
 ## Media cache and limits
 
@@ -126,3 +130,16 @@ The cache path is ignored by Git. Cache entries are namespaced by Telegram accou
 ## Security
 
 For production cookie settings, Web-login throttling, Fernet key backup/rotation, proxy-secret handling, media-cache security, and the multi-user threat model, see `docs/SECURITY.md`.
+
+
+## Docker
+
+Build and run with Docker Compose:
+
+```bash
+docker compose up -d --build
+```
+
+The container exposes port 8501, runs as a non-root user, persists the database/media cache under `/data`, and uses Streamlit's `/_stcore/health` endpoint for its container health check.
+
+See `docs/DEPLOYMENT.md` for production deployment guidance.
