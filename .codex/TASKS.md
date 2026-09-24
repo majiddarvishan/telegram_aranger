@@ -38,7 +38,7 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 
 ### P1 media validation status
 - Pure cache tests were executed successfully in the available local runtime.
-- Telegram-service tests were added but could not be executed in this chat runtime because Pyrogram/Streamlit are not installed there and direct GitHub checkout is network-blocked.
+- The full automated regression suite has executed successfully in GitHub Actions; subsequent commits continue to run the same CI plus Docker health verification.
 - Real Telegram/browser manual verification remains open below.
 
 ### Media implementation preference
@@ -84,17 +84,17 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 - [x] Review current hot queries and retain existing PK/unique/index coverage; defer additional indexes until measured query profiling demonstrates a need.
 
 ## P3 — Operations
-- [ ] Add structured logging and useful error context without leaking tokens, phone codes, passwords, session strings, or API secrets.
-- [ ] Add Dockerfile and deployment documentation if container deployment is desired.
-- [ ] Add health/readiness strategy appropriate for Streamlit + Telegram dependencies.
-- [ ] Add dependency/security update policy; Pyrogram is pinned while other packages use ranges.
-- [ ] Reconcile documentation claiming TgCrypto is optional with `requirements.txt` currently installing it unconditionally.
+- [x] Add JSON structured logging with sensitive-context redaction plus slow Telegram wait events; do not log raw tokens/passwords/session strings/API secrets.
+- [x] Add non-root `Dockerfile`, `docker-compose.yml`, `.dockerignore`, persistent `/data` layout, and `docs/DEPLOYMENT.md`.
+- [x] Add Streamlit `/_stcore/health` container healthcheck and document that per-user Telegram connectivity is not part of process readiness.
+- [x] Add `docs/DEPENDENCIES.md` with pinned-vs-ranged update policy and explicit Pyrogram archived/upstream-risk handling.
+- [x] Reconcile TgCrypto documentation: upstream can run without it, but this repository installs it and treats it as part of the supported deployment profile.
 
 ## P3 — UX / product definition
-- [ ] Clarify whether the intended product is truly "Saved Messages Manager" or a general Telegram chat/message manager; current code lists all supported dialogs.
+- [x] Clarify product scope as a general Telegram message manager while preserving the legacy display title until an explicit rename is requested.
 - [x] Surface loaded/visible counts, current message limit, end-of-range state, and an explicit `Load More Messages` action.
-- [ ] Decide whether message deletion should require confirmation.
-- [ ] Decide whether tag edits should support commas, normalization, rename, and deletion workflows.
+- [x] Require an explicit second-step confirmation before permanently deleting a Telegram message.
+- [x] Define current tag semantics: commas are separators; values are trimmed/deduplicated; removing a tag from the field removes it from that message; global rename/delete remains intentionally out of scope until richer tag management is requested.
 
 ## Review baseline
 Branch before context commit:
