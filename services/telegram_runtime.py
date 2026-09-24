@@ -30,6 +30,7 @@ class TelegramRuntime:
         self.run_calls = 0
         self.last_wait_seconds = 0.0
         self.max_wait_seconds = 0.0
+        self.last_operation = None
         self.thread.start()
 
     def _run(self):
@@ -47,13 +48,14 @@ class TelegramRuntime:
             raise RuntimeError("Telegram runtime is already stopped.")
         return asyncio.run_coroutine_threadsafe(coro, self.loop)
 
-    def run(self, coro):
+    def run(self, coro, operation: str = "telegram_call"):
         started = time.monotonic()
         try:
             return self.submit(coro).result()
         finally:
             elapsed = time.monotonic() - started
             self.run_calls += 1
+            self.last_operation = operation
             self.last_wait_seconds = elapsed
             self.max_wait_seconds = max(self.max_wait_seconds, elapsed)
             if elapsed >= _slow_call_threshold():
@@ -61,6 +63,7 @@ class TelegramRuntime:
                     logger,
                     "telegram_runtime_slow_wait",
                     level=logging.WARNING,
+                    operation=operation,
                     wait_seconds=round(elapsed, 3),
                     run_calls=self.run_calls,
                 )
@@ -68,6 +71,7 @@ class TelegramRuntime:
     def metrics(self) -> dict:
         return {
             "run_calls": self.run_calls,
+            "last_operation": self.last_operation,
             "last_wait_seconds": self.last_wait_seconds,
             "max_wait_seconds": self.max_wait_seconds,
         }
