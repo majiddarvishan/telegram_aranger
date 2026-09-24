@@ -391,6 +391,39 @@ hr {{
     background: var(--th-surface) !important;
 }}
 
+.st-key-sidebar-web-logout button,
+.st-key-sidebar-disconnect-telegram button {{
+    border-color: transparent !important;
+    background: transparent !important;
+    color: var(--th-text-muted) !important;
+    box-shadow: none !important;
+}}
+
+.st-key-sidebar-web-logout button:hover,
+.st-key-sidebar-disconnect-telegram button:hover {{
+    border-color: var(--th-border) !important;
+    background: var(--th-surface) !important;
+}}
+
+.st-key-sidebar-logout-telegram button {{
+    border-color: color-mix(
+        in srgb,
+        var(--th-danger) 45%,
+        var(--th-border)
+    ) !important;
+    color: var(--th-danger) !important;
+}}
+
+.st-key-sidebar-add-first-account button,
+.st-key-sidebar-add-account-connected button,
+.st-key-sidebar-add-account-disconnected button {{
+    border-color: color-mix(
+        in srgb,
+        var(--th-accent) 40%,
+        var(--th-border)
+    ) !important;
+}}
+
 {MESSAGE_HEADER_CSS}
 
 @media (max-width: 900px) {{
