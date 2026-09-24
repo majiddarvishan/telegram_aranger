@@ -4,7 +4,7 @@ import time
 
 import streamlit as st
 
-from db.tags import all_tags, get_tags, save_tags
+from db.tags import all_tags, get_tags_for_messages, save_tags
 from services.telegram_service import delete_message, get_dialogs, history, start_media_download
 from utils.date_range import bounds, normalize_range
 
@@ -370,11 +370,22 @@ def _render_message_header(settings, options, current_chat_id, today):
 
 
 def _fetch_messages_if_needed(settings, selected_chat_id, start_date, end_date):
-    signature = (
+    range_signature = (
         selected_chat_id,
         start_date.isoformat(),
         end_date.isoformat(),
     )
+    if st.session_state.get("message_range_signature") != range_signature:
+        st.session_state.message_range_signature = range_signature
+        st.session_state.message_result_limit = settings.default_message_limit
+        st.session_state.message_query_signature = None
+        st.session_state.messages = []
+
+    result_limit = st.session_state.get(
+        "message_result_limit",
+        settings.default_message_limit,
+    )
+    signature = (*range_signature, result_limit)
 
     refresh = st.button("🔄 Refresh Messages")
     should_fetch = (
@@ -393,7 +404,7 @@ def _fetch_messages_if_needed(settings, selected_chat_id, start_date, end_date):
                 selected_chat_id,
                 start_dt,
                 end_dt,
-                settings.default_message_limit,
+                result_limit,
             )
             st.session_state.message_query_signature = signature
         except Exception as exc:
@@ -513,6 +524,8 @@ def render_main(settings):
         st.session_state.selected_chat_id = selected_chat_id
         st.session_state.messages = []
         st.session_state.message_query_signature = None
+        st.session_state.message_range_signature = None
+        st.session_state.message_result_limit = settings.default_message_limit
         st.rerun()
 
     _fetch_messages_if_needed(
@@ -524,14 +537,15 @@ def render_main(settings):
 
     account_id = st.session_state.selected_telegram_account_id
     messages = []
+    tags_by_message = get_tags_for_messages(
+        settings.db_file,
+        account_id,
+        selected_chat_id,
+        [message["id"] for message in st.session_state.messages],
+    )
 
     for message in st.session_state.messages:
-        message_tags = get_tags(
-            settings.db_file,
-            account_id,
-            selected_chat_id,
-            message["id"],
-        )
+        message_tags = tags_by_message.get(message["id"], [])
         if not _message_matches_filters(
             message,
             message_tags,
@@ -544,7 +558,31 @@ def render_main(settings):
 
         messages.append((message, message_tags))
 
-    st.caption(f"{len(messages)} message(s) in selected range")
+    loaded_count = len(st.session_state.messages)
+    result_limit = st.session_state.get(
+        "message_result_limit",
+        settings.default_message_limit,
+    )
+    if loaded_count >= result_limit:
+        st.caption(
+            f"{len(messages)} visible message(s) · "
+            f"{loaded_count} loaded · current limit {result_limit}"
+        )
+        if st.button(
+            "➕ Load More Messages",
+            key="load_more_messages",
+            use_container_width=True,
+        ):
+            st.session_state.message_result_limit = (
+                result_limit + settings.default_message_limit
+            )
+            st.session_state.message_query_signature = None
+            st.rerun()
+    else:
+        st.caption(
+            f"{len(messages)} visible message(s) · "
+            f"{loaded_count} loaded · end of selected range"
+        )
 
     for message, current_tags in messages:
         message_id = message["id"]
