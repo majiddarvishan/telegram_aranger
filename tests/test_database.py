@@ -30,7 +30,46 @@ class DatabaseConfigurationTests(unittest.TestCase):
         self.assertEqual(synchronous, 1)
 
     def test_schema_version_is_current(self):
-        self.assertEqual(get_schema_version(self.db_file), 3)
+        self.assertEqual(get_schema_version(self.db_file), 4)
+
+    def test_schema_v3_dialog_cache_is_migrated_with_peer_columns(self):
+        legacy_db = str(Path(self.tmp.name) / "legacy-v3.db")
+        conn = get_db(legacy_db)
+        try:
+            conn.executescript(
+                """
+                CREATE TABLE telegram_dialog_cache (
+                    telegram_account_id INTEGER NOT NULL,
+                    chat_id INTEGER NOT NULL,
+                    position INTEGER NOT NULL,
+                    title TEXT NOT NULL,
+                    chat_type TEXT NOT NULL,
+                    username TEXT NOT NULL DEFAULT '',
+                    fetched_at TEXT NOT NULL,
+                    PRIMARY KEY(telegram_account_id, chat_id)
+                );
+                """
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+        initialize_database(legacy_db)
+
+        conn = get_db(legacy_db)
+        try:
+            columns = {
+                row[1]
+                for row in conn.execute(
+                    "PRAGMA table_info(telegram_dialog_cache)"
+                ).fetchall()
+            }
+        finally:
+            conn.close()
+
+        self.assertIn("peer_access_hash", columns)
+        self.assertIn("peer_type", columns)
+        self.assertEqual(get_schema_version(legacy_db), 4)
 
 
 if __name__ == "__main__":
