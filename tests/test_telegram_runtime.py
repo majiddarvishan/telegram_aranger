@@ -1,3 +1,4 @@
+import asyncio
 import unittest
 
 from services.telegram_runtime import TelegramRuntime
@@ -17,6 +18,26 @@ class FakeTelegramClient:
 
 
 class TelegramRuntimeShutdownTests(unittest.TestCase):
+    def test_run_records_blocking_wait_metrics(self):
+        runtime = TelegramRuntime()
+
+        async def delayed_value():
+            await asyncio.sleep(0.01)
+            return 42
+
+        try:
+            self.assertEqual(runtime.run(delayed_value()), 42)
+            metrics = runtime.metrics()
+        finally:
+            runtime.stop()
+
+        self.assertEqual(metrics["run_calls"], 1)
+        self.assertGreater(metrics["last_wait_seconds"], 0)
+        self.assertGreaterEqual(
+            metrics["max_wait_seconds"],
+            metrics["last_wait_seconds"],
+        )
+
     def test_stop_disconnects_active_client_and_closes_loop(self):
         runtime = TelegramRuntime()
         client = FakeTelegramClient()
