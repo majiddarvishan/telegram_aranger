@@ -23,6 +23,7 @@ class Settings:
     media_preview_max_mb: int = 200
     media_download_max_mb: int = 200
     message_scroll_height: int = 620
+    telegram_dialog_limit: int = 100
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -72,9 +73,10 @@ def load_settings() -> Settings:
         media_preview_max_mb = int(os.getenv("MEDIA_PREVIEW_MAX_MB", "200"))
         media_download_max_mb = int(os.getenv("MEDIA_DOWNLOAD_MAX_MB", "200"))
         message_scroll_height = int(os.getenv("MESSAGE_SCROLL_HEIGHT", "620"))
+        telegram_dialog_limit = int(os.getenv("TELEGRAM_DIALOG_LIMIT", "100"))
     except ValueError as exc:
         raise RuntimeError(
-            "WEB_REMEMBER_ME_DAYS and MEDIA_* numeric settings must be integers."
+            "Numeric Web, media, and Telegram settings must be integers."
         ) from exc
 
     if remember_me_days < 1:
@@ -104,6 +106,8 @@ def load_settings() -> Settings:
         raise RuntimeError("MEDIA_DOWNLOAD_MAX_MB must be greater than zero.")
     if message_scroll_height < 300:
         raise RuntimeError("MESSAGE_SCROLL_HEIGHT must be at least 300 pixels.")
+    if telegram_dialog_limit < 1:
+        raise RuntimeError("TELEGRAM_DIALOG_LIMIT must be greater than zero.")
 
     return Settings(
         api_id=api_id,
@@ -121,4 +125,5 @@ def load_settings() -> Settings:
         media_preview_max_mb=media_preview_max_mb,
         media_download_max_mb=media_download_max_mb,
         message_scroll_height=message_scroll_height,
+        telegram_dialog_limit=telegram_dialog_limit,
     )
