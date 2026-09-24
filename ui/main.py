@@ -249,69 +249,64 @@ def _prepare_date_range(today):
     return start_date, end_date
 
 
+MESSAGE_HEADER_KEY = "message-header"
+
+MESSAGE_HEADER_CSS = """
+.st-key-message-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding: 10px 0 12px 0;
+    margin-bottom: 12px;
+    background: var(--background-color);
+    border-bottom: 1px solid rgba(128, 128, 128, 0.28);
+    box-shadow: 0 8px 18px -18px rgba(0, 0, 0, 0.45);
+}
+.st-key-message-header [data-testid="stHorizontalBlock"] {
+    align-items: end;
+    gap: 10px;
+}
+.st-key-message-header label {
+    margin-bottom: 4px;
+}
+.st-key-message-header [data-testid="stDateInput"] {
+    width: 100%;
+}
+.st-key-message-header [data-testid="stDateInput"] > div {
+    width: 100%;
+}
+.st-key-message-navigation {
+    position: fixed;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    width: min(300px, calc(100vw - 48px));
+    padding: 8px 12px;
+    background: var(--background-color);
+    border: 1px solid rgba(128, 128, 128, 0.35);
+    border-radius: 12px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+}
+.st-key-message-navigation button {
+    min-height: 38px;
+    font-size: 20px;
+}
+.message-bottom-spacer {
+    height: 82px;
+}
+@media (max-width: 900px) {
+    .st-key-message-header {
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+"""
+
+
 def _render_header_styles():
     st.markdown(
-        """
-        <style>
-        .st-key-message-header {
-            position: fixed;
-            top: 0;
-            left: max(0px, var(--sidebar-width, 21rem));
-            right: 0;
-            z-index: 10000;
-            padding: 10px 24px 12px 24px;
-            background: var(--background-color);
-            border-bottom: 1px solid rgba(128, 128, 128, 0.28);
-            box-shadow: 0 3px 14px rgba(0, 0, 0, 0.10);
-        }
-        .st-key-message-header [data-testid="stHorizontalBlock"] {
-            align-items: end;
-            gap: 10px;
-        }
-        .st-key-message-header label {
-            margin-bottom: 4px;
-        }
-        .st-key-message-header [data-testid="stDateInput"] {
-            width: 100%;
-        }
-        .st-key-message-header [data-testid="stDateInput"] > div {
-            width: 100%;
-        }
-        .message-header-spacer {
-            height: 126px;
-        }
-        .st-key-message-navigation {
-            position: fixed;
-            bottom: 18px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            width: min(300px, calc(100vw - 48px));
-            padding: 8px 12px;
-            background: var(--background-color);
-            border: 1px solid rgba(128, 128, 128, 0.35);
-            border-radius: 12px;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
-        }
-        .st-key-message-navigation button {
-            min-height: 38px;
-            font-size: 20px;
-        }
-        .message-bottom-spacer {
-            height: 82px;
-        }
-        @media (max-width: 900px) {
-            .st-key-message-header {
-                left: 0;
-                padding-left: 12px;
-                padding-right: 12px;
-            }
-            .message-header-spacer {
-                height: 190px;
-            }
-        }
-        </style>
-        """,
+        f"<style>{MESSAGE_HEADER_CSS}</style>",
         unsafe_allow_html=True,
     )
 
@@ -323,7 +318,7 @@ def _render_message_header(settings, options, current_chat_id, today):
     tags = all_tags(settings.db_file, account_id)
     start_date, end_date = _prepare_date_range(today)
 
-    with st.container(key="message_header"):
+    with st.container(key=MESSAGE_HEADER_KEY):
         chat_col, search_col, tag_col = st.columns([2.7, 2.2, 1.2])
 
         with chat_col:
@@ -364,11 +359,6 @@ def _render_message_header(settings, options, current_chat_id, today):
         start_date, end_date = end_date, start_date
 
     st.session_state.message_date_range = (start_date, end_date)
-
-    st.markdown(
-        '<div class="message-header-spacer"></div>',
-        unsafe_allow_html=True,
-    )
 
     return selected_chat_id, search, tag, start_date, end_date
 
