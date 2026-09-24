@@ -3,7 +3,6 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
 
 from services.telegram_service import _download_media, _media_metadata, _message_text
 
@@ -183,14 +182,11 @@ class TelegramMediaDownloadTests(unittest.TestCase):
         )
         message = make_message(media_type="video", media=video)
         client = FakeClient(message)
-        runtime = SimpleNamespace(client=client)
 
-        with tempfile.TemporaryDirectory() as tmp, patch(
-            "services.telegram_service.get_runtime",
-            return_value=runtime,
-        ):
+        with tempfile.TemporaryDirectory() as tmp:
             first = asyncio.run(
                 _download_media(
+                    client=client,
                     chat_id=-100,
                     message_id=10,
                     account_id=1,
@@ -202,6 +198,7 @@ class TelegramMediaDownloadTests(unittest.TestCase):
             )
             second = asyncio.run(
                 _download_media(
+                    client=client,
                     chat_id=-100,
                     message_id=10,
                     account_id=1,
@@ -225,14 +222,11 @@ class TelegramMediaDownloadTests(unittest.TestCase):
             file_size=10,
         )
         client = FakeClient(make_message(media_type="video", media=video))
-        runtime = SimpleNamespace(client=client)
 
-        with tempfile.TemporaryDirectory() as tmp, patch(
-            "services.telegram_service.get_runtime",
-            return_value=runtime,
-        ):
+        with tempfile.TemporaryDirectory() as tmp:
             first = asyncio.run(
                 _download_media(
+                    client=client,
                     chat_id=-100,
                     message_id=10,
                     account_id=1,
@@ -246,6 +240,7 @@ class TelegramMediaDownloadTests(unittest.TestCase):
 
             second = asyncio.run(
                 _download_media(
+                    client=client,
                     chat_id=-100,
                     message_id=10,
                     account_id=1,
@@ -268,14 +263,11 @@ class TelegramMediaDownloadTests(unittest.TestCase):
             file_size=10,
         )
         client = FakeClient(make_message(media_type="video", media=video))
-        runtime = SimpleNamespace(client=client)
 
-        with tempfile.TemporaryDirectory() as tmp, patch(
-            "services.telegram_service.get_runtime",
-            return_value=runtime,
-        ):
+        with tempfile.TemporaryDirectory() as tmp:
             first = asyncio.run(
                 _download_media(
+                    client=client,
                     chat_id=-100,
                     message_id=10,
                     account_id=1,
@@ -287,6 +279,7 @@ class TelegramMediaDownloadTests(unittest.TestCase):
             )
             second = asyncio.run(
                 _download_media(
+                    client=client,
                     chat_id=-100,
                     message_id=10,
                     account_id=1,
@@ -309,18 +302,15 @@ class TelegramMediaDownloadTests(unittest.TestCase):
             file_size=10,
         )
         client = FakeClient(make_message(media_type="video", media=video))
-        runtime = SimpleNamespace(client=client)
         updates = []
 
         async def progress(current, total):
             updates.append((current, total))
 
-        with tempfile.TemporaryDirectory() as tmp, patch(
-            "services.telegram_service.get_runtime",
-            return_value=runtime,
-        ):
+        with tempfile.TemporaryDirectory() as tmp:
             asyncio.run(
                 _download_media(
+                    client=client,
                     chat_id=-100,
                     message_id=10,
                     account_id=1,
@@ -344,12 +334,8 @@ class TelegramMediaDownloadTests(unittest.TestCase):
             duration=5,
         )
         client = FakeClient(make_message(media_type="video", media=video))
-        runtime = SimpleNamespace(client=client)
 
-        with tempfile.TemporaryDirectory() as tmp, patch(
-            "services.telegram_service.get_runtime",
-            return_value=runtime,
-        ):
+        with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaisesRegex(ValueError, "too large"):
                 asyncio.run(
                     _download_media(
@@ -378,12 +364,8 @@ class TelegramMediaDownloadTests(unittest.TestCase):
             make_message(media_type="video", media=video),
             fail_download=True,
         )
-        runtime = SimpleNamespace(client=client)
 
-        with tempfile.TemporaryDirectory() as tmp, patch(
-            "services.telegram_service.get_runtime",
-            return_value=runtime,
-        ):
+        with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaisesRegex(RuntimeError, "did not complete"):
                 asyncio.run(
                     _download_media(
