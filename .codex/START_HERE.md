@@ -3,7 +3,7 @@
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
 - Current working branch: `feature/media-support`
-- Current phase status: P0/P1/P2/P3 automated implementation is complete; real Telegram/browser media validation remains open.
+- Current phase status: P0/P1/P2/P3 implementation is complete, including real Telegram/browser media validation.
 - Branch was created from the merged `main` baseline and is currently the source of truth for this feature set.
 
 ## What the project is
@@ -40,10 +40,11 @@ Completed:
 - Docker build + Streamlit health check in CI.
 - Full automated regression suite in GitHub Actions.
 
-Still open:
-- real Telegram/browser validation for small and large photos/videos and browser video download.
+Validation status:
+- real Telegram/browser media validation has been completed successfully with no issues reported.
+- automated GitHub Actions regression and Docker health checks are green.
 
-Use `docs/MANUAL_TESTING.md` for that checklist. Do not mark the final media-validation task complete without actually running those real Telegram/browser scenarios.
+`docs/MANUAL_TESTING.md` remains the repeatable acceptance checklist for future regressions.
 
 ## Read order for future work
 1. `.codex/PROJECT_CONTEXT.md`
