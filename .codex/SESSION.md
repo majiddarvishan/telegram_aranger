@@ -32,3 +32,24 @@ Future session startup:
 2. Read `.codex/TASKS.md`.
 3. Confirm branch is still `others` unless the user says otherwise.
 4. Re-check branch head before making changes so these notes are not treated as newer than the code.
+
+## 2026-09-24 — Media-support planning branch
+
+User request:
+- Create a new branch from current `main`.
+- Do not implement media code yet.
+- Add planned support for posts containing photos and videos.
+- Add inline video playback.
+- Add a dedicated video download button so users can download video files through the browser.
+
+Actions:
+- Created branch `feature/media-support` from `main@e114a4e886ac046e140bc00c340796b51c3de3aa`.
+- Added a detailed media implementation backlog to `.codex/TASKS.md`.
+- Preferred approach recorded as lazy/on-demand Telegram media loading with bounded temporary caching.
+- No application/source code was changed in this planning step.
+
+Next implementation entry point:
+1. Start with media metadata mapping in `services/telegram_service.py`.
+2. Add photo/video rendering and explicit video download controls in `ui/main.py`.
+3. Add bounded temporary cache/download lifecycle.
+4. Add tests and manual verification.
