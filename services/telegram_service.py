@@ -3,7 +3,7 @@ import threading
 
 from cryptography.fernet import Fernet
 from pyrogram import Client
-from pyrogram.errors import SessionPasswordNeeded
+from pyrogram.errors import PeerIdInvalid, SessionPasswordNeeded
 
 from services.media_cache import (
     atomic_replace_download,
@@ -272,6 +272,33 @@ def _message_text(message, media: dict | None) -> str:
     return "[Message]"
 
 
+async def _warm_peer_for_history(
+    client,
+    chat_id: int,
+    username: str = "",
+    dialog_limit: int = 100,
+) -> None:
+    """Populate Pyrogram's in-memory peer cache for a cached dialog."""
+    if client is None:
+        raise RuntimeError("Telegram client is not connected.")
+
+    if username:
+        try:
+            await client.get_chat(username)
+            return
+        except Exception:
+            # Some private chats/groups have stale or unavailable usernames.
+            # Fall back to a bounded dialog refresh below.
+            pass
+
+    async for _ in client.get_dialogs(limit=dialog_limit):
+        pass
+
+    # Raise PeerIdInvalid here if the selected cached dialog is no longer
+    # reachable even after refreshing Pyrogram's peer cache.
+    await client.resolve_peer(chat_id)
+
+
 async def _history(chat_id, start_dt, end_dt, limit=100, client=None):
     if client is None:
         raise RuntimeError("Telegram client is not connected.")
@@ -312,15 +339,57 @@ async def _history(chat_id, start_dt, end_dt, limit=100, client=None):
     return out
 
 
-def history(chat_id, start_dt, end_dt, limit=100):
-    runtime = get_runtime()
-    return runtime.run(
-        _history(
+async def _history_with_peer_recovery(
+    client,
+    chat_id,
+    start_dt,
+    end_dt,
+    limit=100,
+    peer_username: str = "",
+    dialog_limit: int = 100,
+):
+    try:
+        return await _history(
             chat_id,
             start_dt,
             end_dt,
             limit,
-            client=runtime.client,
+            client=client,
+        )
+    except PeerIdInvalid:
+        await _warm_peer_for_history(
+            client,
+            chat_id,
+            username=peer_username,
+            dialog_limit=dialog_limit,
+        )
+        return await _history(
+            chat_id,
+            start_dt,
+            end_dt,
+            limit,
+            client=client,
+        )
+
+
+def history(
+    chat_id,
+    start_dt,
+    end_dt,
+    limit=100,
+    peer_username: str = "",
+    dialog_limit: int = 100,
+):
+    runtime = get_runtime()
+    return runtime.run(
+        _history_with_peer_recovery(
+            runtime.client,
+            chat_id,
+            start_dt,
+            end_dt,
+            limit,
+            peer_username=peer_username,
+            dialog_limit=dialog_limit,
         ),
         operation="history",
     )
