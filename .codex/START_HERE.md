@@ -2,9 +2,9 @@
 
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
-- Current working branch: `feature/media-support`
+- Current working branch: `main`
 - Current phase status: P0/P1/P2/P3 implementation is complete, including real Telegram/browser media validation.
-- Branch was created from the merged `main` baseline and is currently the source of truth for this feature set.
+- `feature/media-support` has been fast-forward merged into `main`; `main` is now the source of truth.
 
 ## What the project is
 This is a modular Streamlit Telegram message manager using Pyrogram.
@@ -55,7 +55,7 @@ Validation status:
 6. `docs/MANUAL_TESTING.md`
 
 ## Important rules
-- Treat `feature/media-support` as the current source branch unless the user explicitly switches branches.
+- Treat `main` as the current source branch unless the user explicitly creates/switches branches.
 - Re-fetch branch HEAD before editing; do not assume these notes are newer than Git.
 - Never commit Telegram API credentials, Fernet keys, session strings, phone codes, 2FA passwords, proxy passwords, browser remember tokens, SQLite data files, downloaded media, or backup artifacts.
 - Preserve Web-user ownership checks for Telegram accounts and chat-scoped identity for tags/media.
@@ -66,7 +66,7 @@ Validation status:
 ## Local run
 
 ```bash
-git checkout feature/media-support
+git checkout main
 python -m venv .venv
 # activate the virtual environment
 pip install -r requirements.txt
