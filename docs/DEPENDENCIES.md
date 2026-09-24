@@ -22,7 +22,7 @@ Before replacing Pyrogram or moving to a fork:
 
 ### Bounded ranges
 - Streamlit
-- TgCrypto
+- tgcrypto2
 - cryptography
 - python-dotenv
 - extra-streamlit-components
@@ -33,11 +33,19 @@ For bounded dependencies:
 - require CI to pass;
 - manually verify Web login, remember-me, Telegram restore, and media UI before merge.
 
-## TgCrypto
+## Telegram crypto acceleration
 
-This repository currently installs `TgCrypto` from `requirements.txt`, so **for this application it is an installed dependency**, not an optional installation step.
+Telegram Harbor installs `tgcrypto2>=1.3.6,<2`.
 
-Upstream Pyrogram can operate without TgCrypto using slower pure-Python cryptographic operations, but that is not the deployment profile represented by this repository's requirements file.
+`tgcrypto2` is a maintained fork of the archived original `TgCrypto` project. Its PyPI package name is `tgcrypto2`, but it intentionally keeps the Python import name `tgcrypto` for drop-in compatibility with Pyrogram.
+
+Why this project uses it:
+- the original `TgCrypto 1.2.5` Windows wheels stop at older CPython versions and can be missing on modern Windows/Python environments;
+- `tgcrypto2` provides modern wheels, including Windows CPython 3.14;
+- Pyrogram can continue using `import tgcrypto` without source changes;
+- without a usable `tgcrypto` module, Pyrogram falls back to significantly slower pure-Python crypto.
+
+Windows/Python 3.14 compatibility is explicitly validated in GitHub Actions.
 
 ## Security review
 
