@@ -472,3 +472,23 @@ Tag note:
 - No Git tags currently exist in the repository.
 - Intended tag: `v1.0.2` pointing exactly to `9a4c429827ec4e31ef1376ae97b0b074a13dd7e9`.
 - The connected GitHub actions expose branch/file writes and read-only Git-ref access, but no tag-ref creation action, so tag creation remains an external/manual Git operation.
+
+
+## 2026-09-25 — Windows TgCrypto warning / tgcrypto2 migration
+
+Observed on Windows:
+- Pyrogram printed: `TgCrypto is missing! Pyrogram will work the same, but at a much slower speed.`
+
+Root cause:
+- The project still depended on legacy `TgCrypto>=1.2.5`.
+- Original TgCrypto is archived and its published Windows wheels do not cover modern CPython versions such as 3.14.
+- Pyrogram therefore falls back to slower pure-Python crypto when the compiled `tgcrypto` module is unavailable.
+
+Fix:
+- Replaced `TgCrypto>=1.2.5` with `tgcrypto2>=1.3.6,<2`.
+- `tgcrypto2` is a maintained fork and intentionally exports the same `tgcrypto` import name, so Pyrogram source code does not change.
+- Added `tests/test_crypto_acceleration.py` to verify the `tgcrypto2` distribution and expected crypto functions.
+- Added a dedicated Windows + Python 3.14 GitHub Actions job that installs all requirements and imports both `tgcrypto` and Pyrogram.
+- README contains cleanup/reinstall commands for existing Windows virtual environments.
+- Dependency policy updated to document the fork and compatibility rationale.
+- Current development version moved to `1.0.3-dev`; latest release remains `v1.0.2`.
