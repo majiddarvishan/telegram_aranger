@@ -91,3 +91,34 @@ def delete_user_sessions(db_file: str, user_id: int) -> None:
         conn.commit()
     finally:
         conn.close()
+
+
+def cleanup_expired_sessions(db_file: str) -> int:
+    """Delete expired or malformed remembered-login sessions."""
+    now = datetime.now(timezone.utc)
+    conn = get_db(db_file)
+    deleted = 0
+    try:
+        rows = conn.execute(
+            "SELECT id, expires_at FROM web_sessions"
+        ).fetchall()
+        for session_id, raw_expires_at in rows:
+            try:
+                expires_at = datetime.fromisoformat(raw_expires_at)
+                if expires_at.tzinfo is None:
+                    expires_at = expires_at.replace(tzinfo=timezone.utc)
+                expired = expires_at <= now
+            except (TypeError, ValueError):
+                expired = True
+
+            if expired:
+                conn.execute(
+                    "DELETE FROM web_sessions WHERE id=?",
+                    (session_id,),
+                )
+                deleted += 1
+
+        conn.commit()
+        return deleted
+    finally:
+        conn.close()
