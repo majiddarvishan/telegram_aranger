@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from db.database import get_db, initialize_database
+from db.database import get_db, get_schema_version, initialize_database
 from db.tags import all_tags, get_tags, get_tags_for_messages, save_tags
 from db.telegram_accounts import delete_account, save_account
 from db.users import authenticate_user, create_user
@@ -142,6 +142,7 @@ class MessageTagMigrationTests(unittest.TestCase):
 
             self.assertIn("chat_id", columns)
             self.assertEqual(row, (10, 0, 42, "legacy-tag"))
+            self.assertEqual(get_schema_version(db_file), 2)
 
 
 if __name__ == "__main__":
