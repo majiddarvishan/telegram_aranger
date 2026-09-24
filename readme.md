@@ -1,6 +1,7 @@
 # Telegram Harbor
 
-**Latest release:** `v1.0.2`
+**Latest release:** `v1.0.2`  
+**Current development version:** `1.0.3-dev`
 
 **Telegram Harbor** is a self-hosted, multi-user Telegram message and media manager built with Streamlit and Pyrogram.
 
@@ -94,6 +95,24 @@ python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().d
 streamlit run app.py
 ```
 
+### Windows / Python 3.14
+
+If an older environment shows:
+
+```text
+TgCrypto is missing! Pyrogram will work the same, but at a much slower speed.
+```
+
+reinstall the crypto acceleration dependency in the active virtual environment:
+
+```powershell
+python -m pip uninstall -y TgCrypto tgcrypto2
+python -m pip install -r requirements.txt
+python -c "import tgcrypto; print(tgcrypto.__file__)"
+```
+
+The last command should print the installed `tgcrypto` module path without an import error.
+
 ## Important
 
 Telegram sessions are encrypted at rest with the Fernet key. Keep `TELEGRAM_SESSION_ENCRYPTION_KEY` secret and back it up securely. Losing it makes stored Telegram sessions undecryptable.
@@ -125,7 +144,7 @@ The project uses `extra-streamlit-components` for the browser cookie required to
 
 Telegram Harbor keeps one CookieManager instance per Streamlit Web session and reuses it across reruns. This prevents `StreamlitDuplicateElementKey` errors caused by registering the same custom component key multiple times in one run.
 
-`TgCrypto` is installed by this project's `requirements.txt` and is part of the supported deployment profile. Upstream Pyrogram can technically run without it, but this repository does not treat that as the normal installation path. See `docs/DEPENDENCIES.md`.
+`tgcrypto2` is installed by this project's `requirements.txt`. It keeps the import name `tgcrypto`, so it is drop-in compatible with Pyrogram while providing modern Python/Windows wheels. See `docs/DEPENDENCIES.md`.
 
 ## Media cache and limits
 
