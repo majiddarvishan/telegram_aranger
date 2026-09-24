@@ -51,13 +51,14 @@ Target style:
 - [ ] Consider active-filter chips after baseline styling.
 
 ### GUI-P3 — Message cards
-- [ ] Make message content the dominant visual element.
-- [ ] Add compact card header/meta.
-- [ ] Render tags as read-mode chips.
-- [ ] Make tag editing on-demand.
-- [ ] De-emphasize delete until requested.
+- [x] Make message content the dominant visual element.
+- [x] Add compact card header/meta.
+- [x] Render tags as read-mode chips.
+- [x] Make tag editing on-demand.
+- [x] De-emphasize delete until requested.
 - [ ] Standardize media action hierarchy.
-- [ ] Normalize card spacing.
+- [x] Normalize baseline card spacing.
+- [ ] Manually review message cards with text, photo and video messages before closing GUI-P3.
 
 ### GUI-P4 — Auth and state screens
 - [ ] Centered branded auth card.
