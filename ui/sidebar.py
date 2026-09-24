@@ -1,6 +1,6 @@
 import streamlit as st
 
-from config.branding import PRODUCT_NAME
+from config.branding import PRODUCT_NAME, PRODUCT_VERSION
 from ui.auth import logout_web_user
 from db.telegram_accounts import list_accounts, get_account, save_account, delete_account
 from services.telegram_service import proxy_config, send_code, verify_code, verify_2fa, export_session, restore, disconnect, logout, get_dialogs
@@ -30,7 +30,7 @@ def _apply_account_selection(state, selected_account_id: int) -> bool:
 def render_sidebar(settings):
     user=st.session_state.web_user
     st.sidebar.title(f"⚓ {PRODUCT_NAME}")
-    st.sidebar.caption("Telegram message & media manager")
+    st.sidebar.caption(f"Telegram message & media manager · v{PRODUCT_VERSION}")
     st.sidebar.markdown("---")
     st.sidebar.subheader("👤 Account")
     st.sidebar.write(f"**{user['display_name']}**")
