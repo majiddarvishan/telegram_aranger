@@ -1,4 +1,4 @@
-# Dependency Policy
+# Telegram Harbor Dependency Policy
 
 ## Update policy
 
@@ -29,7 +29,7 @@ Before replacing Pyrogram or moving to a fork:
 
 For bounded dependencies:
 - review updates at least monthly;
-- apply patch/minor updates first in `feature/media-support` or a dedicated dependency branch;
+- apply patch/minor updates first in a dedicated dependency branch from `main`;
 - require CI to pass;
 - manually verify Web login, remember-me, Telegram restore, and media UI before merge.
 
