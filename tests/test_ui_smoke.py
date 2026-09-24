@@ -4,6 +4,8 @@ from datetime import datetime
 from ui.main import (
     MESSAGE_HEADER_CSS,
     MESSAGE_HEADER_KEY,
+    MESSAGE_SCROLL_HEIGHT,
+    MESSAGE_SCROLL_KEY,
     _delete_state_key,
     _message_matches_filters,
     _remove_message_from_state,
@@ -12,23 +14,16 @@ from ui.sidebar import _apply_account_selection
 
 
 class StickyHeaderTests(unittest.TestCase):
-    def test_message_header_is_fixed_and_masks_scrolled_content(self):
+    def test_message_header_stays_in_flow_above_scrollable_messages(self):
         self.assertEqual(MESSAGE_HEADER_KEY, "message-header")
+        self.assertEqual(MESSAGE_SCROLL_KEY, "message-scroll-area")
+        self.assertEqual(MESSAGE_SCROLL_HEIGHT, 500)
         self.assertIn(".st-key-message-header", MESSAGE_HEADER_CSS)
-        self.assertIn("position: fixed", MESSAGE_HEADER_CSS)
-        self.assertIn("--telegram-harbor-header-top: 4rem", MESSAGE_HEADER_CSS)
-        self.assertIn("--telegram-harbor-header-left: 5rem", MESSAGE_HEADER_CSS)
-        self.assertIn("--telegram-harbor-header-right: 5rem", MESSAGE_HEADER_CSS)
-        self.assertIn("width: auto !important", MESSAGE_HEADER_CSS)
-        self.assertIn("z-index: 10000 !important", MESSAGE_HEADER_CSS)
-        self.assertIn("isolation: isolate", MESSAGE_HEADER_CSS)
-        self.assertIn("background: var(--background-color) !important", MESSAGE_HEADER_CSS)
-        self.assertIn(".message-header-backdrop", MESSAGE_HEADER_CSS)
-        self.assertIn("z-index: 9998", MESSAGE_HEADER_CSS)
-        self.assertIn("pointer-events: none", MESSAGE_HEADER_CSS)
-        self.assertIn('[data-testid="stSidebar"][aria-expanded="true"]', MESSAGE_HEADER_CSS)
-        self.assertIn("--telegram-harbor-header-left: 26rem", MESSAGE_HEADER_CSS)
-        self.assertIn(".message-header-fixed-spacer", MESSAGE_HEADER_CSS)
+        self.assertIn("position: relative", MESSAGE_HEADER_CSS)
+        self.assertNotIn("position: fixed", MESSAGE_HEADER_CSS)
+        self.assertNotIn(".message-header-backdrop", MESSAGE_HEADER_CSS)
+        self.assertNotIn(".message-header-fixed-spacer", MESSAGE_HEADER_CSS)
+        self.assertIn(".st-key-message-scroll-area", MESSAGE_HEADER_CSS)
 
 
     def test_bottom_navigation_container_is_removed(self):
