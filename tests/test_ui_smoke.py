@@ -2,11 +2,21 @@ import unittest
 from datetime import datetime
 
 from ui.main import (
+    MESSAGE_HEADER_CSS,
+    MESSAGE_HEADER_KEY,
     _delete_state_key,
     _message_matches_filters,
     _remove_message_from_state,
 )
 from ui.sidebar import _apply_account_selection
+
+
+class StickyHeaderTests(unittest.TestCase):
+    def test_message_header_uses_css_safe_key_and_sticky_positioning(self):
+        self.assertEqual(MESSAGE_HEADER_KEY, "message-header")
+        self.assertIn(".st-key-message-header", MESSAGE_HEADER_CSS)
+        self.assertIn("position: sticky", MESSAGE_HEADER_CSS)
+        self.assertIn("top: 0", MESSAGE_HEADER_CSS)
 
 
 class UiMessageSmokeTests(unittest.TestCase):
