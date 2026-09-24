@@ -1,7 +1,6 @@
 # Telegram Harbor
 
-**Latest release:** `v1.0.1`  
-**Current development version:** `1.0.2-dev`
+**Latest release:** `v1.0.2`
 
 **Telegram Harbor** is a self-hosted, multi-user Telegram message and media manager built with Streamlit and Pyrogram.
 
