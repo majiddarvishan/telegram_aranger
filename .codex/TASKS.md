@@ -133,3 +133,9 @@ Branch before context commit:
 - [x] Telegram Harbor v1.0.2 release checkpoint recorded at `9a4c429827ec4e31ef1376ae97b0b074a13dd7e9`.
 - [x] VERSION / README / CHANGELOG / branding regression updated for 1.0.2.
 - [ ] Create Git tag `v1.0.2` pointing exactly to `9a4c429827ec4e31ef1376ae97b0b074a13dd7e9`; current connector does not expose tag-ref creation.
+
+
+## Release checkpoint v1.0.3
+- [x] Telegram Harbor v1.0.3 release checkpoint recorded at `6c27b0343f7534a2c7ff906f27483791df601fe4`.
+- [x] VERSION / README / CHANGELOG / branding regression updated for 1.0.3.
+- [ ] Create Git tag `v1.0.3` pointing exactly to `6c27b0343f7534a2c7ff906f27483791df601fe4`; current GitHub connector does not expose tag-ref creation.
