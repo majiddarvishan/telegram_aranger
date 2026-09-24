@@ -11,6 +11,7 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 
 
 ## P1 — Media viewing and download
+- [x] Recover safely from interrupted media downloads: purge stale `.part` files, validate cached file size against Telegram metadata, auto-redownload invalid cache entries, and provide a manual **Redownload Video** action.
 - [x] Extend Telegram message mapping in `services/telegram_service.py` to expose media metadata instead of collapsing all non-text content to `[Media / File]`.
 - [x] Detect and distinguish at least `photo`, `video`, `animation/GIF`, `document`, `audio`, `voice`, and `video_note` so the UI can render the correct control.
 - [x] Preserve message text/caption together with media metadata.
