@@ -1,5 +1,6 @@
 import asyncio
 import threading
+import time
 from concurrent.futures import Future
 
 
@@ -12,6 +13,9 @@ class TelegramRuntime:
             name="TelegramRuntime",
         )
         self.client = None
+        self.run_calls = 0
+        self.last_wait_seconds = 0.0
+        self.max_wait_seconds = 0.0
         self.thread.start()
 
     def _run(self):
@@ -30,7 +34,21 @@ class TelegramRuntime:
         return asyncio.run_coroutine_threadsafe(coro, self.loop)
 
     def run(self, coro):
-        return self.submit(coro).result()
+        started = time.monotonic()
+        try:
+            return self.submit(coro).result()
+        finally:
+            elapsed = time.monotonic() - started
+            self.run_calls += 1
+            self.last_wait_seconds = elapsed
+            self.max_wait_seconds = max(self.max_wait_seconds, elapsed)
+
+    def metrics(self) -> dict:
+        return {
+            "run_calls": self.run_calls,
+            "last_wait_seconds": self.last_wait_seconds,
+            "max_wait_seconds": self.max_wait_seconds,
+        }
 
     async def _disconnect_active_client(self):
         client = self.client
