@@ -42,6 +42,7 @@ def _prepare_media(
     message_id: int,
     purpose: str,
     max_megabytes: int,
+    force_download: bool = False,
 ):
     key = _media_state_key(account_id, chat_id, message_id, purpose)
     existing = _get_prepared_media(key)
@@ -60,6 +61,7 @@ def _prepare_media(
             account_id=account_id,
             settings=settings,
             max_megabytes=max_megabytes,
+            force_download=force_download,
         )
 
         last_percent = -1
@@ -183,6 +185,26 @@ def _render_media(settings, account_id: int, message: dict) -> None:
                         )
                 except OSError as exc:
                     st.error(f"Failed to open cached video: {exc}")
+
+                if st.button(
+                    "🔁 Redownload Video",
+                    key=f"media_redownload_{account_id}_{chat_id}_{message_id}",
+                    help="Discard the cached copy and download the video again from Telegram.",
+                    use_container_width=True,
+                ):
+                    st.session_state.media_files.pop(download_key, None)
+                    st.session_state.media_files.pop(play_key, None)
+                    download_ready = _prepare_media(
+                        settings,
+                        account_id,
+                        chat_id,
+                        message_id,
+                        "download",
+                        settings.media_download_max_mb,
+                        force_download=True,
+                    )
+                    if download_ready:
+                        st.rerun()
         return
 
     st.info(f"{media_type.replace('_', ' ').title()} media is detected. Preview is not implemented yet.")
