@@ -185,7 +185,7 @@ Planning source:
 - [x] De-emphasize Delete until requested while preserving confirmation.
 - [x] Normalize media action hierarchy.
 - [x] Normalize baseline card spacing.
-- [ ] Manually verify text/photo/video cards before closing GUI-P3.
+- [x] Manually verify representative text/photo/video cards on desktop.
 
 ### GUI-P4 — Auth and state screens
 - [x] Branded centered auth card.
@@ -198,7 +198,9 @@ Planning source:
 - [x] Preserve safe Streamlit column stacking for narrow layouts.
 - [x] Add visible keyboard focus and reduced-motion support.
 - [x] Standardize baseline control hit targets.
-- [ ] Manual Light/Dark contrast validation.
+- [x] Light-mode desktop contrast validation.
+- [x] Dark-mode screenshot review completed and adaptive-surface issue fixed in code.
+- [ ] Re-check Dark mode after pulling the adaptive-surface fix.
 - [ ] Manual screenshot validation at multiple viewport widths.
 
 ### GUI-P6 — Polish
@@ -211,3 +213,10 @@ Planning source:
 - [ ] Do not change Telegram runtime/service behavior as part of visual-only phases.
 - [ ] Do not change database/tag/message-history/media-cache semantics without explicit approval.
 - [ ] Keep each GUI phase independently reviewable with green CI.
+
+
+### GUI validation correctness fixes
+- [x] Recover Pyrogram peer state lazily when a cached dialog raises PeerIdInvalid during history loading.
+- [x] Use cached username first and a bounded dialog refresh as fallback.
+- [x] Show fetch-failure state separately from a true empty-message state.
+- [ ] Backport peer-recovery fix to main before the next stable release if needed independently of GUI merge.
