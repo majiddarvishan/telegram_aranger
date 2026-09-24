@@ -87,3 +87,18 @@ Implemented step-by-step on `feature/media-support`.
 
 ### Remaining validation
 - Manual verification with a real Telegram account is still required for photo rendering, inline playback, and browser download using representative small/large videos.
+
+## 2026-09-24 — Media metadata test coverage checkpoint
+
+User requested implementation to continue only through:
+`Add tests for media-type detection and metadata mapping.`
+
+Completed/validated at this checkpoint:
+- Media metadata extraction exists for all supported media types.
+- Test coverage now explicitly checks `photo`, `video`, `animation`, `document`, `audio`, `voice`, and `video_note`.
+- Tests verify normalized MIME defaults where applicable.
+- Tests verify common metadata mapping: file ID, unique ID, file name, MIME type, file size, width, height, and duration.
+- Tests verify no-media behavior.
+- Tests verify message-text precedence: text -> caption -> media label -> generic message label.
+
+No additional implementation work beyond this requested checkpoint was performed in this step.
