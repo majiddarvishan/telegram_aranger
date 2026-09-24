@@ -1,0 +1,12 @@
+.git
+.github
+.codex
+.venv
+__pycache__
+*.pyc
+.env
+.cache
+backups
+telegram_manager.db
+*.db-shm
+*.db-wal
