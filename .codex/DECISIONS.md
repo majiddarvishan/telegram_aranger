@@ -1,6 +1,6 @@
 # Decisions / Observed Design Choices
 
-These are **observed implementation decisions** in branch `others`, not necessarily permanent product requirements. Update this file when the user explicitly changes one.
+These are the current implementation/architecture decisions for `feature/media-support`. Update this file when the user changes a requirement or a later phase supersedes one.
 
 ## D-001 — Streamlit is the application shell
 Status: current
@@ -49,10 +49,10 @@ Status: current
 
 The raw random token is kept in the browser cookie. Only SHA-256(token) and expiry are stored server-side.
 
-## D-010 — Branch `others` is a modular reimplementation
+## D-010 — Preserve the modular architecture
 Status: current
 
-Compared with `main`, this branch significantly shrinks `app.py` and separates configuration, persistence, Telegram services/runtime, UI, and utilities. Future changes should preserve this separation unless a redesign is explicitly requested.
+The modular implementation separates configuration, persistence, Telegram services/runtime, UI, utilities, scripts, and operational documentation. Future changes should preserve this separation unless a redesign is explicitly requested.
 
 ## D-011 — Media is downloaded lazily
 Status: current
@@ -75,3 +75,49 @@ Password minimum length is enforced outside the UI, remembered sessions are clea
 Status: current
 
 Local development defaults to `WEB_COOKIE_SECURE=false` and `SameSite=lax`. HTTPS deployments should set `WEB_COOKIE_SECURE=true`. `SameSite=none` is rejected unless secure cookies are enabled.
+
+
+## D-015 — History pagination is explicit
+Status: current
+
+Telegram history starts from the selected range end and walks backward. The configured message limit applies to results inside the selected range. The UI exposes the current loaded count and a **Load More Messages** action instead of implying that the first page is complete.
+
+## D-016 — Full-history search is not performed per keystroke
+Status: current
+
+Text search remains local over messages already loaded for the selected range. A future Telegram server-side/full-history search should be an explicit submitted action with its own pagination/cache semantics, not a network call on each Streamlit rerun.
+
+## D-017 — SQLite is single-host storage
+Status: current
+
+SQLite uses WAL, foreign keys, busy timeout, and synchronous=NORMAL. This is appropriate for the current single-instance deployment but is not treated as shared storage for horizontal scaling. Multi-instance deployment requires a shared database/runtime redesign.
+
+## D-018 — Backups bind database state to a Fernet-key fingerprint
+Status: current
+
+Database backup uses SQLite's online backup API. Backup metadata may contain a SHA-256 fingerprint of the Fernet key so restore can reject the wrong key, but the raw Fernet key must never be stored in the ordinary database backup artifact.
+
+## D-019 — Structured logs are secret-safe by default
+Status: current
+
+Operational logging uses JSON and redacts context fields whose keys indicate passwords, tokens, session strings, API secrets, encryption keys, phone codes, or similar secrets. Logs may identify operational entities such as account/message IDs but must not contain authentication material.
+
+## D-020 — Deployment is one non-root Streamlit container
+Status: current
+
+The supported container model is a single non-root Streamlit instance with persistent state under /data and health checking through Streamlit /_stcore/health. Telegram connectivity is user/session-specific and is not part of process readiness.
+
+## D-021 — Product scope is broader than the legacy display name
+Status: current
+
+The product behaves as a general Telegram message manager for private chats, groups, supergroups, channels, and Saved Messages. The legacy UI title remains until the user explicitly requests a rename.
+
+## D-022 — Permanent message deletion requires confirmation
+Status: current
+
+A first Delete action only enters a pending state. A second explicit confirmation is required before calling Telegram's delete API.
+
+## D-023 — Current tag model stays simple
+Status: current
+
+Tags remain comma-separated SQLite text for the current feature scope. Values are trimmed and de-duplicated. A normalized tag table is deferred until global rename/delete, richer tag metadata, or higher-scale querying is required.
