@@ -1,6 +1,19 @@
 from db.database import get_db
 
 
+def normalize_tags(tags: list[str]) -> list[str]:
+    """Trim and de-duplicate tags while preserving user-visible spelling/order."""
+    result = []
+    seen = set()
+    for raw_tag in tags:
+        tag = raw_tag.strip()
+        if not tag or tag in seen:
+            continue
+        seen.add(tag)
+        result.append(tag)
+    return result
+
+
 def get_tags(
     db_file: str,
     account_id: int,
@@ -29,7 +42,7 @@ def save_tags(
     message_id: int,
     tags: list[str],
 ) -> None:
-    value = ",".join(tag.strip() for tag in tags if tag.strip())
+    value = ",".join(normalize_tags(tags))
     conn = get_db(db_file)
     try:
         conn.execute(
