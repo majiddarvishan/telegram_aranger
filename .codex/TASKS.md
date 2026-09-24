@@ -177,12 +177,14 @@ Planning source:
 - [ ] Evaluate active-filter chips after baseline styling.
 
 ### GUI-P3 — Message cards
-- [ ] Make message content visually dominant.
-- [ ] Add compact metadata header/footer structure.
-- [ ] Render tags as read-mode chips.
-- [ ] Make tag editing on-demand.
-- [ ] De-emphasize Delete until requested.
-- [ ] Normalize media action hierarchy and card spacing.
+- [x] Make message content visually dominant.
+- [x] Add compact message metadata.
+- [x] Render tags as read-mode chips.
+- [x] Make tag editing on-demand.
+- [x] De-emphasize Delete until requested while preserving confirmation.
+- [ ] Normalize media action hierarchy.
+- [x] Normalize baseline card spacing.
+- [ ] Manually verify text/photo/video cards before closing GUI-P3.
 
 ### GUI-P4 — Auth and state screens
 - [ ] Branded centered auth card.
