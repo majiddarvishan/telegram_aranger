@@ -43,7 +43,7 @@ The product supports Saved Messages plus private chats, groups, supergroups, and
 - Python 3.x
 - Streamlit
 - Pyrogram 2.0.106
-- TgCrypto
+- tgcrypto2
 - SQLite
 - cryptography/Fernet
 - python-dotenv
@@ -132,6 +132,10 @@ Important:
 - Pyrogram upstream is archived and should not be replaced silently;
 - TgCrypto is installed by this repository and is part of the supported deployment profile.
 
+## Windows compatibility
+- Crypto acceleration uses `tgcrypto2>=1.3.6,<2`, which exposes the `tgcrypto` import expected by Pyrogram.
+- Windows + Python 3.14 crypto acceleration is validated in GitHub Actions.
+
 ## Automated validation
 GitHub Actions currently covers:
 - media cache behavior;
@@ -160,4 +164,5 @@ Real Telegram/browser validation has been completed successfully with no issues 
 ## Release status
 - Latest release: `v1.0.2`
 - v1.0.2 checkpoint SHA: `9a4c429827ec4e31ef1376ae97b0b074a13dd7e9`
-- Current version: `1.0.2`
+- Latest release: `v1.0.2`
+- Current development version: `1.0.3-dev`
