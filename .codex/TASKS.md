@@ -20,6 +20,7 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 - [x] Preserve a meaningful video file name and MIME type when Telegram metadata provides them; otherwise generate a stable fallback file name.
 - [x] Use lazy/on-demand media download rather than downloading every media item while listing messages.
 - [x] Add a visible loading/progress state while media is fetched from Telegram.
+  - Shows real byte-level percentage (`0%` to `100%`) and downloaded/total size during Telegram transfer.
 - [x] Add temporary media caching so replaying/re-rendering does not repeatedly download the same media unnecessarily.
 - [x] Define cache location, cache key, expiry/cleanup behavior, and a maximum disk-usage policy.
 - [x] Add configurable maximum preview/download size safeguards for very large videos/files.
