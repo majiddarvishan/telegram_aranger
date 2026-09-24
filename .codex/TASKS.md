@@ -9,6 +9,38 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 - [ ] Verify timezone handling end-to-end between Pyrogram message datetimes and locally constructed date-range bounds.
 - [ ] Ensure stopping a `TelegramRuntime` cleanly disconnects its active Pyrogram client before stopping the loop.
 
+
+## P1 — Media viewing and download
+- [ ] Extend Telegram message mapping in `services/telegram_service.py` to expose media metadata instead of collapsing all non-text content to `[Media / File]`.
+- [ ] Detect and distinguish at least `photo`, `video`, `animation/GIF`, `document`, `audio`, `voice`, and `video_note` so the UI can render the correct control.
+- [ ] Preserve message text/caption together with media metadata.
+- [ ] Add inline photo preview in the message card.
+- [ ] Add inline video playback in the message card using Streamlit video rendering.
+- [ ] Add an explicit **Download Video** button for video messages so the user can download the video file through the browser.
+- [ ] Preserve a meaningful video file name and MIME type when Telegram metadata provides them; otherwise generate a stable fallback file name.
+- [ ] Use lazy/on-demand media download rather than downloading every media item while listing messages.
+- [ ] Add a visible loading/progress state while media is fetched from Telegram.
+- [ ] Add temporary media caching so replaying/re-rendering does not repeatedly download the same media unnecessarily.
+- [ ] Define cache location, cache key, expiry/cleanup behavior, and a maximum disk-usage policy.
+- [ ] Add configurable maximum preview/download size safeguards for very large videos/files.
+- [ ] Handle unavailable/deleted/expired media and Telegram download errors without breaking the rest of the message list.
+- [ ] Ensure media cache/download paths cannot collide between different Telegram accounts, chats, or messages.
+- [ ] Ensure temporary media is ignored by Git and does not leak Telegram session/authentication data.
+- [ ] Keep message deletion behavior working for media messages exactly as it does for text messages.
+- [ ] Verify captions, tags, search result rendering, and date filtering still work for media messages.
+- [ ] Add tests for media-type detection and metadata mapping.
+- [ ] Add tests for lazy download/cache behavior.
+- [ ] Add tests for video download naming/MIME behavior and failure paths.
+- [ ] Manually verify photo preview, inline video playback, and browser video download with small and large Telegram media.
+
+### Media implementation preference
+- Prefer **lazy loading**: listing messages must not automatically download full-size photos/videos.
+- Photo preview may use a downloaded thumbnail/small representation when practical.
+- Video playback should fetch media only when the user requests playback/preview.
+- Video download must be a separate explicit action/button.
+- Do not keep unbounded Telegram media on disk.
+
+
 ## P1 — Tests and regression safety
 - [ ] Add unit tests for password hashing/authentication.
 - [ ] Add tests for remember-me token creation, expiry, restore, and revocation.
