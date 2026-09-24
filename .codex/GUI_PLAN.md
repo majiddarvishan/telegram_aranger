@@ -75,7 +75,7 @@ Target style:
 - [x] Keep baseline control hit targets at 40px.
 - [x] Light-theme contrast reviewed on desktop.
 - [x] Dark-theme screenshot review identified forced-light custom surfaces; adaptive-surface fix implemented.
-- [ ] Re-verify Dark mode after the adaptive-surface fix.
+- [x] Re-verified Dark mode after the adaptive-surface fix; custom surfaces and text contrast are correct.
 - [x] Desktop screenshot review completed for the light theme.
 - [ ] Manual screenshot review at a narrow viewport.
 
@@ -124,7 +124,8 @@ Full Persian design audit:
 
 
 ## Correctness fixes discovered during GUI validation
-- [x] Cached Telegram peer recovery: lazily rebuild Pyrogram peer state for a selected cached chat when history initially raises PeerIdInvalid.
-- [x] Prefer username-based peer warmup when available; otherwise perform one bounded dialog refresh using TELEGRAM_DIALOG_LIMIT.
+- [x] Persist Pyrogram peer ID/type/access-hash metadata with the dialog cache and hydrate it into in-memory sessions after restart.
+- [x] Upgrade SQLite schema to v4 and refresh legacy pre-peer-metadata dialog snapshots once.
+- [x] Retain username/bounded-dialog lazy peer recovery as a fallback for stale records.
 - [x] Distinguish message-fetch failure state from a legitimate empty result.
-- [ ] Backport the peer-recovery correctness fix to main before the next release if gui is not merged wholesale.
+- [ ] Backport the persisted-peer correctness fix to main before the next release if gui is not merged wholesale.
