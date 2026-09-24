@@ -116,6 +116,14 @@ body,
     gap: var(--th-space-2);
 }}
 
+[data-testid="stSidebar"] hr {{
+    margin: var(--th-space-3) 0;
+}}
+
+.st-key-sidebar-web-logout {{
+    margin-top: calc(var(--th-space-1) * -1);
+}}
+
 [data-testid="stForm"] {{
     border: 1px solid var(--th-border);
     border-radius: var(--th-radius-panel);
@@ -244,6 +252,27 @@ hr {{
 
 .th-message-meta__separator {{
     opacity: 0.55;
+}}
+
+.th-message-body {{
+    margin: 0 0 var(--th-space-3);
+    color: var(--th-text);
+    font-size: 0.94rem;
+    line-height: 1.72;
+    text-align: start;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    unicode-bidi: plaintext;
+}}
+
+[class*="st-key-message-footer-"] {{
+    margin-top: var(--th-space-2);
+    padding-top: var(--th-space-2);
+    border-top: 1px solid var(--th-border);
+}}
+
+[class*="st-key-message-footer-"] [data-testid="stHorizontalBlock"] {{
+    align-items: center;
 }}
 
 .th-tag-row {{
@@ -656,4 +685,15 @@ def empty_state_html(
         f'<div class="th-empty-state__title">{escape(title)}</div>'
         f'<div class="th-empty-state__body">{escape(body)}</div>'
         '</div>'
+    )
+
+
+
+def message_body_html(text: str) -> str:
+    """Render message text safely while letting the browser choose RTL/LTR."""
+    safe_text = escape(text or "")
+    return (
+        '<div class="th-message-body" dir="auto">'
+        f"{safe_text}"
+        "</div>"
     )
