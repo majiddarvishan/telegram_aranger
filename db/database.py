@@ -1,7 +1,7 @@
 import sqlite3
 
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 
 def get_db(db_file: str) -> sqlite3.Connection:
@@ -78,6 +78,8 @@ def initialize_database(db_file: str) -> None:
             title TEXT NOT NULL,
             chat_type TEXT NOT NULL,
             username TEXT NOT NULL DEFAULT '',
+            peer_access_hash INTEGER,
+            peer_type TEXT NOT NULL DEFAULT '',
             fetched_at TEXT NOT NULL,
             PRIMARY KEY(telegram_account_id, chat_id),
             FOREIGN KEY(telegram_account_id) REFERENCES telegram_accounts(id) ON DELETE CASCADE
@@ -86,6 +88,7 @@ def initialize_database(db_file: str) -> None:
             ON telegram_dialog_cache(telegram_account_id, position);
         """)
         _migrate_message_tags_chat_id(conn)
+        _migrate_dialog_peer_metadata(conn)
         _set_schema_version(conn, SCHEMA_VERSION)
         conn.commit()
     finally:
@@ -122,6 +125,28 @@ def _migrate_message_tags_chat_id(conn: sqlite3.Connection) -> None:
         """
     )
 
+
+
+def _migrate_dialog_peer_metadata(conn: sqlite3.Connection) -> None:
+    """Add persisted Pyrogram peer metadata to existing dialog caches."""
+    columns = {
+        row[1]
+        for row in conn.execute(
+            "PRAGMA table_info(telegram_dialog_cache)"
+        ).fetchall()
+    }
+
+    if "peer_access_hash" not in columns:
+        conn.execute(
+            "ALTER TABLE telegram_dialog_cache "
+            "ADD COLUMN peer_access_hash INTEGER"
+        )
+
+    if "peer_type" not in columns:
+        conn.execute(
+            "ALTER TABLE telegram_dialog_cache "
+            "ADD COLUMN peer_type TEXT NOT NULL DEFAULT ''"
+        )
 
 
 def _set_schema_version(conn: sqlite3.Connection, version: int) -> None:
