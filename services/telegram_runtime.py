@@ -13,9 +13,11 @@ class TelegramRuntime:
         asyncio.set_event_loop(self.loop)
         self.loop.run_forever()
 
+    def submit(self, coro) -> Future:
+        return asyncio.run_coroutine_threadsafe(coro, self.loop)
+
     def run(self, coro):
-        future: Future = asyncio.run_coroutine_threadsafe(coro, self.loop)
-        return future.result()
+        return self.submit(coro).result()
 
     def stop(self):
         if self.loop.is_running(): self.loop.call_soon_threadsafe(self.loop.stop)
