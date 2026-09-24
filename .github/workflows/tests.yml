@@ -105,17 +105,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build image
-        run: docker build -t telegram-arranger:test .
+        run: docker build -t telegram-harbor:test .
 
       - name: Start container
         run: |
-          KEY="$(docker run --rm --entrypoint python telegram-arranger:test -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')"
-          docker run -d --name telegram-arranger-test \
+          KEY="$(docker run --rm --entrypoint python telegram-harbor:test -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')"
+          docker run -d --name telegram-harbor-test \
             -p 8501:8501 \
             -e TELEGRAM_API_ID=123456 \
             -e TELEGRAM_API_HASH=test-api-hash \
             -e TELEGRAM_SESSION_ENCRYPTION_KEY="$KEY" \
-            telegram-arranger:test
+            telegram-harbor:test
 
       - name: Verify Streamlit health
         run: |
@@ -125,9 +125,9 @@ jobs:
             fi
             sleep 1
           done
-          docker logs telegram-arranger-test
+          docker logs telegram-harbor-test
           exit 1
 
       - name: Container logs on failure
         if: failure()
-        run: docker logs telegram-arranger-test || true
+        run: docker logs telegram-harbor-test || true
