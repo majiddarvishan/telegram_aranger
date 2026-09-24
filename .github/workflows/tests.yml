@@ -37,6 +37,9 @@ jobs:
       - name: Branding tests
         run: python -m unittest discover -s tests -p "test_branding.py" -v
 
+      - name: Crypto acceleration tests
+        run: python -m unittest discover -s tests -p "test_crypto_acceleration.py" -v
+
       - name: Settings defaults tests
         run: python -m unittest discover -s tests -p "test_settings.py" -v
 
@@ -136,3 +139,31 @@ jobs:
       - name: Container logs on failure
         if: failure()
         run: docker logs telegram-harbor-test || true
+
+
+  windows-python314:
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Verify tgcrypto2 drop-in module
+        shell: pwsh
+        run: |
+          python -c "import asyncio; asyncio.set_event_loop(asyncio.new_event_loop()); import tgcrypto; import pyrogram; print('tgcrypto:', tgcrypto.__file__)"
+
+      - name: Run crypto acceleration tests
+        run: python -m unittest discover -s tests -p "test_crypto_acceleration.py" -v
