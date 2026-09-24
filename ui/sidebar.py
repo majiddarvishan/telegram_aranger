@@ -13,6 +13,19 @@ def _start_login():
     _reset_login(); st.session_state.telegram_login_active=True; st.session_state.telegram_user=None; st.session_state.messages=[]
 
 
+def _apply_account_selection(state, selected_account_id: int) -> bool:
+    """Apply the pure state transition for switching Telegram accounts."""
+    if selected_account_id == state.get("selected_telegram_account_id"):
+        return False
+    state["selected_telegram_account_id"] = selected_account_id
+    state["selected_chat_id"] = None
+    state["messages"] = []
+    state["dialogs"] = []
+    state["telegram_user"] = None
+    state["media_files"] = {}
+    return True
+
+
 def render_sidebar(settings):
     user=st.session_state.web_user
     st.sidebar.title("👤 Account"); st.sidebar.write(f"**{user['display_name']}**"); st.sidebar.caption(f"@{user['username']}")
@@ -40,8 +53,9 @@ def render_sidebar(settings):
         current=st.session_state.selected_telegram_account_id
         if current not in labels: current=next(iter(labels)); st.session_state.selected_telegram_account_id=current
         selected=st.sidebar.selectbox("Active Telegram Account",list(labels),index=list(labels).index(current),format_func=lambda x:labels[x])
-        if selected!=st.session_state.selected_telegram_account_id:
-            st.session_state.selected_telegram_account_id=selected; st.session_state.selected_chat_id=None; st.session_state.messages=[]; st.session_state.telegram_user=None; disconnect(); st.rerun()
+        if _apply_account_selection(st.session_state, selected):
+            disconnect()
+            st.rerun()
     account_id=st.session_state.selected_telegram_account_id
     if account_id and not st.session_state.telegram_login_active and not st.session_state.telegram_user:
         account=get_account(settings.db_file,user["id"],account_id)
