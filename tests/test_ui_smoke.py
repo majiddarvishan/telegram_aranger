@@ -1,7 +1,11 @@
 import unittest
 from datetime import datetime
 
-from ui.main import _message_matches_filters, _remove_message_from_state
+from ui.main import (
+    _delete_state_key,
+    _message_matches_filters,
+    _remove_message_from_state,
+)
 from ui.sidebar import _apply_account_selection
 
 
@@ -57,6 +61,17 @@ class UiMessageSmokeTests(unittest.TestCase):
                 "",
                 "All",
             )
+        )
+
+    def test_delete_confirmation_key_is_scoped_to_account_chat_and_message(self):
+        self.assertEqual(_delete_state_key(7, -100, 42), "7:-100:42")
+        self.assertNotEqual(
+            _delete_state_key(7, -100, 42),
+            _delete_state_key(8, -100, 42),
+        )
+        self.assertNotEqual(
+            _delete_state_key(7, -100, 42),
+            _delete_state_key(7, -200, 42),
         )
 
     def test_delete_state_removes_only_target_message_and_its_media(self):
