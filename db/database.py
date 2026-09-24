@@ -45,6 +45,13 @@ def initialize_database(db_file: str) -> None:
         );
         CREATE INDEX IF NOT EXISTS idx_web_sessions_token_hash ON web_sessions(token_hash);
         CREATE INDEX IF NOT EXISTS idx_web_sessions_user_id ON web_sessions(user_id);
+        CREATE TABLE IF NOT EXISTS web_login_attempts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            attempted_at TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_web_login_attempts_username_time
+            ON web_login_attempts(username, attempted_at);
         CREATE TABLE IF NOT EXISTS message_tags (
             telegram_account_id INTEGER NOT NULL,
             chat_id INTEGER NOT NULL DEFAULT 0,
