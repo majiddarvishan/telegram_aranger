@@ -357,3 +357,26 @@ Changes on `main`:
 - Added/updated UI regression coverage for fixed positioning and removal of the bottom navigation container.
 
 Current development version remains `1.0.1-dev`.
+
+
+## 2026-09-25 — Fixed-header clipping and collapsed-sidebar alignment
+
+User provided a screenshot showing two layout defects after the fixed-header change:
+- the top of the fixed header was hidden under Streamlit's own toolbar;
+- when the sidebar was collapsed, the fixed header started too far to the right and the header's inherited width overflowed the viewport, clipping right-side controls.
+
+Root causes:
+- the fixed header used `top: 0.75rem`, placing it under Streamlit's toolbar;
+- the safe/default horizontal offset assumed the expanded sidebar;
+- Streamlit's keyed container retained a 100% width while fixed left/right offsets were also applied, causing horizontal overflow.
+
+Fix:
+- move the fixed header below the Streamlit toolbar with `top: 4rem`;
+- make collapsed/no-sidebar the default layout with `left/right: 5rem`;
+- apply `left: 26rem` only when `stSidebar[aria-expanded="true"]` exists;
+- override keyed-container width with `width: auto !important` and `max-width: none !important`;
+- use an opaque `var(--background-color)` background so underlying message text cannot bleed through;
+- increase the layout spacer to 210px on desktop and 285px on narrow screens;
+- add regression assertions for viewport width and sidebar alignment.
+
+Current development version remains `1.0.1-dev`.
