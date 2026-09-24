@@ -36,6 +36,10 @@ class UserAuthenticationTests(unittest.TestCase):
         )
         self.assertFalse(verify_password("wrong password", salt, digest))
 
+    def test_create_user_rejects_short_password_even_outside_ui(self):
+        with self.assertRaisesRegex(ValueError, "at least 8"):
+            create_user(self.db_file, "short", "1234567", "Short")
+
     def test_same_password_with_random_salts_produces_different_hashes(self):
         salt1, digest1 = hash_password("password123")
         salt2, digest2 = hash_password("password123")
@@ -120,6 +124,38 @@ class RememberSessionTests(unittest.TestCase):
             conn.close()
 
         self.assertEqual(count, 0)
+
+    def test_cleanup_expired_sessions_removes_expired_and_malformed_rows(self):
+        from db.auth_sessions import cleanup_expired_sessions
+
+        valid_token = create_session(self.db_file, self.user["id"], 7)
+        expired_token = create_session(self.db_file, self.user["id"], 7)
+
+        conn = get_db(self.db_file)
+        try:
+            conn.execute(
+                "UPDATE web_sessions SET expires_at=? WHERE token_hash=?",
+                (
+                    (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat(),
+                    _hash_token(expired_token),
+                ),
+            )
+            conn.execute(
+                """
+                INSERT INTO web_sessions(user_id, token_hash, expires_at)
+                VALUES(?,?,?)
+                """,
+                (self.user["id"], "malformed-token-hash", "not-a-date"),
+            )
+            conn.commit()
+        finally:
+            conn.close()
+
+        deleted = cleanup_expired_sessions(self.db_file)
+
+        self.assertEqual(deleted, 2)
+        self.assertIsNotNone(get_user_by_session(self.db_file, valid_token))
+        self.assertIsNone(get_user_by_session(self.db_file, expired_token))
 
     def test_delete_session_revokes_token(self):
         token = create_session(self.db_file, self.user["id"], 7)
