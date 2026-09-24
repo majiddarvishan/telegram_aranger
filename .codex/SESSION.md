@@ -515,3 +515,13 @@ Fix:
 - added a slow-wait logging test that verifies `operation` is present.
 
 Based on the current UI flow, the earlier first two waits were likely session restore followed by dialog loading; new logs will confirm this explicitly.
+
+
+## 2026-09-25 — v1.0.3 release checkpoint
+
+Release:
+- VERSION set to `1.0.3`.
+- README and branding regression updated to v1.0.3.
+- CHANGELOG finalized for Windows tgcrypto2 compatibility and TelegramRuntime ScriptRunContext fixes.
+- Release checkpoint SHA: `6c27b0343f7534a2c7ff906f27483791df601fe4`.
+- Intended Git tag: `v1.0.3` on exactly that SHA.
