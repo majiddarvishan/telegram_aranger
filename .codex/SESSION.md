@@ -450,3 +450,25 @@ Changes:
 - The scrollable panel now contains only the message-count caption and message cards.
 - Added regression coverage that asserts Load More belongs to the action-bar renderer and not the scroll-area renderer.
 - Current message panel default remains 620px and is configurable through `MESSAGE_SCROLL_HEIGHT`.
+
+
+## 2026-09-25 — v1.0.2 release checkpoint
+
+User confirmed the updated message action layout works correctly and requested version/tag.
+
+Release:
+- VERSION set to `1.0.2`.
+- Branding regression test updated to expect `1.0.2`.
+- README marks `v1.0.2` as latest release.
+- CHANGELOG contains a dedicated `1.0.2` section.
+- Release checkpoint SHA: `9a4c429827ec4e31ef1376ae97b0b074a13dd7e9`.
+- v1.0.2 includes:
+  - dedicated scrollable message panel;
+  - default 620px configurable message panel height;
+  - `MESSAGE_SCROLL_HEIGHT` setting;
+  - **Load More Messages** moved beside **Refresh Messages** outside the scroll panel.
+
+Tag note:
+- No Git tags currently exist in the repository.
+- Intended tag: `v1.0.2` pointing exactly to `9a4c429827ec4e31ef1376ae97b0b074a13dd7e9`.
+- The connected GitHub actions expose branch/file writes and read-only Git-ref access, but no tag-ref creation action, so tag creation remains an external/manual Git operation.
