@@ -26,8 +26,13 @@ Streamlit app.py
               |
               v
        services/telegram_service.py
-              |
-              v
+          |              |
+          | media        v
+          +------> services/media_cache.py
+                         |
+                         v
+                  bounded local cache
+                         
        services/telegram_runtime.py
          dedicated asyncio loop/thread
               |
@@ -111,7 +116,9 @@ Consequence: Telegram network work runs on the dedicated event loop, but the Str
 `services/telegram_service.py`:
 - `get_dialogs()`: returns private/group/supergroup/channel dialogs.
 - `history()`: iterates `get_chat_history(chat_id, limit=100 by default)`, keeps messages inside the requested date range.
-- Message text uses `message.text`, then `message.caption`, else `[Media / File]`.
+- Message text uses `message.text`, then `message.caption`, otherwise a media-aware fallback label.
+- Media metadata is normalized for photo, video, animation, document, audio, voice, and video-note messages without downloading the file.
+- `download_media()` fetches media only on demand, applies configured size limits, and reuses a bounded local cache.
 - `delete_message()`: calls Telegram delete API.
 
 `ui/main.py`:
@@ -123,6 +130,9 @@ Consequence: Telegram network work runs on the dedicated event loop, but the Str
 - Filters by selected tag.
 - Saves tags locally.
 - Deletes Telegram messages.
+- Shows photos lazily after explicit user action.
+- Plays video/video-note/animation media lazily with Streamlit video rendering.
+- Provides a browser video-download control for Telegram video messages.
 - Provides previous/next-day date navigation.
 
 ## Data model details
@@ -172,3 +182,42 @@ Important keys include:
 4. Local SQLite file.
 
 There is no separate REST API, worker service, queue, external identity provider, or remote database in this branch.
+
+## Media download/cache flow
+
+```text
+message list
+   |
+   | metadata only
+   v
+media control in ui/main.py
+   |
+   | user clicks Show Photo / Load Video / Prepare Video Download
+   v
+services.telegram_service.download_media()
+   |
+   +--> size-limit check
+   +--> services/media_cache.py
+   |      -> account/chat/message scoped path
+   |      -> TTL validation
+   |      -> total-cache-size cleanup
+   |
+   +--> cache hit -> return existing local path
+   |
+   +--> cache miss -> Pyrogram Client.download_media()
+                       |
+                       v
+                    temp file
+                       |
+                       v
+                  atomic move to cache
+```
+
+Media cache defaults:
+- directory: `.cache/telegram_media`
+- TTL: 24 hours
+- total cache limit: 2048 MB
+- preview limit: 200 MB per media
+- browser video download limit: 200 MB per media
+
+All values are configurable through `MEDIA_*` environment variables.
