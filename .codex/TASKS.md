@@ -71,6 +71,7 @@ This file began as the 2026-09-24 review backlog and now tracks implementation s
 - [x] Document multi-user trust boundaries, host/database access, Telegram session sensitivity, and stronger-isolation requirements in `docs/SECURITY.md`.
 
 ## P2 — Performance / scalability
+- [x] Cache Telegram dialogs in SQLite, bound initial/refresh retrieval with `TELEGRAM_DIALOG_LIMIT=100`, serialize uncached refreshes, and make Refresh Chats the explicit network refresh path to avoid repeated GetDialogs FloodWaits.
 - [x] Eliminate per-message N+1 SQLite tag lookups with `get_tags_for_messages()` batch loading.
 - [x] Add range-aware history retrieval plus `Load More Messages` result pagination in increments of `default_message_limit`.
 - [x] Define search strategy: keep search local over explicitly loaded range pages to avoid per-keystroke Telegram calls; document an explicit-submit `search_messages()` design for future full-history search.
