@@ -65,7 +65,7 @@ def restore_backup(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Restore a telegram_aranger SQLite backup."
+        description="Restore a Telegram Harbor SQLite backup."
     )
     parser.add_argument("--backup-dir", required=True)
     parser.add_argument("--db", default="telegram_manager.db")
