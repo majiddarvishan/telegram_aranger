@@ -256,3 +256,33 @@ Result:
 - P0, P1, P2, and P3 backlog items for the current scope are complete.
 - Recent GitHub Actions runs are green, including regression tests and Docker build/health checks.
 - Branch `feature/media-support` is ready for merge review.
+
+
+## 2026-09-24 — Merge to main and Remember Me rerun-race fix
+
+Merge:
+- Fast-forward merged `feature/media-support` into `main`.
+- No conflict and no merge commit were required.
+
+Remember Me symptom:
+- User reported that the Web login page still appeared after each application restart even though Remember Me was selected.
+
+Re-investigation:
+- Reviewed the actual `extra-streamlit-components` CookieManager Python and frontend implementations.
+- Cookie writes/deletes are executed by a browser-side custom component.
+- The application called `st.rerun()` immediately after `CookieManager.set(...)`.
+- This could tear down the current component/render pass before the browser persisted the cookie.
+- Result: current Streamlit session was authenticated, but a restart had no persistent browser cookie to restore.
+
+Fix on `main`:
+- Successful Remember Me login no longer forces an immediate `st.rerun()`.
+- The current run is allowed to complete/stop so the browser component can persist the cookie and trigger its own rerun.
+- Non-Remember login can still rerun immediately because it does not require a cookie write.
+- Web logout similarly avoids immediate rerun after cookie deletion and uses `st.stop()` so the browser-side delete can complete.
+- Added regression tests for the Remember-vs-non-Remember rerun behavior.
+
+Validation required:
+- Login once with Remember Me enabled.
+- Fully stop/start the application.
+- Reopen the same browser profile and application URL.
+- Confirm Web login is restored automatically.
