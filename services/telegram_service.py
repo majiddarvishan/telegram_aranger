@@ -177,6 +177,56 @@ def get_dialogs():
     return get_runtime().run(_dialogs())
 
 
+_MEDIA_FIELDS = (
+    ("photo", "photo"),
+    ("video", "video"),
+    ("animation", "animation"),
+    ("document", "document"),
+    ("audio", "audio"),
+    ("voice", "voice"),
+    ("video_note", "video_note"),
+)
+
+
+def _media_metadata(message) -> dict | None:
+    """Return normalized Telegram media metadata without downloading the media."""
+    for media_type, attribute in _MEDIA_FIELDS:
+        media = getattr(message, attribute, None)
+        if media is None:
+            continue
+
+        file_name = getattr(media, "file_name", None)
+        mime_type = getattr(media, "mime_type", None)
+        file_size = getattr(media, "file_size", None)
+        width = getattr(media, "width", None)
+        height = getattr(media, "height", None)
+        duration = getattr(media, "duration", None)
+
+        return {
+            "type": media_type,
+            "file_id": getattr(media, "file_id", None),
+            "file_unique_id": getattr(media, "file_unique_id", None),
+            "file_name": file_name,
+            "mime_type": mime_type,
+            "file_size": file_size,
+            "width": width,
+            "height": height,
+            "duration": duration,
+        }
+
+    return None
+
+
+def _message_text(message, media: dict | None) -> str:
+    if message.text:
+        return message.text
+    if message.caption:
+        return message.caption
+    if media:
+        return f"[{media['type'].replace('_', ' ').title()}]"
+    return "[Message]"
+
+
 async def _history(chat_id, start_dt, end_dt, limit=100):
     client = get_runtime().client
     out = []
@@ -187,13 +237,16 @@ async def _history(chat_id, start_dt, end_dt, limit=100):
         if message.date < start_dt:
             break
         if message.date <= end_dt:
+            media = _media_metadata(message)
             out.append(
                 {
                     "id": message.id,
                     "chat_id": chat_id,
-                    "text": message.text or message.caption or "[Media / File]",
+                    "text": _message_text(message, media),
+                    "caption": message.caption or "",
                     "date": message.date,
                     "user_id": chat_id,
+                    "media": media,
                 }
             )
 
