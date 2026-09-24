@@ -480,7 +480,13 @@ def _render_message_header(settings, options, current_chat_id, today):
     return selected_chat_id, search, tag, start_date, end_date
 
 
-def _fetch_messages_if_needed(settings, selected_chat_id, start_date, end_date):
+def _fetch_messages_if_needed(
+    settings,
+    selected_chat_id,
+    start_date,
+    end_date,
+    peer_username: str = "",
+):
     range_signature = (
         selected_chat_id,
         start_date.isoformat(),
@@ -514,6 +520,8 @@ def _fetch_messages_if_needed(settings, selected_chat_id, start_date, end_date):
                 start_dt,
                 end_dt,
                 result_limit,
+                peer_username=peer_username,
+                dialog_limit=settings.telegram_dialog_limit,
             )
             st.session_state.message_query_signature = signature
         except Exception as exc:
@@ -908,7 +916,11 @@ def render_main(settings):
         )
         return
 
-    options = {chat["id"]: _chat_label(chat) for chat in dialogs}
+    dialogs_by_id = {chat["id"]: chat for chat in dialogs}
+    options = {
+        chat_id: _chat_label(chat)
+        for chat_id, chat in dialogs_by_id.items()
+    }
     current_chat_id = st.session_state.selected_chat_id
 
     if current_chat_id not in options:
@@ -931,11 +943,13 @@ def render_main(settings):
         st.session_state.message_result_limit = settings.default_message_limit
         st.rerun()
 
+    selected_dialog = dialogs_by_id.get(selected_chat_id, {})
     _fetch_messages_if_needed(
         settings,
         selected_chat_id,
         start_date,
         end_date,
+        peer_username=selected_dialog.get("username", ""),
     )
 
     account_id = st.session_state.selected_telegram_account_id
