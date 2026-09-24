@@ -6,8 +6,8 @@
 The product supports Saved Messages plus private chats, groups, supergroups, and channels. The GitHub repository remains `majiddarvishan/telegram_aranger` for compatibility/history.
 
 ## Current branch
-- Working branch: `main`
-- `main` contains the current media, security, testing, performance, migration, logging, backup, Docker, and Remember Me race fixes.
+- Working branch: `gui`
+- `gui` is based on the current stable `main` and is reserved for presentation-layer redesign. Functional behavior from `main` must be preserved unless explicitly approved.
 - Re-check GitHub branch HEAD before making future edits.
 
 ## Current capabilities
@@ -176,3 +176,12 @@ Real Telegram/browser validation has been completed successfully with no issues 
 - `Refresh Chats` is the explicit network refresh path.
 - Uncached refreshes are serialized with a process-level lock to prevent duplicate concurrent `GetDialogs` calls from multiple Streamlit sessions.
 - If an explicit refresh fails and cache exists, the cached dialog list remains usable.
+
+
+## GUI redesign scope
+- Branch: `gui`.
+- Baseline: `main@2bd6fbd18ac6ab03a38ee5ffc586c2d76c8ccc49`.
+- Primary design document: `docs/GUI_DESIGN_PLAN_FA.md`.
+- Execution backlog: `.codex/GUI_PLAN.md`.
+- Focus: design system, sidebar, toolbar, message cards, auth/empty states, responsive behavior and accessibility.
+- Guardrail: avoid business-logic/database/runtime changes during GUI phases unless explicitly approved.
