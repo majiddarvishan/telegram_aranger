@@ -60,9 +60,8 @@ MESSAGE_HEADER_CSS = """
 APP_CSS = f"""
 <style>
 :root {{
-    --th-bg: var(--background-color, #ffffff);
-    --th-surface: var(--secondary-background-color, #f6f8fb);
-    --th-text: var(--text-color, #1f2937);
+    --th-bg: transparent;
+    --th-surface: rgba(128, 128, 128, 0.06);
     --th-accent: var(--primary-color, #229ed9);
 
     --th-space-1: {DESIGN_TOKENS["space_1"]};
@@ -86,15 +85,6 @@ APP_CSS = f"""
     --th-warning: #d97706;
     --th-danger: #dc2626;
     --th-info: #0284c7;
-}}
-
-@supports (color: color-mix(in srgb, black, white)) {{
-    :root {{
-        --th-border: color-mix(in srgb, var(--th-text) 16%, transparent);
-        --th-border-strong: color-mix(in srgb, var(--th-text) 28%, transparent);
-        --th-text-muted: color-mix(in srgb, var(--th-text) 64%, transparent);
-        --th-shadow-sm: 0 4px 16px color-mix(in srgb, var(--th-text) 8%, transparent);
-    }}
 }}
 
 html,
@@ -185,7 +175,7 @@ hr {{
     border: 1px solid var(--th-border);
     border-radius: var(--th-radius-pill);
     background: var(--th-surface);
-    color: var(--th-text);
+    color: inherit;
     font-size: 0.78rem;
     font-weight: 600;
     line-height: 1.2;
@@ -231,7 +221,7 @@ hr {{
 [class*="st-key-message-card-"] [data-testid="stVerticalBlockBorderWrapper"] {{
     border-color: var(--th-border) !important;
     border-radius: var(--th-radius-panel) !important;
-    background: var(--th-bg);
+    background: transparent;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.035);
 }}
 
@@ -256,7 +246,7 @@ hr {{
 
 .th-message-body {{
     margin: 0 0 var(--th-space-3);
-    color: var(--th-text);
+    color: inherit;
     font-size: 0.94rem;
     line-height: 1.72;
     text-align: start;
@@ -303,7 +293,7 @@ hr {{
     border: 1px solid var(--th-border);
     border-radius: var(--th-radius-pill);
     background: var(--th-surface);
-    color: var(--th-text);
+    color: inherit;
     font-size: 0.76rem;
     font-weight: 600;
     line-height: 1.2;
@@ -360,7 +350,7 @@ hr {{
 }}
 
 .th-sidebar-brand__name {{
-    color: var(--th-text);
+    color: inherit;
     font-size: 1rem;
     font-weight: 750;
     line-height: 1.1;
@@ -380,7 +370,7 @@ hr {{
 }}
 
 .th-account-card__name {{
-    color: var(--th-text);
+    color: inherit;
     font-weight: 700;
 }}
 
@@ -402,7 +392,7 @@ hr {{
 }}
 
 .th-action-summary strong {{
-    color: var(--th-text);
+    color: inherit;
     font-weight: 700;
 }}
 
@@ -425,7 +415,7 @@ hr {{
 }}
 
 .th-auth-brand__name {{
-    color: var(--th-text);
+    color: inherit;
     font-size: 1.25rem;
     font-weight: 760;
 }}
@@ -444,7 +434,7 @@ hr {{
     border-color: var(--th-border) !important;
     border-radius: 16px !important;
     box-shadow: var(--th-shadow-sm);
-    background: var(--th-bg);
+    background: transparent;
 }}
 
 .th-empty-state {{
@@ -468,12 +458,12 @@ hr {{
     border: 1px solid var(--th-border);
     border-radius: 50%;
     background: var(--th-surface);
-    color: var(--th-text);
+    color: inherit;
     font-weight: 700;
 }}
 
 .th-empty-state__title {{
-    color: var(--th-text);
+    color: inherit;
     font-weight: 700;
     margin-bottom: var(--th-space-1);
 }}
