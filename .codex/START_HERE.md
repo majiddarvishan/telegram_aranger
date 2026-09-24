@@ -7,7 +7,7 @@
 - `feature/media-support` has been fast-forward merged into `main`; `main` is now the source of truth.
 
 ## What the project is
-This is a modular Streamlit Telegram message manager using Pyrogram.
+**Telegram Harbor** is a modular Streamlit Telegram message and media manager using Pyrogram.
 
 It provides:
 - local multi-user Web authentication;
@@ -28,7 +28,7 @@ It provides:
 - Docker/Compose deployment;
 - automated GitHub Actions regression tests.
 
-The UI still uses the legacy title **Telegram Saved Messages Manager**, but the product behavior is a general Telegram message manager.
+The product name is **Telegram Harbor**. The GitHub repository name remains `telegram_aranger` for now.
 
 ## Current implementation status
 Completed:
