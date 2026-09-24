@@ -136,3 +136,29 @@ Fix:
 - Added regression tests for stale snapshot restore, first hydration, true no-cookie state, and cookie revocation.
 
 No Telegram account/session logic was changed by this fix.
+
+## 2026-09-24 — Interrupted video download recovery
+
+Observed symptom:
+- A video download was interrupted by stopping the application.
+- The remaining/cached video was corrupted.
+- Later attempts treated the cached file as usable and did not reliably fetch a clean copy.
+
+Root cause:
+- Cache validity previously checked only file existence + TTL.
+- A truncated/corrupted cache entry could therefore be treated as a valid cache hit.
+- Abrupt process shutdown can also leave temporary `.part` files because Python cleanup/finally blocks cannot run after process termination.
+
+Fix:
+- Cache validation now optionally compares local size with Telegram's reported `file_size`.
+- Zero-byte or size-mismatched cache files are invalid.
+- Invalid final cache entries are removed automatically before retrying Telegram download.
+- Stale `.part` files are removed immediately during cache cleanup, regardless of TTL.
+- After a Telegram download completes, the final file size is verified before it is accepted into cache.
+- If the completed size does not match Telegram metadata, the file is deleted and an error asks the user to retry.
+- Added `force_download` support and a UI **Redownload Video** button that discards the cached copy and fetches a fresh copy from Telegram.
+- Added regression tests for truncated cache detection, crash-leftover part cleanup, automatic corrupted-cache recovery, and forced re-download.
+
+Recovery for an already broken video:
+- Re-open the message and click **Redownload Video**.
+- If the cached file is size-mismatched, even normal Prepare/Load now invalidates and re-downloads it automatically.
