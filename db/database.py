@@ -1,7 +1,7 @@
 import sqlite3
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 
 
 def get_db(db_file: str) -> sqlite3.Connection:
@@ -70,6 +70,20 @@ def initialize_database(db_file: str) -> None:
             PRIMARY KEY(telegram_account_id, chat_id, message_id),
             FOREIGN KEY(telegram_account_id) REFERENCES telegram_accounts(id) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS telegram_dialog_cache (
+            telegram_account_id INTEGER NOT NULL,
+            chat_id INTEGER NOT NULL,
+            position INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            chat_type TEXT NOT NULL,
+            username TEXT NOT NULL DEFAULT '',
+            fetched_at TEXT NOT NULL,
+            PRIMARY KEY(telegram_account_id, chat_id),
+            FOREIGN KEY(telegram_account_id) REFERENCES telegram_accounts(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_telegram_dialog_cache_account_position
+            ON telegram_dialog_cache(telegram_account_id, position);
         """)
         _migrate_message_tags_chat_id(conn)
         _set_schema_version(conn, SCHEMA_VERSION)
