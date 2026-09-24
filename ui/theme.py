@@ -104,7 +104,7 @@ body,
 }}
 
 [data-testid="stAppViewContainer"] .block-container {{
-    padding-top: var(--th-space-5);
+    padding-top: var(--th-space-3);
     padding-bottom: var(--th-space-6);
 }}
 
@@ -365,6 +365,83 @@ hr {{
     font-weight: 700;
 }}
 
+.th-auth-brand {{
+    text-align: center;
+    margin-bottom: var(--th-space-4);
+}}
+
+.th-auth-brand__mark {{
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--th-space-2);
+    border: 1px solid var(--th-border);
+    border-radius: 12px;
+    background: var(--th-surface);
+    font-size: 1.2rem;
+}}
+
+.th-auth-brand__name {{
+    color: var(--th-text);
+    font-size: 1.25rem;
+    font-weight: 760;
+}}
+
+.th-auth-brand__tagline {{
+    margin-top: var(--th-space-1);
+    color: var(--th-text-muted);
+    font-size: 0.82rem;
+}}
+
+.st-key-auth-card {{
+    margin-top: 6vh;
+}}
+
+.st-key-auth-card [data-testid="stVerticalBlockBorderWrapper"] {{
+    border-color: var(--th-border) !important;
+    border-radius: 16px !important;
+    box-shadow: var(--th-shadow-sm);
+    background: var(--th-bg);
+}}
+
+.th-empty-state {{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 180px;
+    padding: var(--th-space-5);
+    text-align: center;
+    color: var(--th-text-muted);
+}}
+
+.th-empty-state__mark {{
+    display: inline-flex;
+    width: 42px;
+    height: 42px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: var(--th-space-3);
+    border: 1px solid var(--th-border);
+    border-radius: 50%;
+    background: var(--th-surface);
+    color: var(--th-text);
+    font-weight: 700;
+}}
+
+.th-empty-state__title {{
+    color: var(--th-text);
+    font-weight: 700;
+    margin-bottom: var(--th-space-1);
+}}
+
+.th-empty-state__body {{
+    max-width: 440px;
+    font-size: 0.84rem;
+}}
+
 .th-media-meta {{
     display: flex;
     flex-wrap: wrap;
@@ -433,6 +510,14 @@ hr {{
 
     .st-key-message-header [data-testid="stHorizontalBlock"] {{
         gap: var(--th-space-2);
+    }}
+
+    .th-action-summary {{
+        justify-content: flex-start;
+    }}
+
+    .st-key-auth-card {{
+        margin-top: var(--th-space-3);
     }}
 }}
 
@@ -542,3 +627,33 @@ def media_meta_html(parts: list[str]) -> str:
         if part
     ]
     return f'<div class="th-media-meta">{"<span>•</span>".join(safe_parts)}</div>'
+
+
+
+def auth_brand_html(
+    name: str,
+    tagline: str,
+    version: str,
+) -> str:
+    return (
+        '<div class="th-auth-brand">'
+        '<div class="th-auth-brand__mark">⚓</div>'
+        f'<div class="th-auth-brand__name">{escape(name)}</div>'
+        f'<div class="th-auth-brand__tagline">{escape(tagline)} · '
+        f'v{escape(version)}</div>'
+        '</div>'
+    )
+
+
+def empty_state_html(
+    title: str,
+    body: str,
+    mark: str = "—",
+) -> str:
+    return (
+        '<div class="th-empty-state">'
+        f'<div class="th-empty-state__mark">{escape(mark)}</div>'
+        f'<div class="th-empty-state__title">{escape(title)}</div>'
+        f'<div class="th-empty-state__body">{escape(body)}</div>'
+        '</div>'
+    )
