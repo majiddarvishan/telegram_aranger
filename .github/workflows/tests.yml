@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/media-support
   pull_request:
     branches:
       - main
@@ -34,6 +33,9 @@ jobs:
 
       - name: Media cache tests
         run: python -m unittest discover -s tests -p "test_media_cache.py" -v
+
+      - name: Branding tests
+        run: python -m unittest discover -s tests -p "test_branding.py" -v
 
       - name: Import Telegram service
         run: python -c "import services.telegram_service"
