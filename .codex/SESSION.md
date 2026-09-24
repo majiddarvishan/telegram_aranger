@@ -53,3 +53,37 @@ Next implementation entry point:
 2. Add photo/video rendering and explicit video download controls in `ui/main.py`.
 3. Add bounded temporary cache/download lifecycle.
 4. Add tests and manual verification.
+
+## 2026-09-24 — P1 media implementation
+
+Implemented step-by-step on `feature/media-support`.
+
+### Step 1 — Media metadata
+- Added normalized media detection for photo, video, animation, document, audio, voice, and video-note messages.
+- Preserved message text/caption and added media metadata without downloading file bytes.
+
+### Step 2 — Lazy download and cache
+- Added `services/media_cache.py`.
+- Added account/chat/message-scoped media cache paths.
+- Added TTL cleanup and maximum total cache size cleanup.
+- Added size limits for preview and browser download.
+- Added lazy Telegram media download through Pyrogram.
+- Added stable/sanitized file names, MIME handling, cache reuse, and failure handling.
+- Added `MEDIA_*` configuration and ignored the media cache in Git.
+
+### Step 3 — Streamlit media UI
+- Added explicit lazy photo preview.
+- Added lazy inline video/video-note/animation playback.
+- Added explicit video download preparation and browser `Download Video` control.
+- Added loading spinner and readable media metadata.
+- Kept existing tags, date/search filtering, and message-delete flow intact.
+
+### Step 4 — Tests and docs
+- Added `tests/test_media_cache.py`.
+- Added `tests/test_telegram_media.py`.
+- Executed the pure cache test scenarios successfully in the available local runtime.
+- Could not execute Pyrogram/Streamlit-dependent tests in the chat runtime because those packages are unavailable and direct GitHub network access from the execution container is blocked.
+- Updated README and `.codex` architecture/context/decisions/tasks.
+
+### Remaining validation
+- Manual verification with a real Telegram account is still required for photo rendering, inline playback, and browser download using representative small/large videos.
