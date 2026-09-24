@@ -1,6 +1,6 @@
 # Tasks / Technical Findings
 
-No source-code fixes were made during the 2026-09-24 review. Items below are findings for future work.
+This file began as the 2026-09-24 review backlog and now tracks implementation status on `feature/media-support`. Completed items reflect committed code/docs/tests; do not mark real-device/manual validation complete unless it was actually performed.
 
 ## P0 — Correctness
 - [x] Fix tag identity: `message_tags` now uses `(telegram_account_id, chat_id, message_id)` with an in-place migration that preserves legacy rows under `chat_id=0`.
@@ -34,7 +34,7 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
   - Coverage: all supported media types (`photo`, `video`, `animation`, `document`, `audio`, `voice`, `video_note`) plus normalized metadata fields and text/caption fallback behavior.
 - [x] Add tests for lazy download/cache behavior.
 - [x] Add tests for video download naming/MIME behavior and failure paths.
-- [ ] Manually verify photo preview, inline video playback, and browser video download with small and large Telegram media.
+- [ ] Manually verify photo preview, inline video playback, browser video download, and interrupted-download recovery with real small/large Telegram media. Follow `docs/MANUAL_TESTING.md`.
 
 ### P1 media validation status
 - Pure cache tests were executed successfully in the available local runtime.
@@ -95,6 +95,14 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 - [x] Surface loaded/visible counts, current message limit, end-of-range state, and an explicit `Load More Messages` action.
 - [x] Require an explicit second-step confirmation before permanently deleting a Telegram message.
 - [x] Define current tag semantics: commas are separators; values are trimmed/deduplicated; removing a tag from the field removes it from that message; global rename/delete remains intentionally out of scope until richer tag management is requested.
+
+## Current completion summary
+- P0 correctness: complete.
+- P1 implementation/tests/security: complete except real Telegram/browser media validation.
+- P2 performance/data lifecycle: complete for current single-instance scope.
+- P3 operations/UX: complete for current scope.
+- GitHub Actions regression + Docker health: green on recent branch commits.
+- Do not merge solely on this checklist if the user wants real-device media verification first.
 
 ## Review baseline
 Branch before context commit:
