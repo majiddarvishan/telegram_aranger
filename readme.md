@@ -1,10 +1,10 @@
-# Telegram Saved Messages Manager
+# Telegram Harbor
 
-A Streamlit multi-user Telegram archive manager using Pyrogram. No Keycloak is used.
+**Telegram Harbor** is a self-hosted, multi-user Telegram message and media manager built with Streamlit and Pyrogram.
 
-## Product scope
+It provides one central place to connect multiple Telegram accounts, browse private chats, groups, supergroups, channels and Saved Messages, search and tag messages, preview media, play videos, and download Telegram video files.
 
-Despite the legacy title **Telegram Saved Messages Manager**, the current product is a general Telegram message manager: it browses private chats, groups, supergroups, channels, and Saved Messages. The legacy display name is kept for now to avoid an unrequested product rename.
+> Telegram Harbor is an independent project and is not affiliated with or endorsed by Telegram.
 
 ## Features
 
@@ -29,7 +29,7 @@ Despite the legacy title **Telegram Saved Messages Manager**, the current produc
 ## Project layout
 
 ```text
-telegram_aranger/
+telegram-harbor/
 ├── app.py
 ├── requirements.txt
 ├── Dockerfile
@@ -96,7 +96,7 @@ streamlit run app.py
 
 Telegram sessions are encrypted at rest with the Fernet key. Keep `TELEGRAM_SESSION_ENCRYPTION_KEY` secret and back it up securely. Losing it makes stored Telegram sessions undecryptable.
 
-The application deliberately does not use Keycloak.
+Telegram Harbor deliberately uses its own local authentication instead of Keycloak.
 
 ## Web Login Remember Me
 
@@ -121,7 +121,7 @@ The project uses `extra-streamlit-components` for the browser cookie required to
 
 ### Remember Me / CookieManager
 
-The CookieManager instance is created once per Streamlit Web session and reused across reruns. This prevents `StreamlitDuplicateElementKey` errors caused by registering the same custom component key multiple times in one run.
+Telegram Harbor keeps one CookieManager instance per Streamlit Web session and reuses it across reruns. This prevents `StreamlitDuplicateElementKey` errors caused by registering the same custom component key multiple times in one run.
 
 `TgCrypto` is installed by this project's `requirements.txt` and is part of the supported deployment profile. Upstream Pyrogram can technically run without it, but this repository does not treat that as the normal installation path. See `docs/DEPENDENCIES.md`.
 
@@ -157,7 +157,7 @@ docker compose up -d --build
 
 The container exposes port 8501, runs as a non-root user, persists the database/media cache under `/data`, and uses Streamlit's `/_stcore/health` endpoint for its container health check.
 
-See `docs/DEPLOYMENT.md` for production deployment guidance.
+See `docs/DEPLOYMENT.md` for Telegram Harbor production deployment guidance.
 
 
 ## Validation
