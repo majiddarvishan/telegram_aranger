@@ -116,3 +116,23 @@ Implemented:
 - Progress is polled every 100 ms on the Streamlit thread; Streamlit UI is not called from the Telegram runtime thread.
 - Cache hits complete immediately and end at 100%.
 - Added a unit test proving byte progress callbacks reach the download layer.
+
+## 2026-09-24 — Remember Me restart bug
+
+Observed symptom:
+- User checked Remember Me, but restarting/reopening the application returned to the Web login screen.
+
+Root cause:
+- `CookieManager` was intentionally stored in `st.session_state`.
+- Its constructor captures an initial cookie snapshot through a custom Streamlit component.
+- On a fresh session that first snapshot can be the component default before browser cookies are hydrated.
+- The persisted manager instance then kept that stale snapshot, while `restore_remembered_user()` used `manager.get()` and never refreshed browser cookies.
+
+Fix:
+- `restore_remembered_user()` now explicitly calls `CookieManager.get_all()` using a stable restore component key.
+- The first empty snapshot is treated as browser-component hydration and execution stops for one component-driven rerun before deciding there is no remembered cookie.
+- Persistent cookie expiry now uses UTC and also sets `max_age`.
+- Remember-cookie clearing now refreshes browser cookies first, revokes the DB token, and deletes the browser cookie reliably.
+- Added regression tests for stale snapshot restore, first hydration, true no-cookie state, and cookie revocation.
+
+No Telegram account/session logic was changed by this fix.
