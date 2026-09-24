@@ -34,7 +34,7 @@ class BackupRestoreTests(unittest.TestCase):
         manifest = json.loads(manifest_text)
 
         self.assertTrue((backup_dir / "database.sqlite3").is_file())
-        self.assertEqual(manifest["schema_version"], 2)
+        self.assertEqual(manifest["schema_version"], 3)
         self.assertEqual(manifest["fernet_key_sha256"], key_fingerprint(key))
         self.assertNotIn(key, manifest_text)
 
