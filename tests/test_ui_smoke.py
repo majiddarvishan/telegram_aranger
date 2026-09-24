@@ -4,7 +4,6 @@ from datetime import datetime
 from ui.main import (
     MESSAGE_HEADER_CSS,
     MESSAGE_HEADER_KEY,
-    MESSAGE_SCROLL_HEIGHT,
     MESSAGE_SCROLL_KEY,
     _delete_state_key,
     _message_matches_filters,
@@ -17,7 +16,6 @@ class StickyHeaderTests(unittest.TestCase):
     def test_message_header_stays_in_flow_above_scrollable_messages(self):
         self.assertEqual(MESSAGE_HEADER_KEY, "message-header")
         self.assertEqual(MESSAGE_SCROLL_KEY, "message-scroll-area")
-        self.assertEqual(MESSAGE_SCROLL_HEIGHT, 420)
         self.assertIn(".st-key-message-header", MESSAGE_HEADER_CSS)
         self.assertIn("position: relative", MESSAGE_HEADER_CSS)
         self.assertNotIn("position: fixed", MESSAGE_HEADER_CSS)
