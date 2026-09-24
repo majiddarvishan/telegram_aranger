@@ -50,6 +50,7 @@ This file began as the 2026-09-24 review backlog and now tracks implementation s
 
 
 ## P1 — Tests and regression safety
+- [x] Prevent browser-side Remember Me cookie write/delete races by avoiding immediate Streamlit reruns after CookieManager set/delete operations; regression tests added.
 - [x] Fix and cover Remember Me regression after application restart: refresh browser cookies instead of relying on the CookieManager constructor snapshot.
 - [x] Add unit tests for password hashing/authentication.
 - [x] Add tests for remember-me token creation, expiry, restore, and revocation.
