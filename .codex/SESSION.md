@@ -734,3 +734,35 @@ Validation:
 - latest auth/empty-state runs were started and must be checked before claiming final green status.
 
 No Telegram service/runtime/database/history/cache/authentication semantics were changed in this visual iteration.
+
+
+## 2026-09-25 — Desktop GUI polish after visual review
+
+A second desktop screenshot of the updated `gui` branch was reviewed.
+
+Observed:
+- sidebar hierarchy and toolbar are substantially improved;
+- message cards still consumed too much vertical space because tag/edit/delete controls were on separate rows;
+- media-only messages repeated placeholders such as `[Video]` even though the card already showed media metadata;
+- Persian message text was not being given explicit direction-aware rendering;
+- Refresh retained an unnecessarily large/empty action-column footprint when Load more was unavailable.
+
+Implemented:
+- added safe `message_body_html(...)` with `dir="auto"`, pre-wrapped whitespace and plaintext bidi handling;
+- hide generated media-only placeholders such as `[Video]` from the visible card body while keeping message data unchanged;
+- merged tag display, Edit tags and Delete into one compact message footer;
+- moved delete confirmation below that compact footer only after delete is requested;
+- removed the always-visible `No tags` line;
+- tightened card/footer vertical rhythm;
+- made the action bar layout conditional so no empty Load-more column is reserved when it is unavailable;
+- explicitly collapsed Chat/Search/Tag labels and added a Search placeholder;
+- reduced sidebar divider whitespace.
+
+Validation added:
+- safe RTL/LTR message-body markup test;
+- media-only placeholder display test;
+- compact footer identity/on-demand editing test.
+
+Manual status:
+- Light-theme desktop screenshot reviewed.
+- Dark-theme, narrow viewport and photo-card review remain open.
