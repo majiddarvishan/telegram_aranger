@@ -1,7 +1,16 @@
+import secrets
+
 from cryptography.fernet import Fernet
 from pyrogram import Client
 from pyrogram.errors import SessionPasswordNeeded
 
+from services.media_cache import (
+    atomic_replace_download,
+    cache_path,
+    cleanup_cache,
+    is_fresh,
+    safe_file_name,
+)
 from services.telegram_runtime import get_runtime
 
 
@@ -197,6 +206,13 @@ def _media_metadata(message) -> dict | None:
 
         file_name = getattr(media, "file_name", None)
         mime_type = getattr(media, "mime_type", None)
+        if not mime_type:
+            mime_type = {
+                "photo": "image/jpeg",
+                "video": "video/mp4",
+                "video_note": "video/mp4",
+                "voice": "audio/ogg",
+            }.get(media_type)
         file_size = getattr(media, "file_size", None)
         width = getattr(media, "width", None)
         height = getattr(media, "height", None)
@@ -255,6 +271,120 @@ async def _history(chat_id, start_dt, end_dt, limit=100):
 
 def history(chat_id, start_dt, end_dt, limit=100):
     return get_runtime().run(_history(chat_id, start_dt, end_dt, limit))
+
+
+def _size_limit_bytes(max_megabytes: int) -> int:
+    return max_megabytes * 1024 * 1024
+
+
+async def _download_media(
+    chat_id: int,
+    message_id: int,
+    account_id: int,
+    cache_root: str,
+    cache_ttl_hours: int,
+    cache_max_mb: int,
+    max_megabytes: int,
+):
+    runtime = get_runtime()
+    client = runtime.client
+    if client is None:
+        raise RuntimeError("Telegram client is not connected.")
+
+    message = await client.get_messages(chat_id, message_ids=message_id)
+    if message is None:
+        raise RuntimeError("Telegram message was not found.")
+
+    media = _media_metadata(message)
+    if not media:
+        raise ValueError("Message does not contain downloadable media.")
+
+    file_size = media.get("file_size")
+    if file_size and file_size > _size_limit_bytes(max_megabytes):
+        raise ValueError(
+            f"Media is too large ({file_size / (1024 * 1024):.1f} MB). "
+            f"The configured limit is {max_megabytes} MB."
+        )
+
+    cleanup_cache(cache_root, cache_ttl_hours, cache_max_mb)
+
+    fallback = f"{media['type']}_{message_id}"
+    download_name = safe_file_name(
+        media.get("file_name"),
+        fallback=fallback,
+        mime_type=media.get("mime_type"),
+    )
+    unique_prefix = safe_file_name(
+        media.get("file_unique_id"),
+        fallback="telegram",
+    )
+    cached_name = f"{unique_prefix}_{download_name}"
+
+    final_path = cache_path(
+        cache_root=cache_root,
+        account_id=account_id,
+        chat_id=chat_id,
+        message_id=message_id,
+        media_type=media["type"],
+        file_name=cached_name,
+    )
+
+    if is_fresh(final_path, cache_ttl_hours):
+        return {
+            "path": str(final_path),
+            "file_name": download_name,
+            "mime_type": media.get("mime_type") or "application/octet-stream",
+            "file_size": final_path.stat().st_size,
+            "media_type": media["type"],
+            "cached": True,
+        }
+
+    final_path.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path = final_path.with_name(
+        f".{final_path.name}.{secrets.token_hex(6)}.part"
+    )
+
+    try:
+        downloaded = await client.download_media(
+            message,
+            file_name=str(temporary_path),
+            in_memory=False,
+        )
+        if not downloaded:
+            raise RuntimeError("Telegram media download did not complete.")
+
+        final_path = atomic_replace_download(downloaded, final_path)
+    finally:
+        temporary_path.unlink(missing_ok=True)
+
+    return {
+        "path": str(final_path),
+        "file_name": download_name,
+        "mime_type": media.get("mime_type") or "application/octet-stream",
+        "file_size": final_path.stat().st_size,
+        "media_type": media["type"],
+        "cached": False,
+    }
+
+
+def download_media(
+    chat_id: int,
+    message_id: int,
+    account_id: int,
+    settings,
+    max_megabytes: int,
+):
+    return get_runtime().run(
+        _download_media(
+            chat_id=chat_id,
+            message_id=message_id,
+            account_id=account_id,
+            cache_root=settings.media_cache_dir,
+            cache_ttl_hours=settings.media_cache_ttl_hours,
+            cache_max_mb=settings.media_cache_max_mb,
+            max_megabytes=max_megabytes,
+        )
+    )
 
 
 async def _delete(chat_id, message_id):
