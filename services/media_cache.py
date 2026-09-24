@@ -54,11 +54,45 @@ def is_fresh(path: Path, ttl_hours: int) -> bool:
     return age_seconds <= ttl_hours * 3600
 
 
+def is_valid_cached_file(
+    path: Path,
+    ttl_hours: int,
+    expected_size: int | None = None,
+) -> bool:
+    """Return True only for a fresh cache file with the expected Telegram size."""
+    if not is_fresh(path, ttl_hours):
+        return False
+
+    try:
+        actual_size = path.stat().st_size
+    except OSError:
+        return False
+
+    if actual_size <= 0:
+        return False
+
+    if expected_size and expected_size > 0 and actual_size != expected_size:
+        return False
+
+    return True
+
+
 def cleanup_cache(cache_root: str, ttl_hours: int, max_megabytes: int) -> None:
     """Remove expired files first, then oldest files until under the size limit."""
     root = Path(cache_root)
     if not root.exists():
         return
+
+    files = [path for path in root.rglob("*") if path.is_file()]
+
+    # Incomplete downloads are never valid cache entries. They can remain after
+    # an abrupt process shutdown because finally-block cleanup cannot run.
+    for path in files:
+        if path.name.endswith(".part"):
+            try:
+                path.unlink(missing_ok=True)
+            except OSError:
+                pass
 
     files = [path for path in root.rglob("*") if path.is_file()]
     now = time.time()
