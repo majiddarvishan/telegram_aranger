@@ -1,12 +1,17 @@
 from datetime import date, timedelta
 from pathlib import Path
+import threading
 import time
 
 import streamlit as st
 
+from db.dialogs import load_dialogs as load_cached_dialogs, replace_dialogs
 from db.tags import all_tags, get_tags_for_messages, save_tags
 from services.telegram_service import delete_message, get_dialogs, history, start_media_download
 from utils.date_range import bounds, normalize_range
+
+
+_DIALOG_REFRESH_LOCK = threading.Lock()
 
 
 def _format_bytes(size: int | None) -> str:
@@ -212,6 +217,37 @@ def _render_media(settings, account_id: int, message: dict) -> None:
         return
 
     st.info(f"{media_type.replace('_', ' ').title()} media is detected. Preview is not implemented yet.")
+
+
+def _load_or_refresh_dialogs(
+    settings,
+    account_id: int,
+    force_refresh: bool = False,
+) -> tuple[list[dict], str | None]:
+    cached = load_cached_dialogs(settings.db_file, account_id)
+    if cached and not force_refresh:
+        return cached, None
+
+    with _DIALOG_REFRESH_LOCK:
+        if not force_refresh:
+            cached = load_cached_dialogs(settings.db_file, account_id)
+            if cached:
+                return cached, None
+
+        try:
+            dialogs = get_dialogs(settings.telegram_dialog_limit)
+        except Exception as exc:
+            if cached:
+                return (
+                    cached,
+                    "Telegram chat refresh failed; showing cached chats. "
+                    f"{exc}",
+                )
+            raise
+
+        if dialogs:
+            replace_dialogs(settings.db_file, account_id, dialogs)
+        return dialogs, None
 
 
 def _chat_label(chat):
@@ -648,9 +684,19 @@ def render_main(settings):
         st.info("Add or select a Telegram account from the sidebar.")
         return
 
-    if not st.session_state.dialogs:
+    force_refresh = bool(
+        st.session_state.pop("force_refresh_dialogs", False)
+    )
+    if not st.session_state.dialogs or force_refresh:
         try:
-            st.session_state.dialogs = get_dialogs()
+            dialogs, warning = _load_or_refresh_dialogs(
+                settings,
+                st.session_state.selected_telegram_account_id,
+                force_refresh=force_refresh,
+            )
+            st.session_state.dialogs = dialogs
+            if warning:
+                st.warning(warning)
         except Exception as exc:
             st.error(f"Failed to load chats: {exc}")
             return
