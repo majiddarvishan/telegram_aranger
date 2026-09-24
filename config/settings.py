@@ -22,6 +22,7 @@ class Settings:
     media_cache_max_mb: int = 2048
     media_preview_max_mb: int = 200
     media_download_max_mb: int = 200
+    message_scroll_height: int = 620
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -70,6 +71,7 @@ def load_settings() -> Settings:
         media_cache_max_mb = int(os.getenv("MEDIA_CACHE_MAX_MB", "2048"))
         media_preview_max_mb = int(os.getenv("MEDIA_PREVIEW_MAX_MB", "200"))
         media_download_max_mb = int(os.getenv("MEDIA_DOWNLOAD_MAX_MB", "200"))
+        message_scroll_height = int(os.getenv("MESSAGE_SCROLL_HEIGHT", "620"))
     except ValueError as exc:
         raise RuntimeError(
             "WEB_REMEMBER_ME_DAYS and MEDIA_* numeric settings must be integers."
@@ -100,6 +102,8 @@ def load_settings() -> Settings:
         raise RuntimeError("MEDIA_PREVIEW_MAX_MB must be greater than zero.")
     if media_download_max_mb < 1:
         raise RuntimeError("MEDIA_DOWNLOAD_MAX_MB must be greater than zero.")
+    if message_scroll_height < 300:
+        raise RuntimeError("MESSAGE_SCROLL_HEIGHT must be at least 300 pixels.")
 
     return Settings(
         api_id=api_id,
@@ -116,4 +120,5 @@ def load_settings() -> Settings:
         media_cache_max_mb=media_cache_max_mb,
         media_preview_max_mb=media_preview_max_mb,
         media_download_max_mb=media_download_max_mb,
+        message_scroll_height=message_scroll_height,
     )
