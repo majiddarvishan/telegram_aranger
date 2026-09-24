@@ -22,6 +22,7 @@ def initialize_state():
         "message_range_signature": None,
         "message_result_limit": None,
         "media_files": {},
+        "pending_delete_message": None,
         "use_proxy": True,
         "proxy_host": "127.0.0.1",
         "proxy_port": 1080,
