@@ -10,6 +10,7 @@ from ui.theme import (
     badge_html,
     empty_state_html,
     media_meta_html,
+    message_body_html,
     message_meta_html,
     section_title_html,
     sidebar_brand_html,
@@ -77,6 +78,14 @@ class ThemeFoundationTests(unittest.TestCase):
         self.assertIn("th-message-meta", markup)
         self.assertIn("ID 42", markup)
         self.assertIn("&lt;Video&gt;", markup)
+
+    def test_message_body_is_safe_and_direction_aware(self):
+        markup = message_body_html("<b>سلام</b>")
+
+        self.assertIn('class="th-message-body"', markup)
+        self.assertIn('dir="auto"', markup)
+        self.assertIn("&lt;b&gt;سلام&lt;/b&gt;", markup)
+        self.assertNotIn("<b>سلام</b>", markup)
 
     def test_sidebar_brand_and_account_markup_are_safe(self):
         brand = sidebar_brand_html("<Harbor>", "1.0.4")
