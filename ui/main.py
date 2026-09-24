@@ -402,6 +402,45 @@ def _fetch_messages_if_needed(settings, selected_chat_id, start_date, end_date):
             st.session_state.message_query_signature = signature
 
 
+def _message_matches_filters(
+    message: dict,
+    message_tags: list[str],
+    start_date,
+    end_date,
+    search: str,
+    tag: str,
+) -> bool:
+    message_date = message["date"].date()
+    if not start_date <= message_date <= end_date:
+        return False
+    if search and search.lower() not in message["text"].lower():
+        return False
+    if tag != "All" and tag not in message_tags:
+        return False
+    return True
+
+
+def _remove_message_from_state(
+    messages: list[dict],
+    media_files: dict,
+    account_id: int,
+    chat_id: int,
+    message_id: int,
+) -> tuple[list[dict], dict]:
+    remaining = [
+        item
+        for item in messages
+        if item["id"] != message_id
+    ]
+    prefix = f"{account_id}:{chat_id}:{message_id}:"
+    cleaned_media = {
+        key: value
+        for key, value in media_files.items()
+        if not key.startswith(prefix)
+    }
+    return remaining, cleaned_media
+
+
 def _render_navigation(start_date, end_date, today):
     st.markdown('<div class="message-bottom-spacer"></div>', unsafe_allow_html=True)
 
@@ -487,19 +526,20 @@ def render_main(settings):
     messages = []
 
     for message in st.session_state.messages:
-        message_date = message["date"].date()
-        if not start_date <= message_date <= end_date:
-            continue
-        if search and search.lower() not in message["text"].lower():
-            continue
-
         message_tags = get_tags(
             settings.db_file,
             account_id,
             selected_chat_id,
             message["id"],
         )
-        if tag != "All" and tag not in message_tags:
+        if not _message_matches_filters(
+            message,
+            message_tags,
+            start_date,
+            end_date,
+            search,
+            tag,
+        ):
             continue
 
         messages.append((message, message_tags))
@@ -547,15 +587,16 @@ def render_main(settings):
                 ):
                     try:
                         delete_message(selected_chat_id, message_id)
-                        st.session_state.messages = [
-                            item
-                            for item in st.session_state.messages
-                            if item["id"] != message_id
-                        ]
-                        media_prefix = f"{account_id}:{selected_chat_id}:{message_id}:"
-                        for media_key in list(st.session_state.media_files):
-                            if media_key.startswith(media_prefix):
-                                st.session_state.media_files.pop(media_key, None)
+                        (
+                            st.session_state.messages,
+                            st.session_state.media_files,
+                        ) = _remove_message_from_state(
+                            st.session_state.messages,
+                            st.session_state.media_files,
+                            account_id,
+                            selected_chat_id,
+                            message_id,
+                        )
                         st.rerun()
                     except Exception as exc:
                         st.error(f"Failed to delete message: {exc}")
