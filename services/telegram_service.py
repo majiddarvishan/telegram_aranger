@@ -9,7 +9,7 @@ from services.media_cache import (
     atomic_replace_download,
     cache_path,
     cleanup_cache,
-    is_fresh,
+    is_valid_cached_file,
     safe_file_name,
 )
 from services.telegram_runtime import get_runtime
@@ -347,7 +347,11 @@ async def _download_media(
         file_name=cached_name,
     )
 
-    if is_fresh(final_path, cache_ttl_hours):
+    if is_valid_cached_file(
+        final_path,
+        cache_ttl_hours,
+        expected_size=file_size,
+    ):
         return {
             "path": str(final_path),
             "file_name": download_name,
@@ -356,6 +360,14 @@ async def _download_media(
             "media_type": media["type"],
             "cached": True,
         }
+
+    if final_path.exists():
+        try:
+            final_path.unlink()
+        except OSError as exc:
+            raise RuntimeError(
+                "Cached media is invalid and could not be removed for retry."
+            ) from exc
 
     final_path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path = final_path.with_name(
@@ -373,6 +385,13 @@ async def _download_media(
             raise RuntimeError("Telegram media download did not complete.")
 
         final_path = atomic_replace_download(downloaded, final_path)
+
+        if file_size and final_path.stat().st_size != file_size:
+            final_path.unlink(missing_ok=True)
+            raise RuntimeError(
+                "Telegram media download completed with an unexpected file size. "
+                "The incomplete cache file was removed; retry the download."
+            )
     finally:
         temporary_path.unlink(missing_ok=True)
 
