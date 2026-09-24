@@ -100,6 +100,9 @@ jobs:
       - name: Telegram runtime shutdown tests
         run: python -m unittest discover -s tests -p "test_telegram_runtime.py" -v
 
+      - name: Telegram thread-context tests
+        run: python -m unittest discover -s tests -p "test_telegram_thread_context.py" -v
+
       - name: UI state smoke tests
         run: python -m unittest discover -s tests -p "test_ui_smoke.py" -v
 
