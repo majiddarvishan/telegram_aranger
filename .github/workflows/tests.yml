@@ -79,6 +79,9 @@ jobs:
       - name: Database configuration tests
         run: python -m unittest discover -s tests -p "test_database.py" -v
 
+      - name: Dialog cache tests
+        run: python -m unittest discover -s tests -p "test_dialogs.py" -v
+
       - name: Structured logging tests
         run: python -m unittest discover -s tests -p "test_logging.py" -v
 
