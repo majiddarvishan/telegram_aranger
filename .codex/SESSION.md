@@ -639,3 +639,26 @@ Still open:
 - manual Light/Dark visual inspection is required before closing GUI-P0.
 
 No Telegram, database, authentication, dialog-cache, message-history, tag or media behavior was changed.
+
+
+## 2026-09-25 — GUI-P3 content-first message cards
+
+First message-card redesign pass implemented on `gui`.
+
+Changes:
+- message cards now have a compact metadata row at the top with timestamp, message ID and media type when present;
+- message text/media is the dominant card content;
+- tags render as safe read-mode chips instead of an always-visible comma-separated text field;
+- `Edit tags` opens the existing tag editor only on demand;
+- Save/Cancel closes the editor and preserves the existing tag persistence behavior;
+- Delete moved into a lower-emphasis message action and still requires explicit confirmation;
+- permanent-delete confirmation receives the danger treatment only after the user requests deletion;
+- card spacing and typography now use centralized theme primitives;
+- added safe tag/meta HTML helpers with escaping;
+- added regression tests for tag-chip escaping, metadata markup, stable card/editor identity and on-demand editing behavior.
+
+Still open in GUI-P3:
+- normalize photo/video media action hierarchy;
+- manually inspect representative text/photo/video cards in the running application.
+
+No Telegram message/tag/media persistence semantics were changed.
