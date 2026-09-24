@@ -400,11 +400,9 @@ def _fetch_messages_if_needed(settings, selected_chat_id, start_date, end_date):
     )
     signature = (*range_signature, result_limit)
 
-    refresh = st.button("🔄 Refresh Messages")
     should_fetch = (
         not st.session_state.messages
         or st.session_state.get("message_query_signature") != signature
-        or refresh
     )
 
     if not should_fetch:
@@ -424,6 +422,38 @@ def _fetch_messages_if_needed(settings, selected_chat_id, start_date, end_date):
             st.error(f"Failed to fetch messages: {exc}")
             st.session_state.messages = []
             st.session_state.message_query_signature = signature
+
+
+def _render_message_actions(settings) -> None:
+    loaded_count = len(st.session_state.messages)
+    result_limit = (
+        st.session_state.get("message_result_limit")
+        or settings.default_message_limit
+    )
+
+    refresh_col, load_more_col, spacer_col = st.columns([1.2, 1.6, 6.2])
+
+    with refresh_col:
+        if st.button(
+            "🔄 Refresh Messages",
+            key="refresh_messages",
+            use_container_width=True,
+        ):
+            st.session_state.message_query_signature = None
+            st.rerun()
+
+    with load_more_col:
+        if loaded_count >= result_limit:
+            if st.button(
+                "➕ Load More Messages",
+                key="load_more_messages",
+                use_container_width=True,
+            ):
+                st.session_state.message_result_limit = (
+                    result_limit + settings.default_message_limit
+                )
+                st.session_state.message_query_signature = None
+                st.rerun()
 
 
 def _message_matches_filters(
@@ -487,16 +517,6 @@ def _render_message_scroll_area(
                 f"{len(messages)} visible message(s) · "
                 f"{loaded_count} loaded · current limit {result_limit}"
             )
-            if st.button(
-                "➕ Load More Messages",
-                key="load_more_messages",
-                use_container_width=True,
-            ):
-                st.session_state.message_result_limit = (
-                    result_limit + settings.default_message_limit
-                )
-                st.session_state.message_query_signature = None
-                st.rerun()
         else:
             st.caption(
                 f"{len(messages)} visible message(s) · "
@@ -669,6 +689,8 @@ def render_main(settings):
         start_date,
         end_date,
     )
+
+    _render_message_actions(settings)
 
     account_id = st.session_state.selected_telegram_account_id
     messages = []
