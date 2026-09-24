@@ -380,3 +380,23 @@ Fix:
 - add regression assertions for viewport width and sidebar alignment.
 
 Current development version remains `1.0.1-dev`.
+
+
+## 2026-09-25 — Opaque fixed-header backdrop
+
+User reported that message cards still visually mixed with the fixed header while scrolling.
+
+Cause:
+- A fixed header overlays the scrolling document, so message cards still pass underneath it.
+- Depending on Streamlit's internal container structure/stacking contexts, an opaque background on only the keyed container was not sufficient to fully hide underlying message content in all gaps.
+
+Fix:
+- Added a dedicated fixed `.message-header-backdrop` directly below the control header.
+- The backdrop shares the same CSS variables for top/left/right/height as the header and has an opaque application background.
+- Backdrop uses `pointer-events:none` and z-index 9998.
+- Header uses z-index 10000, `isolation:isolate`, and an explicit opaque background.
+- Streamlit internal vertical blocks inside the header also receive an opaque background.
+- Header, backdrop, and spacer now share CSS variables so future layout changes stay aligned.
+- Added regression assertions for the opaque backdrop and stacking behavior.
+
+Current development version remains `1.0.1-dev`.
