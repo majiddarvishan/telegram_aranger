@@ -14,24 +14,29 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 - [x] Extend Telegram message mapping in `services/telegram_service.py` to expose media metadata instead of collapsing all non-text content to `[Media / File]`.
 - [x] Detect and distinguish at least `photo`, `video`, `animation/GIF`, `document`, `audio`, `voice`, and `video_note` so the UI can render the correct control.
 - [x] Preserve message text/caption together with media metadata.
-- [ ] Add inline photo preview in the message card.
-- [ ] Add inline video playback in the message card using Streamlit video rendering.
-- [ ] Add an explicit **Download Video** button for video messages so the user can download the video file through the browser.
-- [ ] Preserve a meaningful video file name and MIME type when Telegram metadata provides them; otherwise generate a stable fallback file name.
-- [ ] Use lazy/on-demand media download rather than downloading every media item while listing messages.
-- [ ] Add a visible loading/progress state while media is fetched from Telegram.
-- [ ] Add temporary media caching so replaying/re-rendering does not repeatedly download the same media unnecessarily.
-- [ ] Define cache location, cache key, expiry/cleanup behavior, and a maximum disk-usage policy.
-- [ ] Add configurable maximum preview/download size safeguards for very large videos/files.
-- [ ] Handle unavailable/deleted/expired media and Telegram download errors without breaking the rest of the message list.
-- [ ] Ensure media cache/download paths cannot collide between different Telegram accounts, chats, or messages.
-- [ ] Ensure temporary media is ignored by Git and does not leak Telegram session/authentication data.
-- [ ] Keep message deletion behavior working for media messages exactly as it does for text messages.
-- [ ] Verify captions, tags, search result rendering, and date filtering still work for media messages.
-- [ ] Add tests for media-type detection and metadata mapping.
-- [ ] Add tests for lazy download/cache behavior.
-- [ ] Add tests for video download naming/MIME behavior and failure paths.
+- [x] Add inline photo preview in the message card.
+- [x] Add inline video playback in the message card using Streamlit video rendering.
+- [x] Add an explicit **Download Video** button for video messages so the user can download the video file through the browser.
+- [x] Preserve a meaningful video file name and MIME type when Telegram metadata provides them; otherwise generate a stable fallback file name.
+- [x] Use lazy/on-demand media download rather than downloading every media item while listing messages.
+- [x] Add a visible loading/progress state while media is fetched from Telegram.
+- [x] Add temporary media caching so replaying/re-rendering does not repeatedly download the same media unnecessarily.
+- [x] Define cache location, cache key, expiry/cleanup behavior, and a maximum disk-usage policy.
+- [x] Add configurable maximum preview/download size safeguards for very large videos/files.
+- [x] Handle unavailable/deleted/expired media and Telegram download errors without breaking the rest of the message list.
+- [x] Ensure media cache/download paths cannot collide between different Telegram accounts, chats, or messages.
+- [x] Ensure temporary media is ignored by Git and does not leak Telegram session/authentication data.
+- [x] Keep message deletion behavior working for media messages exactly as it does for text messages.
+- [x] Verify captions, tags, search result rendering, and date filtering still work for media messages.
+- [x] Add tests for media-type detection and metadata mapping.
+- [x] Add tests for lazy download/cache behavior.
+- [x] Add tests for video download naming/MIME behavior and failure paths.
 - [ ] Manually verify photo preview, inline video playback, and browser video download with small and large Telegram media.
+
+### P1 media validation status
+- Pure cache tests were executed successfully in the available local runtime.
+- Telegram-service tests were added but could not be executed in this chat runtime because Pyrogram/Streamlit are not installed there and direct GitHub checkout is network-blocked.
+- Real Telegram/browser manual verification remains open below.
 
 ### Media implementation preference
 - Prefer **lazy loading**: listing messages must not automatically download full-size photos/videos.
