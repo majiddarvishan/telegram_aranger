@@ -92,6 +92,75 @@ class TelegramHistoryTests(unittest.TestCase):
 
         self.assertEqual([item["id"] for item in result], [5, 4])
 
+    def test_peer_warm_prefers_username_without_dialog_refresh(self):
+        class Client:
+            def __init__(self):
+                self.get_chat_calls = []
+                self.dialog_calls = 0
+                self.resolve_calls = []
+
+            async def get_chat(self, username):
+                self.get_chat_calls.append(username)
+                return object()
+
+            async def get_dialogs(self, limit=0):
+                self.dialog_calls += 1
+                if False:
+                    yield None
+
+            async def resolve_peer(self, chat_id):
+                self.resolve_calls.append(chat_id)
+                return object()
+
+        client = Client()
+
+        asyncio.run(
+            telegram_service._warm_peer_for_history(
+                client,
+                -1003075722346,
+                username="cached_channel",
+                dialog_limit=100,
+            )
+        )
+
+        self.assertEqual(
+            client.get_chat_calls,
+            ["cached_channel"],
+        )
+        self.assertEqual(client.dialog_calls, 0)
+        self.assertEqual(client.resolve_calls, [])
+
+    def test_peer_warm_falls_back_to_bounded_dialog_refresh(self):
+        class Client:
+            def __init__(self):
+                self.requested_limit = None
+                self.resolve_calls = []
+
+            async def get_dialogs(self, limit=0):
+                self.requested_limit = limit
+                yield object()
+
+            async def resolve_peer(self, chat_id):
+                self.resolve_calls.append(chat_id)
+                return object()
+
+        client = Client()
+
+        asyncio.run(
+            telegram_service._warm_peer_for_history(
+                client,
+                -1003075722346,
+                username="",
+                dialog_limit=100,
+            )
+        )
+
+        self.assertEqual(client.requested_limit, 100)
+        self.assertEqual(
+            client.resolve_calls,
+            [-1003075722346],
+        )
+
     def test_peer_id_invalid_is_recovered_once_then_history_retried(self):
         class FakePeerIdInvalid(Exception):
             pass
