@@ -26,11 +26,25 @@ class ThemeFoundationTests(unittest.TestCase):
         self.assertEqual(DESIGN_TOKENS["radius_panel"], "12px")
         self.assertEqual(DESIGN_TOKENS["control_height"], "40px")
 
-    def test_theme_uses_streamlit_theme_variables(self):
-        self.assertIn("var(--background-color", APP_CSS)
-        self.assertIn("var(--secondary-background-color", APP_CSS)
-        self.assertIn("var(--text-color", APP_CSS)
+    def test_theme_uses_streamlit_accent_and_transparent_surfaces(self):
         self.assertIn("var(--primary-color", APP_CSS)
+        self.assertIn("--th-bg: transparent", APP_CSS)
+        self.assertIn(
+            "--th-surface: rgba(128, 128, 128, 0.06)",
+            APP_CSS,
+        )
+        self.assertNotIn(
+            "--th-text: var(--text-color",
+            APP_CSS,
+        )
+
+    def test_theme_does_not_force_light_card_backgrounds(self):
+        self.assertNotIn(
+            "background: var(--th-bg)",
+            APP_CSS,
+        )
+        self.assertIn("background: transparent", APP_CSS)
+        self.assertIn("color: inherit", APP_CSS)
 
     def test_message_layout_styles_are_centralized(self):
         self.assertIn(".st-key-message-header", MESSAGE_HEADER_CSS)
