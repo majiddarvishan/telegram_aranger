@@ -1,10 +1,10 @@
-# Manual Validation Checklist
+# Telegram Harbor Manual Validation Checklist
 
 This checklist covers behavior that automated tests cannot fully prove because it requires a real Telegram account, browser, and media transfer.
 
 ## Preconditions
 
-- Work from branch `feature/media-support`.
+- Work from branch `main`.
 - Use a non-production Telegram account for validation.
 - Configure valid `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, and `TELEGRAM_SESSION_ENCRYPTION_KEY`.
 - If a SOCKS5 proxy is not required, disable it in the sidebar.
