@@ -239,3 +239,20 @@ Only real Telegram/browser media validation remains:
 - interrupted real media transfer recovery.
 
 A repeatable checklist is in docs/MANUAL_TESTING.md.
+
+
+## 2026-09-24 — Real Telegram media validation passed
+
+User completed the real Telegram/browser validation after implementation and reported no issues.
+
+Validated in practice:
+- photo preview;
+- inline video playback;
+- browser video download;
+- interrupted-download recovery / re-download flow.
+
+Result:
+- Final open media-validation task is complete.
+- P0, P1, P2, and P3 backlog items for the current scope are complete.
+- Recent GitHub Actions runs are green, including regression tests and Docker build/health checks.
+- Branch `feature/media-support` is ready for merge review.
