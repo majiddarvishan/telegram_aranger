@@ -1,6 +1,7 @@
 # Telegram Harbor
 
-**Latest release:** `v1.0.3`
+**Latest release:** `v1.0.3`  
+**Current development version:** `1.0.4-dev`
 
 **Telegram Harbor** is a self-hosted, multi-user Telegram message and media manager built with Streamlit and Pyrogram.
 
@@ -157,6 +158,7 @@ MEDIA_CACHE_TTL_HOURS=24
 MEDIA_CACHE_MAX_MB=2048
 MEDIA_PREVIEW_MAX_MB=200
 MEDIA_DOWNLOAD_MAX_MB=200
+TELEGRAM_DIALOG_LIMIT=100
 ```
 
 The cache path is ignored by Git. Cache entries are namespaced by Telegram account, chat, and message, and old files are removed by TTL/size cleanup. Increase the preview/download limits only when the Streamlit host has enough memory/disk capacity.
@@ -185,3 +187,13 @@ See `docs/DEPLOYMENT.md` for Telegram Harbor production deployment guidance.
 Automated unit/regression tests and Docker build/health checks run in GitHub Actions.
 
 For real Telegram/browser acceptance—photo preview, video playback, browser download, and interrupted-transfer recovery—follow `docs/MANUAL_TESTING.md`.
+
+
+## Dialog cache
+
+Telegram Harbor caches the latest Telegram chat/dialog list in SQLite per Telegram account. Normal application startup reads that cache instead of calling Telegram `messages.GetDialogs` repeatedly.
+
+- The first uncached load fetches at most `TELEGRAM_DIALOG_LIMIT` dialogs (default: 100).
+- **Refresh Chats** explicitly refreshes the cache from Telegram.
+- If an explicit refresh fails and cached dialogs exist, the cached list remains usable.
+- Concurrent Streamlit sessions share a process-level refresh lock so only one uncached dialog refresh is sent at a time.
