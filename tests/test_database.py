@@ -27,7 +27,7 @@ class DatabaseConfigurationTests(unittest.TestCase):
         self.assertEqual(journal_mode.lower(), "wal")
         self.assertEqual(foreign_keys, 1)
         self.assertEqual(busy_timeout, 30000)
-        self.assertEqual(synchronous, 1)  # NORMAL
+        self.assertEqual(synchronous, 1)
 
     def test_schema_version_is_current(self):
         self.assertEqual(get_schema_version(self.db_file), 3)
