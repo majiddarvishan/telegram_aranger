@@ -492,3 +492,26 @@ Fix:
 - README contains cleanup/reinstall commands for existing Windows virtual environments.
 - Dependency policy updated to document the fork and compatibility rationale.
 - Current development version moved to `1.0.3-dev`; latest release remains `v1.0.2`.
+
+
+## 2026-09-25 — Remove Streamlit access from TelegramRuntime thread
+
+Observed runtime warnings:
+- `Thread 'TelegramRuntime': missing ScriptRunContext!`
+- slow wait logs without an operation name, including waits around 3.3s and 37.9s.
+
+Root cause:
+- several async functions in `services/telegram_service.py` called `get_runtime()` while already running on the dedicated `TelegramRuntime` thread;
+- `get_runtime()` reads `st.session_state`, which requires Streamlit's ScriptRunContext and must not run on the background Telegram thread.
+
+Fix:
+- all public synchronous service wrappers now obtain `runtime/client` on the Streamlit thread before submitting work;
+- async Telegram coroutines receive the runtime/client explicitly and no longer call `get_runtime()`;
+- media download coroutines also receive the Pyrogram client explicitly;
+- `TelegramRuntime.run()` now accepts an `operation` label;
+- slow-wait logs now include the operation name;
+- added regression coverage that inspects all Telegram background coroutines and forbids `get_runtime()`, `streamlit`, or `st.session_state` access;
+- updated media tests to pass fake clients directly;
+- added a slow-wait logging test that verifies `operation` is present.
+
+Based on the current UI flow, the earlier first two waits were likely session restore followed by dialog loading; new logs will confirm this explicitly.
