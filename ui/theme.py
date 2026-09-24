@@ -268,6 +268,36 @@ hr {{
     line-height: 1.2;
 }}
 
+[class*="st-key-edit-tags-"] button,
+[class*="st-key-delete-message-"] button {{
+    min-height: 32px;
+    border-color: transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 0.82rem;
+    font-weight: 600;
+}}
+
+[class*="st-key-edit-tags-"] button {{
+    color: var(--th-text-muted) !important;
+}}
+
+[class*="st-key-delete-message-"] button {{
+    color: var(--th-danger) !important;
+}}
+
+[class*="st-key-edit-tags-"] button:hover,
+[class*="st-key-delete-message-"] button:hover {{
+    background: var(--th-surface) !important;
+    border-color: var(--th-border) !important;
+}}
+
+[class*="st-key-confirm-delete-message-"] button {{
+    border-color: var(--th-danger) !important;
+    background: var(--th-danger) !important;
+    color: #ffffff !important;
+}}
+
 {MESSAGE_HEADER_CSS}
 
 @media (max-width: 900px) {{
