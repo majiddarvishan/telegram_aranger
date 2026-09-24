@@ -5,6 +5,14 @@ import sqlite3
 from db.database import get_db
 
 PASSWORD_ITERATIONS = 310_000
+MIN_PASSWORD_LENGTH = 8
+
+
+def validate_password(password: str) -> None:
+    if len(password) < MIN_PASSWORD_LENGTH:
+        raise ValueError(
+            f"Password must contain at least {MIN_PASSWORD_LENGTH} characters."
+        )
 
 
 def hash_password(password: str, salt: bytes | None = None) -> tuple[str, str]:
@@ -19,6 +27,7 @@ def verify_password(password: str, salt_hex: str, expected_hash: str) -> bool:
 
 
 def create_user(db_file: str, username: str, password: str, display_name: str) -> bool:
+    validate_password(password)
     salt, digest = hash_password(password)
     conn = get_db(db_file)
     try:
