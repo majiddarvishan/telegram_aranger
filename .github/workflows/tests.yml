@@ -41,8 +41,23 @@ jobs:
       - name: Telegram media metadata tests
         run: python -m unittest -v tests.test_telegram_media.TelegramMediaMetadataTests
 
-      - name: Telegram media download tests
-        run: python -m unittest -v tests.test_telegram_media.TelegramMediaDownloadTests
+      - name: Telegram media download - cache reuse
+        run: python -m unittest -v tests.test_telegram_media.TelegramMediaDownloadTests.test_download_is_lazy_and_reuses_fresh_cache
+
+      - name: Telegram media download - size limit
+        run: python -m unittest -v tests.test_telegram_media.TelegramMediaDownloadTests.test_download_rejects_media_over_configured_limit
+
+      - name: Telegram media download - progress callback
+        run: python -m unittest -v tests.test_telegram_media.TelegramMediaDownloadTests.test_download_reports_byte_progress
+
+      - name: Telegram media download - failed transfer
+        run: python -m unittest -v tests.test_telegram_media.TelegramMediaDownloadTests.test_failed_download_returns_clear_error
+
+      - name: Telegram media download - force redownload
+        run: python -m unittest -v tests.test_telegram_media.TelegramMediaDownloadTests.test_force_download_bypasses_valid_cache
+
+      - name: Telegram media download - truncated cache recovery
+        run: python -m unittest -v tests.test_telegram_media.TelegramMediaDownloadTests.test_truncated_cached_file_is_deleted_and_downloaded_again
 
       - name: Remember-me restore tests
         run: python -m unittest discover -s tests -p "test_remember_me_restore.py" -v
