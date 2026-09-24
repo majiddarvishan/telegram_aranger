@@ -1,6 +1,9 @@
 import sqlite3
 
 
+SCHEMA_VERSION = 2
+
+
 def get_db(db_file: str) -> sqlite3.Connection:
     conn = sqlite3.connect(db_file, timeout=30)
     conn.execute("PRAGMA journal_mode=WAL")
@@ -12,6 +15,11 @@ def initialize_database(db_file: str) -> None:
     conn = get_db(db_file)
     try:
         conn.executescript("""
+        CREATE TABLE IF NOT EXISTS schema_meta (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
+
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
@@ -62,6 +70,7 @@ def initialize_database(db_file: str) -> None:
         );
         """)
         _migrate_message_tags_chat_id(conn)
+        _set_schema_version(conn, SCHEMA_VERSION)
         conn.commit()
     finally:
         conn.close()
@@ -96,3 +105,26 @@ def _migrate_message_tags_chat_id(conn: sqlite3.Connection) -> None:
         DROP TABLE message_tags_legacy;
         """
     )
+
+
+
+def _set_schema_version(conn: sqlite3.Connection, version: int) -> None:
+    conn.execute(
+        """
+        INSERT INTO schema_meta(key, value)
+        VALUES('schema_version', ?)
+        ON CONFLICT(key) DO UPDATE SET value=excluded.value
+        """,
+        (str(version),),
+    )
+
+
+def get_schema_version(db_file: str) -> int:
+    conn = get_db(db_file)
+    try:
+        row = conn.execute(
+            "SELECT value FROM schema_meta WHERE key='schema_version'"
+        ).fetchone()
+        return int(row[0]) if row else 0
+    finally:
+        conn.close()
