@@ -1,35 +1,54 @@
 # Project Context
 
 ## Product purpose
-This branch implements a local/self-hosted Telegram archive/browser Web application using Streamlit and Pyrogram.
+`telegram_aranger` is a local/self-hosted Streamlit Telegram message manager using Pyrogram.
 
-Primary capabilities observed in code:
-- Local Web user registration and login.
-- Optional persistent "Remember me" browser login.
+The UI still carries the legacy title **Telegram Saved Messages Manager**, but current behavior supports Saved Messages plus private chats, groups, supergroups, and channels.
+
+## Current branch
+- Working branch: `feature/media-support`
+- Created from the merged `main` baseline.
+- This branch contains the current media, security, testing, performance, migration, logging, backup, and Docker work.
+- Re-check GitHub branch HEAD before making future edits.
+
+## Current capabilities
+- Local Web user registration/login.
+- PBKDF2-HMAC-SHA256 password hashing with domain-enforced minimum length.
+- Remember Me browser sessions with hashed server-side tokens.
+- Persistent username-based Web-login throttling.
+- Configurable Secure/SameSite cookie policy.
 - Multiple Telegram accounts per Web user.
-- Telegram phone login, code verification, and Telegram 2FA.
-- Encrypted storage of exported Telegram session strings.
-- SOCKS5 proxy configuration from the sidebar.
-- Telegram dialog discovery for private chats, groups, supergroups, and channels.
-- Message browsing by date range.
-- Client-side text search over fetched messages.
-- Local per-message tagging.
-- Telegram message deletion.
+- Telegram phone login, code verification, and 2FA.
+- Fernet-encrypted exported Telegram session strings.
+- SOCKS5 proxy configuration.
+- Private/group/supergroup/channel dialog discovery.
+- Date-range message history starting from the selected range end.
+- Explicit **Load More Messages** pagination.
+- Local search over loaded messages.
+- Chat-scoped local message tags.
+- Tag trim/de-duplication.
+- Permanent Telegram message deletion with confirmation.
 - Lazy photo preview.
-- Lazy inline playback for video/video-note/animation media.
+- Lazy video/video-note/animation playback.
 - Browser download for Telegram video messages.
-- Bounded temporary media cache with configurable TTL and size limits.
-- Telegram account disconnect or full Telegram logout/removal.
+- Real byte-level media download progress.
+- Bounded media cache with TTL/size limits.
+- Interrupted/corrupt media recovery and explicit **Redownload Video**.
+- SQLite schema versioning/migration.
+- Database backup/restore helpers.
+- Structured JSON logging with sensitive-context redaction.
+- Dockerfile + Docker Compose + Streamlit health check.
+- GitHub Actions regression and Docker-health CI.
 
 ## Technology stack
-- Python
-- Streamlit: Web UI and per-browser-session state.
-- Pyrogram 2.0.106: Telegram MTProto client.
-- TgCrypto: optional acceleration in Pyrogram behavior, although currently listed as an install requirement.
-- SQLite: application persistence.
-- cryptography/Fernet: encryption of Telegram session strings at rest.
-- python-dotenv: local configuration.
-- extra-streamlit-components: CookieManager used for persistent Web login.
+- Python 3.x
+- Streamlit
+- Pyrogram 2.0.106
+- TgCrypto
+- SQLite
+- cryptography/Fernet
+- python-dotenv
+- extra-streamlit-components
 
 ## Configuration
 Required:
@@ -37,59 +56,106 @@ Required:
 - `TELEGRAM_API_HASH`
 - `TELEGRAM_SESSION_ENCRYPTION_KEY`
 
-Optional:
-- `TELEGRAM_DB_FILE` (default: `telegram_manager.db`)
-- `WEB_REMEMBER_ME_DAYS` (default: 7)
-- `MEDIA_CACHE_DIR` (default: `.cache/telegram_media`)
-- `MEDIA_CACHE_TTL_HOURS` (default: 24)
-- `MEDIA_CACHE_MAX_MB` (default: 2048)
-- `MEDIA_PREVIEW_MAX_MB` (default: 200)
-- `MEDIA_DOWNLOAD_MAX_MB` (default: 200)
+Web auth/security:
+- `WEB_REMEMBER_ME_DAYS=7`
+- `WEB_COOKIE_SECURE=false`
+- `WEB_COOKIE_SAMESITE=lax`
+- `WEB_LOGIN_MAX_ATTEMPTS=5`
+- `WEB_LOGIN_WINDOW_MINUTES=15`
 
-Configuration is read from environment variables first and Streamlit secrets as a fallback for required values.
+Storage/media:
+- `TELEGRAM_DB_FILE=telegram_manager.db`
+- `MEDIA_CACHE_DIR=.cache/telegram_media`
+- `MEDIA_CACHE_TTL_HOURS=24`
+- `MEDIA_CACHE_MAX_MB=2048`
+- `MEDIA_PREVIEW_MAX_MB=200`
+- `MEDIA_DOWNLOAD_MAX_MB=200`
+
+Operations:
+- `LOG_LEVEL=INFO`
+- `TELEGRAM_SLOW_CALL_SECONDS=1.0`
+
+Required values are read from environment variables with Streamlit-secrets fallback where supported.
 
 ## Persistence model
-SQLite tables created by `db/database.py`:
-- `users`: local Web accounts.
-- `telegram_accounts`: Telegram identity plus encrypted exported Pyrogram session per Web user.
-- `web_sessions`: persistent Web-login token hashes and expiry.
-- `message_tags`: local tags attached to Telegram message IDs.
+SQLite tables:
+- `schema_meta`: schema version.
+- `users`: local Web users.
+- `telegram_accounts`: Telegram identity plus encrypted session per Web user.
+- `web_sessions`: hashed remember tokens and expiry.
+- `web_login_attempts`: login throttling metadata.
+- `message_tags`: chat-scoped local tags.
 
-SQLite uses WAL mode and foreign keys on every opened connection.
+Current message-tag identity:
+`(telegram_account_id, chat_id, message_id)`
 
-## Security model observed
-- Passwords: PBKDF2-HMAC-SHA256, 310,000 iterations, random 32-byte salt.
-- Remember-me token: generated with `secrets.token_urlsafe(48)`; only SHA-256 token hash is stored in SQLite.
-- Telegram session string: encrypted with a configured Fernet key before storage.
-- Telegram 2FA password and phone login codes are used transiently and are not intentionally persisted.
-- `.env` and SQLite database files are ignored by Git.
+Legacy tag rows are migrated with `chat_id=0`.
 
-## Telegram connection model
-Each Streamlit Web session owns a `TelegramRuntime` stored in `st.session_state`.
-The runtime starts a daemon thread with a dedicated asyncio event loop. Synchronous UI code submits Pyrogram coroutines to that loop using `asyncio.run_coroutine_threadsafe(...).result()`.
+Connections use:
+- WAL;
+- foreign keys;
+- 30-second busy timeout;
+- `synchronous=NORMAL`.
 
-Only one active Pyrogram client is stored in that runtime at a time. Switching Telegram accounts disconnects the previous client.
+## Telegram runtime
+Each Streamlit browser session owns one `TelegramRuntime`:
+- daemon thread;
+- dedicated asyncio loop;
+- at most one active Pyrogram client.
 
-## Current branch relationship
-At review time:
-- `main` base: `76f7b4e56ec21873b6ede338f0800cc9c33df2f4`
-- `others` head before documentation: `5e7d1943b6289dc8c7def7f2a5426097016cc4c3`
-- GitHub comparison: `others` is 5 commits ahead and 0 behind.
-- The branch heavily refactors a formerly much larger `app.py` into `config/`, `db/`, `services/`, `ui/`, and `utils/`.
+Ordinary service calls synchronously wait on `run_coroutine_threadsafe(...).result()`, and wait metrics are recorded. Media download uses non-blocking submission so Streamlit can display transfer progress.
 
-## Current dependency pins
-From `requirements.txt`:
-- `streamlit>=1.48,<2`
-- `pyrogram==2.0.106`
-- `TgCrypto>=1.2.5`
-- `cryptography>=44,<47`
-- `python-dotenv>=1.0,<2`
-- `extra-streamlit-components>=0.1.81,<1`
+Runtime shutdown disconnects the active Pyrogram client before stopping/closing the loop.
 
-## Operational notes
-- `app.py` contains a Python 3.14 compatibility workaround to ensure an asyncio event loop exists before Pyrogram import/use.
-- Proxy use defaults to enabled with `127.0.0.1:1080` unless the user disables it in the sidebar.
-- Default message fetch limit is 100.
-- Default date range is the latest 7 calendar days.
-- Media feature tests now exist on `feature/media-support`; the original reviewed `others` baseline had no automated tests.
-- Docker files, CI configuration, schema migration tooling, and structured logging are still absent.
+## Media architecture
+Message listing returns metadata only. Full media is fetched only on explicit user action.
+
+Cache identity includes:
+- Web-selected Telegram account;
+- chat;
+- message;
+- media type/file identity.
+
+A valid cache hit requires freshness and, when Telegram reports it, matching file size. Interrupted `.part` files are purged. A user can force a fresh Telegram copy with **Redownload Video**.
+
+## Security/operations
+See:
+- `docs/SECURITY.md`
+- `docs/DEPLOYMENT.md`
+- `docs/DEPENDENCIES.md`
+- `docs/SCALING.md`
+- `docs/BACKUP_RESTORE.md`
+
+Important:
+- the host administrator remains inside the trust boundary;
+- horizontal multi-instance deployment is not supported;
+- Pyrogram upstream is archived and should not be replaced silently;
+- TgCrypto is installed by this repository and is part of the supported deployment profile.
+
+## Automated validation
+GitHub Actions currently covers:
+- media cache behavior;
+- media metadata and downloads;
+- interrupted-download recovery;
+- Remember Me restore;
+- password/auth/session behavior;
+- login throttling;
+- Telegram account ownership/CRUD;
+- tag migration/isolation;
+- history/date-range logic;
+- timezone compatibility;
+- runtime shutdown/wait metrics;
+- SQLite configuration;
+- backup/restore;
+- structured logging redaction;
+- UI state smoke tests;
+- Docker build/start + Streamlit health.
+
+## Remaining validation
+Only real Telegram/browser media validation remains open:
+- small/large photo preview;
+- small/large inline video playback;
+- browser video download;
+- interrupted real Telegram video transfer recovery.
+
+Use `docs/MANUAL_TESTING.md`.
