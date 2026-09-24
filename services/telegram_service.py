@@ -1,4 +1,5 @@
 import secrets
+import threading
 
 from cryptography.fernet import Fernet
 from pyrogram import Client
@@ -273,6 +274,22 @@ def history(chat_id, start_dt, end_dt, limit=100):
     return get_runtime().run(_history(chat_id, start_dt, end_dt, limit))
 
 
+class MediaDownloadProgress:
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._current = 0
+        self._total = 0
+
+    async def update(self, current: int, total: int):
+        with self._lock:
+            self._current = int(current or 0)
+            self._total = int(total or 0)
+
+    def snapshot(self) -> tuple[int, int]:
+        with self._lock:
+            return self._current, self._total
+
+
 def _size_limit_bytes(max_megabytes: int) -> int:
     return max_megabytes * 1024 * 1024
 
@@ -285,6 +302,7 @@ async def _download_media(
     cache_ttl_hours: int,
     cache_max_mb: int,
     max_megabytes: int,
+    progress_callback=None,
 ):
     runtime = get_runtime()
     client = runtime.client
@@ -349,6 +367,7 @@ async def _download_media(
             message,
             file_name=str(temporary_path),
             in_memory=False,
+            progress=progress_callback,
         )
         if not downloaded:
             raise RuntimeError("Telegram media download did not complete.")
@@ -367,14 +386,16 @@ async def _download_media(
     }
 
 
-def download_media(
+def start_media_download(
     chat_id: int,
     message_id: int,
     account_id: int,
     settings,
     max_megabytes: int,
 ):
-    return get_runtime().run(
+    runtime = get_runtime()
+    progress = MediaDownloadProgress()
+    future = runtime.submit(
         _download_media(
             chat_id=chat_id,
             message_id=message_id,
@@ -383,8 +404,27 @@ def download_media(
             cache_ttl_hours=settings.media_cache_ttl_hours,
             cache_max_mb=settings.media_cache_max_mb,
             max_megabytes=max_megabytes,
+            progress_callback=progress.update,
         )
     )
+    return future, progress
+
+
+def download_media(
+    chat_id: int,
+    message_id: int,
+    account_id: int,
+    settings,
+    max_megabytes: int,
+):
+    future, _ = start_media_download(
+        chat_id=chat_id,
+        message_id=message_id,
+        account_id=account_id,
+        settings=settings,
+        max_megabytes=max_megabytes,
+    )
+    return future.result()
 
 
 async def _delete(chat_id, message_id):
