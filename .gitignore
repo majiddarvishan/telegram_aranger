@@ -6,3 +6,4 @@ telegram_manager.db
 *.db-shm
 *.db-wal
 .cache/telegram_media/
+backups/
