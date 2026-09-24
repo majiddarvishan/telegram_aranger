@@ -37,6 +37,9 @@ jobs:
       - name: Branding tests
         run: python -m unittest discover -s tests -p "test_branding.py" -v
 
+      - name: Settings defaults tests
+        run: python -m unittest discover -s tests -p "test_settings.py" -v
+
       - name: Import Telegram service
         run: python -c "import services.telegram_service"
 
