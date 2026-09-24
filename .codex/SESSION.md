@@ -314,3 +314,23 @@ Backward compatibility intentionally preserved:
 
 Brand note:
 - README identifies Telegram Harbor as an independent project not affiliated with or endorsed by Telegram.
+
+
+## 2026-09-24 — v1.0.0 checkpoint and sticky message header
+
+Release checkpoint:
+- First formal Telegram Harbor version set to `1.0.0`.
+- Added root `VERSION` file.
+- `config/branding.py` exposes `PRODUCT_VERSION` from that file.
+- Sidebar shows `v1.0.0`.
+- README and branding tests record v1.0.0.
+- Stable release checkpoint SHA: `bd8c8b211aa8e3ee5ca09c864b3e4803eac6807b`.
+- CI for that checkpoint passed.
+
+Subsequent UI change:
+- User reported that the chat/search/tag/date control block scrolled away with message content.
+- Root cause: Streamlit container used `key="message_header"` while CSS targeted `.st-key-message-header`, so the selector did not match the generated class.
+- Container key is now `message-header` and its CSS class is `.st-key-message-header`.
+- Header uses `position: sticky; top: 0` and stays in normal layout flow, so it remains visible while scrolling without hard-coding sidebar width.
+- The obsolete artificial header spacer was removed.
+- Added a UI regression test for key/selector/sticky behavior.
