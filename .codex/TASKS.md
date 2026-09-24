@@ -114,3 +114,5 @@ Branch before context commit:
 
 ## Release checkpoints
 - [x] Telegram Harbor v1.0.0 release checkpoint recorded at `bd8c8b211aa8e3ee5ca09c864b3e4803eac6807b` with root `VERSION=1.0.0`, sidebar version display, branding test, README version, and green CI.
+
+- [ ] Create Git tag `v1.0.0` pointing exactly to `bd8c8b211aa8e3ee5ca09c864b3e4803eac6807b`. The currently connected GitHub write actions do not expose tag-ref creation; do not move this release tag to later sticky-header commits.
