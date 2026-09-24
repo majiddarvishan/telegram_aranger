@@ -30,7 +30,7 @@ class DatabaseConfigurationTests(unittest.TestCase):
         self.assertEqual(synchronous, 1)  # NORMAL
 
     def test_schema_version_is_current(self):
-        self.assertEqual(get_schema_version(self.db_file), 2)
+        self.assertEqual(get_schema_version(self.db_file), 3)
 
 
 if __name__ == "__main__":
