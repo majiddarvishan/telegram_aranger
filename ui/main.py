@@ -1,10 +1,160 @@
 from datetime import date, timedelta
+from pathlib import Path
 
 import streamlit as st
 
 from db.tags import all_tags, get_tags, save_tags
-from services.telegram_service import delete_message, get_dialogs, history
+from services.telegram_service import delete_message, download_media, get_dialogs, history
 from utils.date_range import bounds, normalize_range
+
+
+def _format_bytes(size: int | None) -> str:
+    if not size:
+        return ""
+    value = float(size)
+    for unit in ("B", "KB", "MB", "GB"):
+        if value < 1024 or unit == "GB":
+            return f"{value:.1f} {unit}"
+        value /= 1024
+    return f"{value:.1f} GB"
+
+
+def _media_state_key(account_id: int, chat_id: int, message_id: int, purpose: str) -> str:
+    return f"{account_id}:{chat_id}:{message_id}:{purpose}"
+
+
+def _get_prepared_media(key: str):
+    result = st.session_state.media_files.get(key)
+    if not result:
+        return None
+    path = Path(result.get("path", ""))
+    if not path.is_file():
+        st.session_state.media_files.pop(key, None)
+        return None
+    return result
+
+
+def _prepare_media(
+    settings,
+    account_id: int,
+    chat_id: int,
+    message_id: int,
+    purpose: str,
+    max_megabytes: int,
+):
+    key = _media_state_key(account_id, chat_id, message_id, purpose)
+    existing = _get_prepared_media(key)
+    if existing:
+        return existing
+
+    with st.spinner("Downloading media from Telegram..."):
+        try:
+            result = download_media(
+                chat_id=chat_id,
+                message_id=message_id,
+                account_id=account_id,
+                settings=settings,
+                max_megabytes=max_megabytes,
+            )
+        except Exception as exc:
+            st.error(f"Failed to download media: {exc}")
+            return None
+
+    st.session_state.media_files[key] = result
+    return result
+
+
+def _render_media(settings, account_id: int, message: dict) -> None:
+    media = message.get("media")
+    if not media:
+        return
+
+    media_type = media.get("type", "media")
+    details = [media_type.replace("_", " ").title()]
+    if media.get("file_size"):
+        details.append(_format_bytes(media["file_size"]))
+    if media.get("duration"):
+        details.append(f"{media['duration']}s")
+    if media.get("mime_type"):
+        details.append(media["mime_type"])
+    st.caption(" · ".join(details))
+
+    chat_id = message["chat_id"]
+    message_id = message["id"]
+
+    if media_type == "photo":
+        key = _media_state_key(account_id, chat_id, message_id, "preview")
+        prepared = _get_prepared_media(key)
+        if prepared is None and st.button(
+            "🖼️ Show Photo",
+            key=f"media_photo_{account_id}_{chat_id}_{message_id}",
+        ):
+            prepared = _prepare_media(
+                settings,
+                account_id,
+                chat_id,
+                message_id,
+                "preview",
+                settings.media_preview_max_mb,
+            )
+        if prepared:
+            st.image(prepared["path"])
+        return
+
+    if media_type in ("video", "video_note", "animation"):
+        play_key = _media_state_key(account_id, chat_id, message_id, "preview")
+        prepared = _get_prepared_media(play_key)
+
+        if prepared is None and st.button(
+            "▶️ Load Video",
+            key=f"media_play_{account_id}_{chat_id}_{message_id}",
+        ):
+            prepared = _prepare_media(
+                settings,
+                account_id,
+                chat_id,
+                message_id,
+                "preview",
+                settings.media_preview_max_mb,
+            )
+
+        if prepared:
+            st.video(prepared["path"])
+
+        if media_type == "video":
+            download_key = _media_state_key(account_id, chat_id, message_id, "download")
+            download_ready = _get_prepared_media(download_key) or prepared
+
+            if download_ready is None and st.button(
+                "⬇️ Prepare Video Download",
+                key=f"media_prepare_download_{account_id}_{chat_id}_{message_id}",
+            ):
+                download_ready = _prepare_media(
+                    settings,
+                    account_id,
+                    chat_id,
+                    message_id,
+                    "download",
+                    settings.media_download_max_mb,
+                )
+
+            if download_ready:
+                path = Path(download_ready["path"])
+                try:
+                    with path.open("rb") as file_handle:
+                        st.download_button(
+                            "⬇️ Download Video",
+                            data=file_handle,
+                            file_name=download_ready["file_name"],
+                            mime=download_ready["mime_type"],
+                            key=f"media_download_{account_id}_{chat_id}_{message_id}",
+                            use_container_width=True,
+                        )
+                except OSError as exc:
+                    st.error(f"Failed to open cached video: {exc}")
+        return
+
+    st.info(f"{media_type.replace('_', ' ').title()} media is detected. Preview is not implemented yet.")
 
 
 def _chat_label(chat):
@@ -306,6 +456,7 @@ def render_main(settings):
 
             with left:
                 st.write(message["text"])
+                _render_media(settings, account_id, message)
                 st.caption(
                     f"📅 {message['date'].strftime('%Y-%m-%d %H:%M:%S')} | "
                     f"ID: {message_id}"
@@ -337,6 +488,10 @@ def render_main(settings):
                             for item in st.session_state.messages
                             if item["id"] != message_id
                         ]
+                        media_prefix = f"{account_id}:{selected_chat_id}:{message_id}:"
+                        for media_key in list(st.session_state.media_files):
+                            if media_key.startswith(media_prefix):
+                                st.session_state.media_files.pop(media_key, None)
                         st.rerun()
                     except Exception as exc:
                         st.error(f"Failed to delete message: {exc}")
