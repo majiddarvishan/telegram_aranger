@@ -77,6 +77,31 @@ class RememberMeRestoreTests(unittest.TestCase):
         self.assertTrue(fake_st.session_state._remember_cookie_hydrated)
         manager.get_all.assert_called_once_with(key="restore_remember_cookies")
 
+    def test_clear_remember_cookie_refreshes_browser_state_and_revokes_token(self):
+        token = "browser-token"
+        manager = Mock()
+        manager.get_all.return_value = {auth.COOKIE_NAME: token}
+
+        fake_st = SimpleNamespace(
+            session_state=SessionState(
+                remember_token=None,
+            ),
+        )
+
+        with (
+            patch.object(auth, "st", fake_st),
+            patch.object(auth, "get_cookie_manager", return_value=manager),
+            patch.object(auth, "delete_session") as delete_session,
+        ):
+            auth._clear_remember_cookie(self.settings)
+
+        manager.get_all.assert_called_once_with(key="clear_remember_cookies")
+        delete_session.assert_called_once_with("test.db", token)
+        manager.delete.assert_called_once_with(
+            auth.COOKIE_NAME,
+            key="delete_remember_cookie",
+        )
+
     def test_empty_cookie_after_hydration_shows_login_normally(self):
         manager = Mock()
         manager.get_all.return_value = {}
