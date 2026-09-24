@@ -4,8 +4,13 @@ All notable Telegram Harbor changes are recorded here.
 
 ## Unreleased
 
-- Keep the chat/search/tag/date control area sticky at the top of the main content while messages scroll.
-- Fix the Streamlit container key/CSS selector mismatch that prevented the intended header positioning from applying.
+## 1.0.1 - 2026-09-25
+
+- Reworked the message page so the controls stay above a dedicated scrollable message area.
+- Moved Previous/Next date navigation into the control header.
+- Removed the fragile fixed/sticky overlay approach that caused clipping and message/header overlap.
+- Added regression coverage for the dedicated message scroll architecture.
+- Preserved all media, tagging, deletion, filtering, and pagination behavior.
 
 ## 1.0.0 - 2026-09-24
 
