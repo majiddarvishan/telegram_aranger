@@ -26,12 +26,16 @@ class TelegramRuntimeShutdownTests(unittest.TestCase):
             return 42
 
         try:
-            self.assertEqual(runtime.run(delayed_value()), 42)
+            self.assertEqual(
+                runtime.run(delayed_value(), operation="unit_test"),
+                42,
+            )
             metrics = runtime.metrics()
         finally:
             runtime.stop()
 
         self.assertEqual(metrics["run_calls"], 1)
+        self.assertEqual(metrics["last_operation"], "unit_test")
         self.assertGreater(metrics["last_wait_seconds"], 0)
         self.assertGreaterEqual(
             metrics["max_wait_seconds"],
