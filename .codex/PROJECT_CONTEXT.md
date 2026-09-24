@@ -15,6 +15,10 @@ Primary capabilities observed in code:
 - Client-side text search over fetched messages.
 - Local per-message tagging.
 - Telegram message deletion.
+- Lazy photo preview.
+- Lazy inline playback for video/video-note/animation media.
+- Browser download for Telegram video messages.
+- Bounded temporary media cache with configurable TTL and size limits.
 - Telegram account disconnect or full Telegram logout/removal.
 
 ## Technology stack
@@ -36,6 +40,11 @@ Required:
 Optional:
 - `TELEGRAM_DB_FILE` (default: `telegram_manager.db`)
 - `WEB_REMEMBER_ME_DAYS` (default: 7)
+- `MEDIA_CACHE_DIR` (default: `.cache/telegram_media`)
+- `MEDIA_CACHE_TTL_HOURS` (default: 24)
+- `MEDIA_CACHE_MAX_MB` (default: 2048)
+- `MEDIA_PREVIEW_MAX_MB` (default: 200)
+- `MEDIA_DOWNLOAD_MAX_MB` (default: 200)
 
 Configuration is read from environment variables first and Streamlit secrets as a fallback for required values.
 
@@ -82,4 +91,5 @@ From `requirements.txt`:
 - Proxy use defaults to enabled with `127.0.0.1:1080` unless the user disables it in the sidebar.
 - Default message fetch limit is 100.
 - Default date range is the latest 7 calendar days.
-- No automated tests, Docker files, CI configuration, schema migration tool, or structured logging layer were present in `others` at review time.
+- Media feature tests now exist on `feature/media-support`; the original reviewed `others` baseline had no automated tests.
+- Docker files, CI configuration, schema migration tooling, and structured logging are still absent.
