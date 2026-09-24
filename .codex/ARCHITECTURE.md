@@ -102,7 +102,7 @@ Telegram logout:
 - Delete local Telegram account row and its tags.
 
 ## Async runtime
-`services/telegram_runtime.py` creates one daemon thread and asyncio loop per Streamlit session.
+`services/telegram_runtime.py` creates one daemon thread and asyncio loop per Streamlit session. Runtime shutdown disconnects the active Pyrogram client before stopping and closing the loop.
 
 The UI stays synchronous. Service wrappers call:
 `get_runtime().run(coroutine)`
@@ -110,12 +110,12 @@ The UI stays synchronous. Service wrappers call:
 That method uses:
 `asyncio.run_coroutine_threadsafe(coro, loop).result()`
 
-Consequence: Telegram network work runs on the dedicated event loop, but the Streamlit request/rerun still blocks waiting for completion.
+Consequence: ordinary Telegram network work runs on the dedicated event loop, but the Streamlit request/rerun still blocks waiting for completion. `TelegramRuntime` records run count, last wait, and maximum wait so blocking impact is measurable. Media downloads use non-blocking submission plus progress polling.
 
 ## Message browsing
 `services/telegram_service.py`:
 - `get_dialogs()`: returns private/group/supergroup/channel dialogs.
-- `history()`: iterates `get_chat_history(chat_id, limit=100 by default)`, keeps messages inside the requested date range.
+- `history()`: starts Telegram history at the selected `end_dt` using `offset_date`, walks backward to `start_dt`, and applies the configured result limit inside that date range.
 - Message text uses `message.text`, then `message.caption`, otherwise a media-aware fallback label.
 - Media metadata is normalized for photo, video, animation, document, audio, voice, and video-note messages without downloading the file.
 - `download_media()` fetches media only on demand, applies configured size limits, and reuses a bounded local cache.
@@ -160,10 +160,10 @@ Persistent Web authentication:
 
 ### message_tags
 Current primary key:
-- `(telegram_account_id, message_id)`
-- comma-separated tag string
+- `(telegram_account_id, chat_id, message_id)`
+- comma-separated, trimmed/de-duplicated tag string
 
-Important: Telegram message IDs are scoped to a chat, so the current schema does not include enough identity to safely distinguish equal message IDs in different chats. See `TASKS.md`.
+Legacy rows from the pre-chat-id schema are migrated with `chat_id=0` and are not applied to arbitrary chats.
 
 ## Streamlit state
 Important keys include:
@@ -221,3 +221,16 @@ Media cache defaults:
 - browser video download limit: 200 MB per media
 
 All values are configurable through `MEDIA_*` environment variables.
+
+
+## Database lifecycle
+- SQLite schema version is stored in `schema_meta`; current version is 2.
+- Legacy message-tag rows are migrated in place without discarding their tag text.
+- Connections use WAL, foreign keys, 30-second busy timeout, and `synchronous=NORMAL`.
+- Visible message tags are batch-loaded in one query.
+- Online backup/verified restore helpers live under `scripts/`.
+
+## Deployment boundary
+- Docker runs one non-root Streamlit process with persistent state under `/data`.
+- Process health uses Streamlit `/_stcore/health`.
+- Horizontal multi-instance deployment is not supported by the current local SQLite/runtime/cache model; see `docs/SCALING.md`.
