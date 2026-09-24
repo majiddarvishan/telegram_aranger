@@ -11,9 +11,9 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 
 
 ## P1 — Media viewing and download
-- [ ] Extend Telegram message mapping in `services/telegram_service.py` to expose media metadata instead of collapsing all non-text content to `[Media / File]`.
-- [ ] Detect and distinguish at least `photo`, `video`, `animation/GIF`, `document`, `audio`, `voice`, and `video_note` so the UI can render the correct control.
-- [ ] Preserve message text/caption together with media metadata.
+- [x] Extend Telegram message mapping in `services/telegram_service.py` to expose media metadata instead of collapsing all non-text content to `[Media / File]`.
+- [x] Detect and distinguish at least `photo`, `video`, `animation/GIF`, `document`, `audio`, `voice`, and `video_note` so the UI can render the correct control.
+- [x] Preserve message text/caption together with media metadata.
 - [ ] Add inline photo preview in the message card.
 - [ ] Add inline video playback in the message card using Streamlit video rendering.
 - [ ] Add an explicit **Download Video** button for video messages so the user can download the video file through the browser.
