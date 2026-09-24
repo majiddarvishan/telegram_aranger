@@ -555,3 +555,14 @@ Fix:
 Expected behavior:
 - first run after this upgrade may perform one bounded Telegram dialog fetch because no dialog cache exists yet;
 - subsequent restarts should load the dialog list locally and should not emit `get_dialogs` slow-wait logs unless the user explicitly presses **Refresh Chats** or the cache is absent.
+
+
+## 2026-09-25 — v1.0.4 release checkpoint
+
+Release:
+- VERSION set to `1.0.4`.
+- README and branding regression updated to v1.0.4.
+- CHANGELOG finalized for dialog-cache/startup performance improvements.
+- Release checkpoint SHA: `0c3144f4d99201a917c9353c788def4df9fb4258`.
+- Intended Git tag: `v1.0.4` on exactly that SHA.
+- The connected GitHub tools still expose tag refs read-only; tag creation requires a local Git push.
