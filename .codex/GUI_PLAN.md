@@ -28,11 +28,12 @@ Target style:
 ## Planned phases
 
 ### GUI-P0 — Foundation
-- [ ] Centralize UI CSS/theme.
-- [ ] Add semantic design tokens.
-- [ ] Standardize spacing/radius/border/shadow/typography.
-- [ ] Preserve light/dark compatibility.
-- [ ] Add regression coverage for sensitive Streamlit selectors.
+- [x] Centralize UI CSS/theme in `ui/theme.py`.
+- [x] Add semantic design tokens.
+- [x] Standardize baseline spacing/radius/border/shadow/typography.
+- [x] Base colors on Streamlit theme variables for light/dark compatibility.
+- [x] Add regression coverage for sensitive Streamlit selectors and safe badge/section markup.
+- [ ] Manually review the resulting UI in both Light and Dark themes before closing GUI-P0.
 
 ### GUI-P1 — Sidebar
 - [ ] Compact brand block.
