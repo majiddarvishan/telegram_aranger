@@ -22,6 +22,7 @@ def _apply_account_selection(state, selected_account_id: int) -> bool:
     state["selected_chat_id"] = None
     state["messages"] = []
     state["dialogs"] = []
+    state["force_refresh_dialogs"] = False
     state["telegram_user"] = None
     state["media_files"] = {}
     return True
@@ -77,7 +78,10 @@ def render_sidebar(settings):
         if st.sidebar.button("🚪 Logout Telegram Account",use_container_width=True):
             try: logout()
             finally: delete_account(settings.db_file,user["id"],account_id); st.session_state.telegram_user=None; st.session_state.selected_telegram_account_id=None; st.session_state.selected_chat_id=None; st.session_state.messages=[]; st.rerun()
-        if st.sidebar.button("🔄 Refresh Chats",use_container_width=True): st.session_state.dialogs=[]; st.rerun()
+        if st.sidebar.button("🔄 Refresh Chats",use_container_width=True):
+            st.session_state.dialogs = []
+            st.session_state.force_refresh_dialogs = True
+            st.rerun()
     if st.session_state.telegram_login_active and not st.session_state.telegram_user:
         st.sidebar.markdown("---"); st.sidebar.header("🔐 Add Telegram Account")
         stage=st.session_state.telegram_login_stage
