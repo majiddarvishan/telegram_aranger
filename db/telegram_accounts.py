@@ -45,8 +45,12 @@ def save_account(db_file: str, user_id: int, telegram_user: dict, encrypted_sess
 def delete_account(db_file: str, user_id: int, account_id: int) -> None:
     conn = get_db(db_file)
     try:
-        conn.execute("DELETE FROM message_tags WHERE telegram_account_id=?", (account_id,))
-        conn.execute("DELETE FROM telegram_accounts WHERE id=? AND user_id=?", (account_id,user_id))
+        # Ownership is enforced by this DELETE. message_tags are removed only
+        # when the owned account row is actually deleted, via ON DELETE CASCADE.
+        conn.execute(
+            "DELETE FROM telegram_accounts WHERE id=? AND user_id=?",
+            (account_id, user_id),
+        )
         conn.commit()
     finally:
         conn.close()
