@@ -59,7 +59,8 @@ Target style:
 - [x] De-emphasize delete until requested.
 - [x] Standardize media action hierarchy for preview/play/download/redownload.
 - [x] Normalize baseline card spacing.
-- [ ] Manually review message cards with text, photo and video messages before closing GUI-P3.
+- [x] Desktop screenshot review completed for text/video cards.
+- [ ] Manually review a photo card before closing GUI-P3.
 
 ### GUI-P4 — Auth and state screens
 - [x] Centered branded auth card.
@@ -73,7 +74,8 @@ Target style:
 - [x] Add keyboard focus-visible treatment and reduced-motion support.
 - [x] Keep baseline control hit targets at 40px.
 - [ ] Manual Light/Dark contrast review.
-- [ ] Manual screenshot review at desktop and narrow widths.
+- [x] Desktop screenshot review completed for the light theme.
+- [ ] Manual screenshot review at a narrow viewport.
 
 ### GUI-P6 — Polish
 - [ ] Subtle hover/transition behavior.
