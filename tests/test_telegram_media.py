@@ -59,10 +59,19 @@ class FakeClient:
     async def get_messages(self, chat_id, message_ids):
         return self.message
 
-    async def download_media(self, message, file_name, in_memory=False):
+    async def download_media(
+        self,
+        message,
+        file_name,
+        in_memory=False,
+        progress=None,
+    ):
         self.download_count += 1
         if self.fail_download:
             return None
+        if progress:
+            await progress(5, 10)
+            await progress(10, 10)
         path = Path(file_name)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(b"video-data")
@@ -208,6 +217,38 @@ class TelegramMediaDownloadTests(unittest.TestCase):
         self.assertTrue(second["cached"])
         self.assertEqual(first["file_name"], "My_Clip.mp4")
         self.assertEqual(first["mime_type"], "video/mp4")
+
+    def test_download_reports_byte_progress(self):
+        video = make_media(
+            file_name="clip.mp4",
+            mime_type="video/mp4",
+            file_size=10,
+        )
+        client = FakeClient(make_message(media_type="video", media=video))
+        runtime = SimpleNamespace(client=client)
+        updates = []
+
+        async def progress(current, total):
+            updates.append((current, total))
+
+        with tempfile.TemporaryDirectory() as tmp, patch(
+            "services.telegram_service.get_runtime",
+            return_value=runtime,
+        ):
+            asyncio.run(
+                _download_media(
+                    chat_id=-100,
+                    message_id=10,
+                    account_id=1,
+                    cache_root=tmp,
+                    cache_ttl_hours=24,
+                    cache_max_mb=100,
+                    max_megabytes=10,
+                    progress_callback=progress,
+                )
+            )
+
+        self.assertEqual(updates, [(5, 10), (10, 10)])
 
     def test_download_rejects_media_over_configured_limit(self):
         video = make_media(
