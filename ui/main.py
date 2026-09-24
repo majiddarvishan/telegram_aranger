@@ -252,36 +252,61 @@ def _prepare_date_range(today):
 MESSAGE_HEADER_KEY = "message-header"
 
 MESSAGE_HEADER_CSS = """
+:root {
+    --telegram-harbor-header-top: 4rem;
+    --telegram-harbor-header-left: 5rem;
+    --telegram-harbor-header-right: 5rem;
+    --telegram-harbor-header-height: 210px;
+}
+
+/* Expanded sidebar shifts both the visual header and its opaque backdrop. */
+body:has([data-testid="stSidebar"][aria-expanded="true"]) {
+    --telegram-harbor-header-left: 26rem;
+}
+
+/*
+ * Opaque shield below the fixed controls. Message cards are allowed to scroll
+ * underneath in the document, but they are never visible through the header
+ * area.
+ */
+.message-header-backdrop {
+    position: fixed;
+    top: var(--telegram-harbor-header-top);
+    left: var(--telegram-harbor-header-left);
+    right: var(--telegram-harbor-header-right);
+    height: var(--telegram-harbor-header-height);
+    z-index: 9998;
+    background: var(--background-color);
+    pointer-events: none;
+}
+
 /*
  * Streamlit gives keyed containers their own width. Once the container becomes
- * position: fixed, that inherited 100% width can overflow the viewport when
- * left/right offsets are also applied. Explicitly switch width back to auto so
- * the fixed inset determines the real header width.
+ * position: fixed, inherited 100% width can overflow the viewport when insets
+ * are also applied. Let the fixed insets determine the real width.
  */
 .st-key-message-header {
     position: fixed;
-    top: 4rem;
-    left: 5rem;
-    right: 5rem;
+    top: var(--telegram-harbor-header-top);
+    left: var(--telegram-harbor-header-left);
+    right: var(--telegram-harbor-header-right);
     width: auto !important;
     max-width: none !important;
     box-sizing: border-box;
-    z-index: 10000;
+    z-index: 10000 !important;
+    isolation: isolate;
     padding: 12px 14px 14px 14px;
-    background: var(--background-color);
+    background: var(--background-color) !important;
     border: 1px solid rgba(128, 128, 128, 0.22);
     border-radius: 12px;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.10);
     overflow: visible !important;
 }
 
-/*
- * The safe fallback is the collapsed/no-sidebar layout. Only add the sidebar
- * width when Streamlit explicitly reports an expanded sidebar.
- */
-body:has([data-testid="stSidebar"][aria-expanded="true"])
-    .st-key-message-header {
-    left: 26rem;
+/* Ensure Streamlit's internal vertical block also paints an opaque surface. */
+.st-key-message-header > div,
+.st-key-message-header [data-testid="stVerticalBlock"] {
+    background: var(--background-color) !important;
 }
 
 .st-key-message-header [data-testid="stHorizontalBlock"] {
@@ -300,22 +325,23 @@ body:has([data-testid="stSidebar"][aria-expanded="true"])
 .st-key-message-header button {
     min-height: 40px;
 }
+
 .message-header-fixed-spacer {
-    height: 210px;
+    height: calc(var(--telegram-harbor-header-height) + 0.5rem);
 }
 
 @media (max-width: 900px) {
-    .st-key-message-header,
-    body:has([data-testid="stSidebar"][aria-expanded="true"])
-        .st-key-message-header {
-        top: 3.5rem;
-        left: 0.75rem;
-        right: 0.75rem;
+    :root,
+    body:has([data-testid="stSidebar"][aria-expanded="true"]) {
+        --telegram-harbor-header-top: 3.5rem;
+        --telegram-harbor-header-left: 0.75rem;
+        --telegram-harbor-header-right: 0.75rem;
+        --telegram-harbor-header-height: 285px;
+    }
+
+    .st-key-message-header {
         width: auto !important;
         padding: 8px 10px 10px 10px;
-    }
-    .message-header-fixed-spacer {
-        height: 285px;
     }
 }
 """
@@ -334,6 +360,11 @@ def _render_message_header(settings, options, current_chat_id, today):
     account_id = st.session_state.selected_telegram_account_id
     tags = all_tags(settings.db_file, account_id)
     start_date, end_date = _prepare_date_range(today)
+
+    st.markdown(
+        '<div class="message-header-backdrop" aria-hidden="true"></div>',
+        unsafe_allow_html=True,
+    )
 
     with st.container(key=MESSAGE_HEADER_KEY):
         chat_col, search_col, tag_col = st.columns([2.7, 2.2, 1.2])
