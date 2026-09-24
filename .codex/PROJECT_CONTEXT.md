@@ -1,13 +1,12 @@
 # Project Context
 
 ## Product purpose
-`telegram_aranger` is a local/self-hosted Streamlit Telegram message manager using Pyrogram.
+**Telegram Harbor** is a local/self-hosted Streamlit Telegram message and media manager using Pyrogram.
 
-The UI still carries the legacy title **Telegram Saved Messages Manager**, but current behavior supports Saved Messages plus private chats, groups, supergroups, and channels.
+The product supports Saved Messages plus private chats, groups, supergroups, and channels. The GitHub repository remains `majiddarvishan/telegram_aranger` for compatibility/history.
 
 ## Current branch
 - Working branch: `main`
-- `feature/media-support` was fast-forward merged into `main`.
 - `main` contains the current media, security, testing, performance, migration, logging, backup, Docker, and Remember Me race fixes.
 - Re-check GitHub branch HEAD before making future edits.
 
