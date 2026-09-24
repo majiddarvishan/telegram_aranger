@@ -27,6 +27,17 @@ class StickyHeaderTests(unittest.TestCase):
     def test_bottom_navigation_container_is_removed(self):
         self.assertNotIn(".st-key-message-navigation", MESSAGE_HEADER_CSS)
 
+    def test_load_more_control_is_not_rendered_inside_scroll_panel(self):
+        import inspect
+        from ui.main import _render_message_actions, _render_message_scroll_area
+
+        actions_source = inspect.getsource(_render_message_actions)
+        scroll_source = inspect.getsource(_render_message_scroll_area)
+
+        self.assertIn("Load More Messages", actions_source)
+        self.assertIn("Refresh Messages", actions_source)
+        self.assertNotIn("Load More Messages", scroll_source)
+
 class UiMessageSmokeTests(unittest.TestCase):
     def setUp(self):
         self.message = {
