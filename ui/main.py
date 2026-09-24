@@ -13,6 +13,7 @@ from ui.theme import (
     action_summary_html,
     empty_state_html,
     media_meta_html,
+    message_body_html,
     message_meta_html,
     tag_chips_html,
 )
@@ -51,6 +52,23 @@ def _tag_editor_state_key(
 
 def _message_card_key(account_id: int, message_id: int) -> str:
     return f"message-card-{account_id}-{message_id}"
+
+
+def _message_footer_key(account_id: int, message_id: int) -> str:
+    return f"message-footer-{account_id}-{message_id}"
+
+
+def _display_message_text(message: dict) -> str:
+    text = message.get("text", "") or ""
+    media = message.get("media") or {}
+    media_type = media.get("type")
+
+    if media_type:
+        placeholder = f"[{media_type.replace('_', ' ').title()}]"
+        if text.strip() == placeholder:
+            return ""
+
+    return text
 
 
 def _get_prepared_media(key: str):
@@ -394,12 +412,15 @@ def _render_message_header(settings, options, current_chat_id, today):
                 index=list(options).index(current_chat_id),
                 format_func=lambda chat_id: options[chat_id],
                 key="chat_selector",
+                label_visibility="collapsed",
             )
 
         with search_col:
             search = st.text_input(
                 "Search messages",
                 key="message_search",
+                placeholder="Search messages…",
+                label_visibility="collapsed",
             )
 
         with tag_col:
@@ -407,6 +428,7 @@ def _render_message_header(settings, options, current_chat_id, today):
                 "Tag",
                 ["All"] + tags,
                 key="message_tag_filter",
+                label_visibility="collapsed",
             )
 
         date_col, previous_col, next_col = st.columns([8.0, 1.0, 1.0])
@@ -509,10 +531,15 @@ def _render_message_actions(
         st.session_state.get("message_result_limit")
         or settings.default_message_limit
     )
+    can_load_more = loaded_count >= result_limit
 
-    refresh_col, load_more_col, summary_col = st.columns(
-        [1.15, 1.35, 5.5]
-    )
+    if can_load_more:
+        refresh_col, load_more_col, summary_col = st.columns(
+            [0.8, 0.95, 6.25]
+        )
+    else:
+        refresh_col, summary_col = st.columns([0.8, 7.2])
+        load_more_col = None
 
     with refresh_col:
         if st.button(
@@ -523,8 +550,8 @@ def _render_message_actions(
             st.session_state.message_query_signature = None
             st.rerun()
 
-    with load_more_col:
-        if loaded_count >= result_limit:
+    if load_more_col is not None:
+        with load_more_col:
             if st.button(
                 "Load more",
                 key="load_more_messages",
@@ -582,7 +609,7 @@ def _remove_message_from_state(
     return remaining, cleaned_media
 
 
-def _render_tag_controls(
+def _render_message_footer(
     settings,
     account_id: int,
     chat_id: int,
@@ -594,59 +621,83 @@ def _render_tag_controls(
         chat_id,
         message_id,
     )
+    delete_state_key = _delete_state_key(
+        account_id,
+        chat_id,
+        message_id,
+    )
     input_key = f"tag-editor-input-{account_id}-{chat_id}-{message_id}"
+
     is_editing = (
         st.session_state.get("editing_tag_message")
         == editor_state_key
     )
+    pending_delete = (
+        st.session_state.get("pending_delete_message")
+        == delete_state_key
+    )
 
-    if current_tags:
-        st.markdown(
-            tag_chips_html(current_tags),
-            unsafe_allow_html=True,
+    with st.container(
+        key=_message_footer_key(account_id, message_id),
+    ):
+        if is_editing:
+            if input_key not in st.session_state:
+                st.session_state[input_key] = ", ".join(current_tags)
+
+            value = st.text_input(
+                "Tags",
+                key=input_key,
+                help="Separate tags with commas.",
+            )
+            save_col, cancel_col, spacer_col = st.columns(
+                [0.9, 0.9, 6.2]
+            )
+
+            with save_col:
+                if st.button(
+                    "Save",
+                    key=(
+                        f"save-tags-"
+                        f"{account_id}-{chat_id}-{message_id}"
+                    ),
+                    use_container_width=True,
+                ):
+                    save_tags(
+                        settings.db_file,
+                        account_id,
+                        chat_id,
+                        message_id,
+                        value.split(","),
+                    )
+                    st.session_state.editing_tag_message = None
+                    st.session_state.pop(input_key, None)
+                    st.rerun()
+
+            with cancel_col:
+                if st.button(
+                    "Cancel",
+                    key=(
+                        f"cancel-tags-"
+                        f"{account_id}-{chat_id}-{message_id}"
+                    ),
+                    use_container_width=True,
+                ):
+                    st.session_state.editing_tag_message = None
+                    st.session_state.pop(input_key, None)
+                    st.rerun()
+            return
+
+        tag_col, edit_col, delete_col = st.columns(
+            [6.0, 1.0, 1.0]
         )
-    else:
-        st.caption("No tags")
 
-    if is_editing:
-        if input_key not in st.session_state:
-            st.session_state[input_key] = ", ".join(current_tags)
-
-        value = st.text_input(
-            "Tags",
-            key=input_key,
-            help="Separate tags with commas.",
-        )
-        save_col, cancel_col, spacer_col = st.columns([1.0, 1.0, 6.0])
-
-        with save_col:
-            if st.button(
-                "Save",
-                key=f"save-tags-{account_id}-{chat_id}-{message_id}",
-                use_container_width=True,
-            ):
-                save_tags(
-                    settings.db_file,
-                    account_id,
-                    chat_id,
-                    message_id,
-                    value.split(","),
+        with tag_col:
+            if current_tags:
+                st.markdown(
+                    tag_chips_html(current_tags),
+                    unsafe_allow_html=True,
                 )
-                st.session_state.editing_tag_message = None
-                st.session_state.pop(input_key, None)
-                st.rerun()
 
-        with cancel_col:
-            if st.button(
-                "Cancel",
-                key=f"cancel-tags-{account_id}-{chat_id}-{message_id}",
-                use_container_width=True,
-            ):
-                st.session_state.editing_tag_message = None
-                st.session_state.pop(input_key, None)
-                st.rerun()
-    else:
-        edit_col, spacer_col = st.columns([1.2, 6.8])
         with edit_col:
             if st.button(
                 "Edit tags",
@@ -658,36 +709,46 @@ def _render_tag_controls(
                 st.session_state[input_key] = ", ".join(current_tags)
                 st.rerun()
 
+        with delete_col:
+            if not pending_delete and st.button(
+                "Delete",
+                key=(
+                    f"delete-message-"
+                    f"{account_id}-{chat_id}-{message_id}"
+                ),
+                help="Delete this message from Telegram.",
+                use_container_width=True,
+            ):
+                st.session_state.pending_delete_message = (
+                    delete_state_key
+                )
+                st.rerun()
 
-def _render_delete_control(
-    account_id: int,
-    chat_id: int,
-    message_id: int,
-) -> None:
-    delete_state_key = _delete_state_key(
-        account_id,
-        chat_id,
-        message_id,
-    )
+        if not pending_delete:
+            return
 
-    if (
-        st.session_state.get("pending_delete_message")
-        == delete_state_key
-    ):
         st.warning("Delete this Telegram message permanently?")
-        confirm_col, cancel_col, spacer_col = st.columns([1.1, 1.0, 5.9])
+        confirm_col, cancel_col, spacer_col = st.columns(
+            [1.15, 0.9, 5.95]
+        )
 
         with confirm_col:
             confirm_delete = st.button(
                 "Delete permanently",
-                key=f"confirm-delete-message-{account_id}-{chat_id}-{message_id}",
+                key=(
+                    f"confirm-delete-message-"
+                    f"{account_id}-{chat_id}-{message_id}"
+                ),
                 use_container_width=True,
             )
 
         with cancel_col:
             cancel_delete = st.button(
                 "Cancel",
-                key=f"cancel-delete-message-{account_id}-{chat_id}-{message_id}",
+                key=(
+                    f"cancel-delete-message-"
+                    f"{account_id}-{chat_id}-{message_id}"
+                ),
                 use_container_width=True,
             )
 
@@ -713,18 +774,6 @@ def _render_delete_control(
             except Exception as exc:
                 st.session_state.pending_delete_message = None
                 st.error(f"Failed to delete message: {exc}")
-        return
-
-    delete_col, spacer_col = st.columns([1.0, 7.0])
-    with delete_col:
-        if st.button(
-            "Delete",
-            key=f"delete-message-{account_id}-{chat_id}-{message_id}",
-            help="Delete this message from Telegram.",
-            use_container_width=True,
-        ):
-            st.session_state.pending_delete_message = delete_state_key
-            st.rerun()
 
 
 def _render_message_card(
@@ -756,20 +805,21 @@ def _render_message_card(
             unsafe_allow_html=True,
         )
 
-        st.write(message["text"])
+        display_text = _display_message_text(message)
+        if display_text:
+            st.markdown(
+                message_body_html(display_text),
+                unsafe_allow_html=True,
+            )
+
         _render_media(settings, account_id, message)
 
-        _render_tag_controls(
+        _render_message_footer(
             settings,
             account_id,
             chat_id,
             message_id,
             current_tags,
-        )
-        _render_delete_control(
-            account_id,
-            chat_id,
-            message_id,
         )
 
 
