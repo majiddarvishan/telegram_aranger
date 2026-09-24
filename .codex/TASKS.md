@@ -200,7 +200,7 @@ Planning source:
 - [x] Standardize baseline control hit targets.
 - [x] Light-mode desktop contrast validation.
 - [x] Dark-mode screenshot review completed and adaptive-surface issue fixed in code.
-- [ ] Re-check Dark mode after pulling the adaptive-surface fix.
+- [x] Re-check Dark mode after pulling the adaptive-surface fix; verified visually.
 - [ ] Manual screenshot validation at multiple viewport widths.
 
 ### GUI-P6 — Polish
@@ -216,7 +216,8 @@ Planning source:
 
 
 ### GUI validation correctness fixes
-- [x] Recover Pyrogram peer state lazily when a cached dialog raises PeerIdInvalid during history loading.
-- [x] Use cached username first and a bounded dialog refresh as fallback.
+- [x] Persist Pyrogram peer type/access-hash metadata in SQLite dialog cache and hydrate it on Telegram session restore.
+- [x] Upgrade dialog-cache schema to v4 and force one refresh of legacy peer-less cache rows.
+- [x] Keep username-first / bounded-dialog recovery as a fallback.
 - [x] Show fetch-failure state separately from a true empty-message state.
-- [ ] Backport peer-recovery fix to main before the next stable release if needed independently of GUI merge.
+- [ ] Backport the persisted-peer correctness fix to main before the next stable release if needed independently of GUI merge.
