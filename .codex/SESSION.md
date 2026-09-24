@@ -162,3 +162,27 @@ Fix:
 Recovery for an already broken video:
 - Re-open the message and click **Redownload Video**.
 - If the cached file is size-mismatched, even normal Prepare/Load now invalidates and re-downloads it automatically.
+
+## 2026-09-24 — P1 regression and security hardening
+
+Completed:
+- Added password hashing/authentication tests.
+- Added remembered-session creation/expiry/revocation/cleanup tests.
+- Added Web-user ownership tests for Telegram accounts and account deletion.
+- Fixed a discovered ownership bug where a non-owner delete attempt could remove another account's tags.
+- Migrated message-tag identity to `(telegram_account_id, chat_id, message_id)` while preserving legacy rows under `chat_id=0`.
+- Added tag migration/isolation tests.
+- Reworked history retrieval to start at requested `end_dt` with Pyrogram `offset_date`, avoiding the previous newest-100-message trap.
+- Added injectable fake-client history tests.
+- Extracted testable UI state transitions for account switching, filtering, and delete cleanup.
+- Added UI state smoke tests.
+- Added GitHub Actions CI on Python 3.12.
+- Added explicit secure-cookie/SameSite settings.
+- Added database-backed username login throttling.
+- Moved minimum password enforcement into the domain/database layer.
+- Added expired/malformed remembered-session cleanup at startup.
+- Added `docs/SECURITY.md` covering HTTPS, reverse proxy, Fernet key backup/rotation, proxy credentials, media-cache security, and multi-user threat model.
+
+CI note:
+- Initial workflow failures were traced to invoking test files directly, which changed Python import roots.
+- Workflow was corrected to run each file through `python -m unittest discover`.
