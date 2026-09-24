@@ -334,3 +334,10 @@ Subsequent UI change:
 - Header uses `position: sticky; top: 0` and stays in normal layout flow, so it remains visible while scrolling without hard-coding sidebar width.
 - The obsolete artificial header spacer was removed.
 - Added a UI regression test for key/selector/sticky behavior.
+
+
+Git tag tooling note:
+- No tag existed before v1.0.0.
+- Intended lightweight/annotated Git tag: `v1.0.0`.
+- It must point to release checkpoint `bd8c8b211aa8e3ee5ca09c864b3e4803eac6807b`, before the sticky-header change.
+- The active GitHub connector exposes branch/file/ref updates but no tag-ref creation action, so the Git tag itself remains pending rather than being falsely recorded as created.
