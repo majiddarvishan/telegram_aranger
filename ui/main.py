@@ -8,7 +8,13 @@ import streamlit as st
 from db.dialogs import load_dialogs as load_cached_dialogs, replace_dialogs
 from db.tags import all_tags, get_tags_for_messages, save_tags
 from services.telegram_service import delete_message, get_dialogs, history, start_media_download
-from ui.theme import MESSAGE_HEADER_CSS, message_meta_html, tag_chips_html
+from ui.theme import (
+    MESSAGE_HEADER_CSS,
+    action_summary_html,
+    media_meta_html,
+    message_meta_html,
+    tag_chips_html,
+)
 from utils.date_range import bounds, normalize_range
 
 
@@ -132,104 +138,175 @@ def _render_media(settings, account_id: int, message: dict) -> None:
         details.append(f"{media['duration']}s")
     if media.get("mime_type"):
         details.append(media["mime_type"])
-    st.caption(" · ".join(details))
+
+    st.markdown(
+        media_meta_html(details),
+        unsafe_allow_html=True,
+    )
 
     chat_id = message["chat_id"]
     message_id = message["id"]
 
     if media_type == "photo":
-        key = _media_state_key(account_id, chat_id, message_id, "preview")
-        prepared = _get_prepared_media(key)
-        if prepared is None and st.button(
-            "🖼️ Show Photo",
-            key=f"media_photo_{account_id}_{chat_id}_{message_id}",
-        ):
-            prepared = _prepare_media(
-                settings,
-                account_id,
-                chat_id,
-                message_id,
-                "preview",
-                settings.media_preview_max_mb,
-            )
+        preview_key = _media_state_key(
+            account_id,
+            chat_id,
+            message_id,
+            "preview",
+        )
+        prepared = _get_prepared_media(preview_key)
+
+        if prepared is None:
+            preview_col, spacer_col = st.columns([1.3, 6.7])
+            with preview_col:
+                if st.button(
+                    "Preview photo",
+                    key=f"media-photo-{account_id}-{chat_id}-{message_id}",
+                    use_container_width=True,
+                ):
+                    prepared = _prepare_media(
+                        settings,
+                        account_id,
+                        chat_id,
+                        message_id,
+                        "preview",
+                        settings.media_preview_max_mb,
+                    )
+
         if prepared:
             st.image(prepared["path"])
         return
 
     if media_type in ("video", "video_note", "animation"):
-        play_key = _media_state_key(account_id, chat_id, message_id, "preview")
+        play_key = _media_state_key(
+            account_id,
+            chat_id,
+            message_id,
+            "preview",
+        )
         prepared = _get_prepared_media(play_key)
 
-        if prepared is None and st.button(
-            "▶️ Load Video",
-            key=f"media_play_{account_id}_{chat_id}_{message_id}",
-        ):
-            prepared = _prepare_media(
-                settings,
-                account_id,
-                chat_id,
-                message_id,
-                "preview",
-                settings.media_preview_max_mb,
-            )
+        download_key = _media_state_key(
+            account_id,
+            chat_id,
+            message_id,
+            "download",
+        )
+        download_ready = (
+            _get_prepared_media(download_key)
+            if media_type == "video"
+            else None
+        )
+
+        if prepared is None:
+            if media_type == "video" and download_ready is None:
+                play_col, prepare_col, spacer_col = st.columns(
+                    [1.2, 1.7, 5.1]
+                )
+            else:
+                play_col, spacer_col = st.columns([1.2, 6.8])
+                prepare_col = None
+
+            with play_col:
+                if st.button(
+                    "Play video",
+                    key=f"media-play-{account_id}-{chat_id}-{message_id}",
+                    use_container_width=True,
+                ):
+                    prepared = _prepare_media(
+                        settings,
+                        account_id,
+                        chat_id,
+                        message_id,
+                        "preview",
+                        settings.media_preview_max_mb,
+                    )
+
+            if prepare_col is not None:
+                with prepare_col:
+                    if st.button(
+                        "Prepare download",
+                        key=(
+                            f"media-prepare-download-"
+                            f"{account_id}-{chat_id}-{message_id}"
+                        ),
+                        use_container_width=True,
+                    ):
+                        download_ready = _prepare_media(
+                            settings,
+                            account_id,
+                            chat_id,
+                            message_id,
+                            "download",
+                            settings.media_download_max_mb,
+                        )
 
         if prepared:
             st.video(prepared["path"])
 
         if media_type == "video":
-            download_key = _media_state_key(account_id, chat_id, message_id, "download")
-            download_ready = _get_prepared_media(download_key) or prepared
-
-            if download_ready is None and st.button(
-                "⬇️ Prepare Video Download",
-                key=f"media_prepare_download_{account_id}_{chat_id}_{message_id}",
-            ):
-                download_ready = _prepare_media(
-                    settings,
-                    account_id,
-                    chat_id,
-                    message_id,
-                    "download",
-                    settings.media_download_max_mb,
-                )
-
+            download_ready = download_ready or prepared
             if download_ready:
                 path = Path(download_ready["path"])
-                try:
-                    with path.open("rb") as file_handle:
-                        st.download_button(
-                            "⬇️ Download Video",
-                            data=file_handle,
-                            file_name=download_ready["file_name"],
-                            mime=download_ready["mime_type"],
-                            key=f"media_download_{account_id}_{chat_id}_{message_id}",
-                            use_container_width=True,
-                        )
-                except OSError as exc:
-                    st.error(f"Failed to open cached video: {exc}")
+                download_col, redownload_col, spacer_col = st.columns(
+                    [1.25, 1.25, 5.5]
+                )
 
-                if st.button(
-                    "🔁 Redownload Video",
-                    key=f"media_redownload_{account_id}_{chat_id}_{message_id}",
-                    help="Discard the cached copy and download the video again from Telegram.",
-                    use_container_width=True,
-                ):
-                    st.session_state.media_files.pop(download_key, None)
-                    st.session_state.media_files.pop(play_key, None)
-                    download_ready = _prepare_media(
-                        settings,
-                        account_id,
-                        chat_id,
-                        message_id,
-                        "download",
-                        settings.media_download_max_mb,
-                        force_download=True,
-                    )
-                    if download_ready:
-                        st.rerun()
+                with download_col:
+                    try:
+                        with path.open("rb") as file_handle:
+                            st.download_button(
+                                "Download",
+                                data=file_handle,
+                                file_name=download_ready["file_name"],
+                                mime=download_ready["mime_type"],
+                                key=(
+                                    f"media-download-"
+                                    f"{account_id}-{chat_id}-{message_id}"
+                                ),
+                                use_container_width=True,
+                            )
+                    except OSError as exc:
+                        st.error(f"Failed to open cached video: {exc}")
+
+                with redownload_col:
+                    if st.button(
+                        "Redownload",
+                        key=(
+                            f"media-redownload-"
+                            f"{account_id}-{chat_id}-{message_id}"
+                        ),
+                        help=(
+                            "Discard the cached copy and download "
+                            "the video again from Telegram."
+                        ),
+                        use_container_width=True,
+                    ):
+                        st.session_state.media_files.pop(
+                            download_key,
+                            None,
+                        )
+                        st.session_state.media_files.pop(
+                            play_key,
+                            None,
+                        )
+                        fresh = _prepare_media(
+                            settings,
+                            account_id,
+                            chat_id,
+                            message_id,
+                            "download",
+                            settings.media_download_max_mb,
+                            force_download=True,
+                        )
+                        if fresh:
+                            st.rerun()
         return
 
-    st.info(f"{media_type.replace('_', ' ').title()} media is detected. Preview is not implemented yet.")
+    st.info(
+        f"{media_type.replace('_', ' ').title()} media is detected. "
+        "Preview is not implemented yet."
+    )
 
 
 def _load_or_refresh_dialogs(
@@ -311,7 +388,7 @@ def _render_message_header(settings, options, current_chat_id, today):
 
         with chat_col:
             selected_chat_id = st.selectbox(
-                "💬 Chat / Group / Channel",
+                "Chat / Group / Channel",
                 options=list(options),
                 index=list(options).index(current_chat_id),
                 format_func=lambda chat_id: options[chat_id],
@@ -320,13 +397,13 @@ def _render_message_header(settings, options, current_chat_id, today):
 
         with search_col:
             search = st.text_input(
-                "🔍 Search message text",
+                "Search messages",
                 key="message_search",
             )
 
         with tag_col:
             tag = st.selectbox(
-                "🏷️ Tag",
+                "Tag",
                 ["All"] + tags,
                 key="message_tag_filter",
             )
@@ -335,7 +412,7 @@ def _render_message_header(settings, options, current_chat_id, today):
 
         with date_col:
             picked = st.date_input(
-                "Message Date Range",
+                "Date range",
                 value=(start_date, end_date),
                 max_value=today,
                 key="message_date_range_picker",
@@ -343,7 +420,7 @@ def _render_message_header(settings, options, current_chat_id, today):
 
         with previous_col:
             if st.button(
-                "◀",
+                "‹",
                 help="Previous Day",
                 use_container_width=True,
                 key="previous_day",
@@ -356,7 +433,7 @@ def _render_message_header(settings, options, current_chat_id, today):
 
         with next_col:
             if st.button(
-                "▶",
+                "›",
                 help="Next Day",
                 use_container_width=True,
                 key="next_day",
@@ -422,18 +499,23 @@ def _fetch_messages_if_needed(settings, selected_chat_id, start_date, end_date):
             st.session_state.message_query_signature = signature
 
 
-def _render_message_actions(settings) -> None:
+def _render_message_actions(
+    settings,
+    visible_count: int,
+) -> None:
     loaded_count = len(st.session_state.messages)
     result_limit = (
         st.session_state.get("message_result_limit")
         or settings.default_message_limit
     )
 
-    refresh_col, load_more_col, spacer_col = st.columns([1.2, 1.6, 6.2])
+    refresh_col, load_more_col, summary_col = st.columns(
+        [1.15, 1.35, 5.5]
+    )
 
     with refresh_col:
         if st.button(
-            "🔄 Refresh Messages",
+            "Refresh",
             key="refresh_messages",
             use_container_width=True,
         ):
@@ -443,7 +525,7 @@ def _render_message_actions(settings) -> None:
     with load_more_col:
         if loaded_count >= result_limit:
             if st.button(
-                "➕ Load More Messages",
+                "Load more",
                 key="load_more_messages",
                 use_container_width=True,
             ):
@@ -452,6 +534,12 @@ def _render_message_actions(settings) -> None:
                 )
                 st.session_state.message_query_signature = None
                 st.rerun()
+
+    with summary_col:
+        st.markdown(
+            action_summary_html(visible_count, loaded_count),
+            unsafe_allow_html=True,
+        )
 
 
 def _message_matches_filters(
@@ -690,28 +778,11 @@ def _render_message_scroll_area(
     selected_chat_id,
     messages,
 ):
-    loaded_count = len(st.session_state.messages)
-    result_limit = (
-        st.session_state.get("message_result_limit")
-        or settings.default_message_limit
-    )
-
     with st.container(
         height=settings.message_scroll_height,
         border=True,
         key=MESSAGE_SCROLL_KEY,
     ):
-        if loaded_count >= result_limit:
-            st.caption(
-                f"{len(messages)} visible message(s) · "
-                f"{loaded_count} loaded · current limit {result_limit}"
-            )
-        else:
-            st.caption(
-                f"{len(messages)} visible message(s) · "
-                f"{loaded_count} loaded · end of selected range"
-            )
-
         for message, current_tags in messages:
             _render_message_card(
                 settings,
@@ -782,8 +853,6 @@ def render_main(settings):
         end_date,
     )
 
-    _render_message_actions(settings)
-
     account_id = st.session_state.selected_telegram_account_id
     messages = []
     tags_by_message = get_tags_for_messages(
@@ -806,6 +875,8 @@ def render_main(settings):
             continue
 
         messages.append((message, message_tags))
+
+    _render_message_actions(settings, len(messages))
 
     _render_message_scroll_area(
         settings,
