@@ -253,23 +253,37 @@ MESSAGE_HEADER_KEY = "message-header"
 
 MESSAGE_HEADER_CSS = """
 /*
- * The message controls must stay visible while the Streamlit main area scrolls.
- * Use a viewport-fixed block rather than sticky positioning because Streamlit
- * places the main content inside nested scrolling/overflow containers.
+ * Streamlit gives keyed containers their own width. Once the container becomes
+ * position: fixed, that inherited 100% width can overflow the viewport when
+ * left/right offsets are also applied. Explicitly switch width back to auto so
+ * the fixed inset determines the real header width.
  */
 .st-key-message-header {
     position: fixed;
-    top: 0.75rem;
-    left: 26rem;
+    top: 4rem;
+    left: 5rem;
     right: 5rem;
+    width: auto !important;
+    max-width: none !important;
+    box-sizing: border-box;
     z-index: 10000;
     padding: 12px 14px 14px 14px;
-    background: color-mix(in srgb, var(--background-color) 96%, transparent);
+    background: var(--background-color);
     border: 1px solid rgba(128, 128, 128, 0.22);
     border-radius: 12px;
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.10);
-    backdrop-filter: blur(10px);
+    overflow: visible !important;
 }
+
+/*
+ * The safe fallback is the collapsed/no-sidebar layout. Only add the sidebar
+ * width when Streamlit explicitly reports an expanded sidebar.
+ */
+body:has([data-testid="stSidebar"][aria-expanded="true"])
+    .st-key-message-header {
+    left: 26rem;
+}
+
 .st-key-message-header [data-testid="stHorizontalBlock"] {
     align-items: end;
     gap: 10px;
@@ -287,25 +301,21 @@ MESSAGE_HEADER_CSS = """
     min-height: 40px;
 }
 .message-header-fixed-spacer {
-    height: 178px;
-}
-
-/* Keep the fixed header clear of the main content when the sidebar collapses. */
-[data-testid="stAppViewContainer"]:has(
-    [data-testid="stSidebar"][aria-expanded="false"]
-) .st-key-message-header {
-    left: 5rem;
+    height: 210px;
 }
 
 @media (max-width: 900px) {
-    .st-key-message-header {
-        top: 0.5rem;
+    .st-key-message-header,
+    body:has([data-testid="stSidebar"][aria-expanded="true"])
+        .st-key-message-header {
+        top: 3.5rem;
         left: 0.75rem;
         right: 0.75rem;
+        width: auto !important;
         padding: 8px 10px 10px 10px;
     }
     .message-header-fixed-spacer {
-        height: 245px;
+        height: 285px;
     }
 }
 """
