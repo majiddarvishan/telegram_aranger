@@ -525,3 +525,33 @@ Release:
 - CHANGELOG finalized for Windows tgcrypto2 compatibility and TelegramRuntime ScriptRunContext fixes.
 - Release checkpoint SHA: `6c27b0343f7534a2c7ff906f27483791df601fe4`.
 - Intended Git tag: `v1.0.3` on exactly that SHA.
+
+
+## 2026-09-25 — Reduce Telegram GetDialogs startup latency
+
+Observed production logs on Windows showed:
+- repeated `messages.GetDialogs` FloodWaits of 10–18 seconds;
+- multiple near-concurrent `get_dialogs` operations taking about 63–67 seconds;
+- multiple Streamlit startup/rerun passes.
+
+Root cause:
+- `render_main()` fetched all Telegram dialogs whenever session-state dialogs were empty;
+- Pyrogram `get_dialogs()` was called without a limit, so it could issue multiple Telegram `messages.GetDialogs` requests;
+- initial Streamlit reruns / multiple browser sessions could trigger duplicate uncached dialog fetches before session state was populated.
+
+Fix:
+- SQLite schema bumped to version 3.
+- Added `telegram_dialog_cache` keyed by local Telegram account + chat.
+- Normal startup first reads cached dialogs from SQLite.
+- Added `TELEGRAM_DIALOG_LIMIT` with default 100.
+- Pyrogram dialog retrieval now passes that explicit limit.
+- Added a process-wide dialog-refresh lock; concurrent uncached sessions serialize and the later session rechecks SQLite cache before hitting Telegram.
+- **Refresh Chats** is now the explicit network refresh path.
+- Failed explicit refresh falls back to the existing cached list when available.
+- `application_ready` is logged once per Streamlit session instead of every rerun.
+- Added DB/cache/service tests, including verification that limit=100 reaches Pyrogram.
+- Current development version is `1.0.4-dev`.
+
+Expected behavior:
+- first run after this upgrade may perform one bounded Telegram dialog fetch because no dialog cache exists yet;
+- subsequent restarts should load the dialog list locally and should not emit `get_dialogs` slow-wait logs unless the user explicitly presses **Refresh Chats** or the cache is absent.
