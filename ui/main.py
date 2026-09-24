@@ -493,7 +493,12 @@ def render_main(settings):
         if search and search.lower() not in message["text"].lower():
             continue
 
-        message_tags = get_tags(settings.db_file, account_id, message["id"])
+        message_tags = get_tags(
+            settings.db_file,
+            account_id,
+            selected_chat_id,
+            message["id"],
+        )
         if tag != "All" and tag not in message_tags:
             continue
 
@@ -526,7 +531,13 @@ def render_main(settings):
                     "Save Tags",
                     key=f"save_{account_id}_{selected_chat_id}_{message_id}",
                 ):
-                    save_tags(settings.db_file, account_id, message_id, value.split(","))
+                    save_tags(
+                        settings.db_file,
+                        account_id,
+                        selected_chat_id,
+                        message_id,
+                        value.split(","),
+                    )
                     st.rerun()
 
                 if st.button(
