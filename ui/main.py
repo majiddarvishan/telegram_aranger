@@ -11,6 +11,7 @@ from services.telegram_service import delete_message, get_dialogs, history, star
 from ui.theme import (
     MESSAGE_HEADER_CSS,
     action_summary_html,
+    empty_state_html,
     media_meta_html,
     message_meta_html,
     tag_chips_html,
@@ -783,6 +784,20 @@ def _render_message_scroll_area(
         border=True,
         key=MESSAGE_SCROLL_KEY,
     ):
+        if not messages:
+            st.markdown(
+                empty_state_html(
+                    "No messages found",
+                    (
+                        "No loaded message matches the current chat, "
+                        "date range, search or tag filters."
+                    ),
+                    "0",
+                ),
+                unsafe_allow_html=True,
+            )
+            return
+
         for message, current_tags in messages:
             _render_message_card(
                 settings,
@@ -798,7 +813,17 @@ def render_main(settings):
         not st.session_state.telegram_user
         or not st.session_state.selected_telegram_account_id
     ):
-        st.info("Add or select a Telegram account from the sidebar.")
+        st.markdown(
+            empty_state_html(
+                "No Telegram account selected",
+                (
+                    "Add or select a Telegram account from the sidebar "
+                    "to start browsing messages."
+                ),
+                "TG",
+            ),
+            unsafe_allow_html=True,
+        )
         return
 
     force_refresh = bool(
@@ -820,7 +845,17 @@ def render_main(settings):
 
     dialogs = st.session_state.dialogs
     if not dialogs:
-        st.warning("No chats, groups, or channels were returned by Telegram.")
+        st.markdown(
+            empty_state_html(
+                "No chats available",
+                (
+                    "Telegram did not return any chats for this account. "
+                    "Use Refresh chats in the sidebar to try again."
+                ),
+                "0",
+            ),
+            unsafe_allow_html=True,
+        )
         return
 
     options = {chat["id"]: _chat_label(chat) for chat in dialogs}
