@@ -158,6 +158,6 @@ Real Telegram/browser validation has been completed successfully with no issues 
 
 
 ## Release status
-- Latest release: `v1.0.1`
-- v1.0.1 checkpoint SHA: `a7648e64f1cd8efc0c098b4eb0a689e6bd94d873`
-- Current development version: `1.0.2-dev`
+- Latest release: `v1.0.2`
+- v1.0.2 checkpoint SHA: `9a4c429827ec4e31ef1376ae97b0b074a13dd7e9`
+- Current version: `1.0.2`
