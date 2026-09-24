@@ -69,6 +69,7 @@ Storage/media:
 - `MEDIA_CACHE_MAX_MB=2048`
 - `MEDIA_PREVIEW_MAX_MB=200`
 - `MEDIA_DOWNLOAD_MAX_MB=200`
+- `MESSAGE_SCROLL_HEIGHT=620`
 
 Operations:
 - `LOG_LEVEL=INFO`
@@ -154,3 +155,9 @@ GitHub Actions currently covers:
 Real Telegram/browser validation has been completed successfully with no issues reported, including photo preview, inline video playback, browser video download, and interrupted-download recovery.
 
 `docs/MANUAL_TESTING.md` remains the regression checklist for future releases.
+
+
+## Release status
+- Latest release: `v1.0.1`
+- v1.0.1 checkpoint SHA: `a7648e64f1cd8efc0c098b4eb0a689e6bd94d873`
+- Current development version: `1.0.2-dev`
