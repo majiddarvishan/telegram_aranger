@@ -1,5 +1,6 @@
 import asyncio
 import unittest
+from unittest.mock import patch
 
 from services.telegram_runtime import TelegramRuntime
 
@@ -41,6 +42,35 @@ class TelegramRuntimeShutdownTests(unittest.TestCase):
             metrics["max_wait_seconds"],
             metrics["last_wait_seconds"],
         )
+
+    def test_slow_wait_log_includes_operation_name(self):
+        runtime = TelegramRuntime()
+
+        async def immediate_value():
+            return 7
+
+        try:
+            with (
+                patch(
+                    "services.telegram_runtime._slow_call_threshold",
+                    return_value=0.0,
+                ),
+                patch("services.telegram_runtime.log_event") as log_event,
+            ):
+                self.assertEqual(
+                    runtime.run(
+                        immediate_value(),
+                        operation="get_dialogs",
+                    ),
+                    7,
+                )
+        finally:
+            runtime.stop()
+
+        _, kwargs = log_event.call_args
+        self.assertEqual(kwargs["operation"], "get_dialogs")
+        self.assertIn("wait_seconds", kwargs)
+        self.assertEqual(kwargs["run_calls"], 1)
 
     def test_stop_disconnects_active_client_and_closes_loop(self):
         runtime = TelegramRuntime()
