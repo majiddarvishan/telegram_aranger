@@ -87,9 +87,15 @@ Configure the lifetime in `.env`:
 
 ```env
 WEB_REMEMBER_ME_DAYS=7
+WEB_COOKIE_SECURE=false
+WEB_COOKIE_SAMESITE=lax
+WEB_LOGIN_MAX_ATTEMPTS=5
+WEB_LOGIN_WINDOW_MINUTES=15
 ```
 
-The browser receives a random persistent token. Only its SHA-256 hash is stored in SQLite. The token is revoked when the user logs out of the Web application.
+The browser receives a random persistent token. Only its SHA-256 hash is stored in SQLite. The token is revoked when the user logs out of the Web application. Failed Web logins are throttled by normalized username using the configured attempt/window limits.
+
+For HTTPS production deployments, set `WEB_COOKIE_SECURE=true`. See `docs/SECURITY.md` for reverse-proxy and SameSite guidance.
 
 The project uses `extra-streamlit-components` for the browser cookie required to keep the login across Streamlit sessions.
 
