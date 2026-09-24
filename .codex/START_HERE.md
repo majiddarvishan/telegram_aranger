@@ -2,7 +2,7 @@
 
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
-- Working branch for this context: `others`
+- Working branch for this context: `feature/media-support`
 - Reviewed on: 2026-09-24
 - At review time, `others` was 5 commits ahead of `main` and 0 commits behind it.
 - Head before adding these context files: `5e7d1943b6289dc8c7def7f2a5426097016cc4c3`.
@@ -12,6 +12,15 @@
 
 Despite the product name, the current UI can browse private chats, groups, supergroups, and channels, not only Telegram Saved Messages.
 
+## Current feature objective
+Add Telegram media support without eagerly downloading all media:
+- display photo posts;
+- play video posts inline;
+- provide an explicit browser download button for videos;
+- use lazy/on-demand downloads with bounded temporary caching.
+
+No media implementation had been committed when this objective was added; see `.codex/TASKS.md`.
+
 ## Read order for future work
 1. `.codex/PROJECT_CONTEXT.md`
 2. `.codex/ARCHITECTURE.md`
@@ -20,7 +29,7 @@ Despite the product name, the current UI can browse private chats, groups, super
 5. `.codex/SESSION.md`
 
 ## Important rules
-- Treat branch `others` as the source of truth unless the user explicitly asks to switch branches.
+- Treat branch `feature/media-support` as the current feature branch. It was created from the merged `main` baseline.
 - Do not assume `main` has the same architecture; `others` is a substantial refactor/reimplementation.
 - Do not commit real Telegram API credentials, Fernet keys, session strings, phone codes, 2FA passwords, database files, or browser remember-me tokens.
 - Before changing database schema, add a migration/versioning plan; the current code only uses `CREATE TABLE IF NOT EXISTS`.
@@ -29,7 +38,7 @@ Despite the product name, the current UI can browse private chats, groups, super
 
 ## Local run
 ```bash
-git checkout others
+git checkout feature/media-support
 python -m venv .venv
 # activate the environment
 pip install -r requirements.txt
