@@ -4,6 +4,10 @@ All notable Telegram Harbor changes are recorded here.
 
 ## Unreleased
 
+- Replace legacy `TgCrypto` with maintained `tgcrypto2` while preserving the `tgcrypto` import used by Pyrogram.
+- Add Windows + Python 3.14 CI coverage for crypto acceleration.
+- Add Windows recovery instructions for existing environments that show the Pyrogram "TgCrypto is missing" warning.
+
 ## 1.0.2 - 2026-09-25
 
 - Increase the dedicated message scroll area from 420px to 620px by default.
