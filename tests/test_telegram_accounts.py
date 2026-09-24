@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from db.database import initialize_database
+from db.tags import get_tags, save_tags
 from db.telegram_accounts import delete_account, get_account, list_accounts, save_account
 from db.users import authenticate_user, create_user
 
@@ -47,18 +48,23 @@ class TelegramAccountOwnershipTests(unittest.TestCase):
         self.assertEqual(len(list_accounts(self.db_file, self.alice["id"])), 1)
         self.assertEqual(list_accounts(self.db_file, self.bob["id"]), [])
 
-    def test_non_owner_cannot_delete_account(self):
+    def test_non_owner_cannot_delete_account_or_its_tags(self):
         account_id = save_account(
             self.db_file,
             self.alice["id"],
             self._telegram_user(),
             b"encrypted-session",
         )
+        save_tags(self.db_file, account_id, -100, 42, ["private"])
 
         delete_account(self.db_file, self.bob["id"], account_id)
 
         self.assertIsNotNone(
             get_account(self.db_file, self.alice["id"], account_id)
+        )
+        self.assertEqual(
+            get_tags(self.db_file, account_id, -100, 42),
+            ["private"],
         )
 
     def test_save_updates_existing_account_for_same_owner(self):
