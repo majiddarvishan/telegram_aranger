@@ -4,9 +4,13 @@ from ui.theme import (
     APP_CSS,
     DESIGN_TOKENS,
     MESSAGE_HEADER_CSS,
+    account_card_html,
+    action_summary_html,
     badge_html,
+    media_meta_html,
     message_meta_html,
     section_title_html,
+    sidebar_brand_html,
     tag_chips_html,
 )
 
@@ -71,6 +75,23 @@ class ThemeFoundationTests(unittest.TestCase):
         self.assertIn("th-message-meta", markup)
         self.assertIn("ID 42", markup)
         self.assertIn("&lt;Video&gt;", markup)
+
+    def test_sidebar_brand_and_account_markup_are_safe(self):
+        brand = sidebar_brand_html("<Harbor>", "1.0.4")
+        account = account_card_html("<Admin>", "user<1>")
+
+        self.assertIn("&lt;Harbor&gt;", brand)
+        self.assertIn("&lt;Admin&gt;", account)
+        self.assertIn("user&lt;1&gt;", account)
+
+    def test_action_summary_and_media_meta_are_compact(self):
+        summary = action_summary_html(12, 100)
+        media = media_meta_html(["Video", "2.0 MB", "49s"])
+
+        self.assertIn("12", summary)
+        self.assertIn("100", summary)
+        self.assertIn("th-media-meta", media)
+        self.assertIn("2.0 MB", media)
 
 
 if __name__ == "__main__":
