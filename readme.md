@@ -13,6 +13,10 @@ A Streamlit multi-user Telegram archive manager using Pyrogram. No Keycloak is u
 - Date-range message filtering; defaults to the latest 7 calendar days.
 - Previous/Next Day navigation at the bottom of the page.
 - Search and per-message tags.
+- Lazy photo preview for Telegram photo messages.
+- Lazy inline playback for video/video-note/animation media.
+- Browser video download with original/fallback file names and MIME types.
+- Bounded temporary media cache with configurable TTL and size limits.
 - SQLite persistence.
 - Dedicated asyncio runtime thread for Pyrogram.
 - Python 3.14 import compatibility workaround.
@@ -34,6 +38,7 @@ telegram_saved_manager/
 │   ├── telegram_accounts.py
 │   └── tags.py
 ├── services/
+│   ├── media_cache.py
 │   ├── telegram_runtime.py
 │   └── telegram_service.py
 ├── ui/
@@ -94,3 +99,19 @@ The project uses `extra-streamlit-components` for the browser cookie required to
 The CookieManager instance is created once per Streamlit Web session and reused across reruns. This prevents `StreamlitDuplicateElementKey` errors caused by registering the same custom component key multiple times in one run.
 
 `TgCrypto` is optional for Pyrogram. If it is unavailable on Python 3.14, Pyrogram falls back to its pure-Python implementation; functionality remains the same but cryptographic operations are slower.
+
+## Media cache and limits
+
+Media is downloaded only when the user requests a preview/playback or prepares a video download. The application does not eagerly download every media item while listing messages.
+
+Optional settings:
+
+```env
+MEDIA_CACHE_DIR=.cache/telegram_media
+MEDIA_CACHE_TTL_HOURS=24
+MEDIA_CACHE_MAX_MB=2048
+MEDIA_PREVIEW_MAX_MB=200
+MEDIA_DOWNLOAD_MAX_MB=200
+```
+
+The cache path is ignored by Git. Cache entries are namespaced by Telegram account, chat, and message, and old files are removed by TTL/size cleanup. Increase the preview/download limits only when the Streamlit host has enough memory/disk capacity.
