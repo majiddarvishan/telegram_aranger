@@ -2,24 +2,48 @@
 
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
-- Working branch for this context: `feature/media-support`
-- Reviewed on: 2026-09-24
-- At review time, `others` was 5 commits ahead of `main` and 0 commits behind it.
-- Head before adding these context files: `5e7d1943b6289dc8c7def7f2a5426097016cc4c3`.
+- Current working branch: `feature/media-support`
+- Current phase status: P0/P1/P2/P3 automated implementation is complete; real Telegram/browser media validation remains open.
+- Branch was created from the merged `main` baseline and is currently the source of truth for this feature set.
 
-## What this branch is
-`others` contains a modular Streamlit application named **Telegram Saved Messages Manager**. It provides its own local multi-user Web authentication, lets each Web user attach one or more Telegram accounts through Pyrogram, stores encrypted Telegram session strings in SQLite, browses Telegram chats/messages, supports local per-message tags, search/date filtering, and can delete Telegram messages.
+## What the project is
+This is a modular Streamlit Telegram message manager using Pyrogram.
 
-Despite the product name, the current UI can browse private chats, groups, supergroups, and channels, not only Telegram Saved Messages.
+It provides:
+- local multi-user Web authentication;
+- persistent Remember Me sessions;
+- multiple Telegram accounts per Web user;
+- encrypted Telegram session storage;
+- private/group/supergroup/channel browsing;
+- date-range history with Load More pagination;
+- text search over loaded messages;
+- chat-scoped local tags;
+- Telegram message deletion with confirmation;
+- lazy photo preview;
+- inline video/video-note/animation playback;
+- browser video download;
+- interrupted-media recovery and explicit re-download;
+- SQLite persistence and schema migrations;
+- structured JSON logging;
+- Docker/Compose deployment;
+- automated GitHub Actions regression tests.
 
-## Current feature objective
-Add Telegram media support without eagerly downloading all media:
-- display photo posts;
-- play video posts inline;
-- provide an explicit browser download button for videos;
-- use lazy/on-demand downloads with bounded temporary caching.
+The UI still uses the legacy title **Telegram Saved Messages Manager**, but the product behavior is a general Telegram message manager.
 
-No media implementation had been committed when this objective was added; see `.codex/TASKS.md`.
+## Current implementation status
+Completed:
+- P0 correctness fixes.
+- P1 media feature.
+- P1 regression/security hardening.
+- P2 performance/data lifecycle work.
+- P3 operations/UX work.
+- Docker build + Streamlit health check in CI.
+- Full automated regression suite in GitHub Actions.
+
+Still open:
+- real Telegram/browser validation for small and large photos/videos and browser video download.
+
+Use `docs/MANUAL_TESTING.md` for that checklist. Do not mark the final media-validation task complete without actually running those real Telegram/browser scenarios.
 
 ## Read order for future work
 1. `.codex/PROJECT_CONTEXT.md`
@@ -27,27 +51,40 @@ No media implementation had been committed when this objective was added; see `.
 3. `.codex/DECISIONS.md`
 4. `.codex/TASKS.md`
 5. `.codex/SESSION.md`
+6. `docs/MANUAL_TESTING.md`
 
 ## Important rules
-- Treat branch `feature/media-support` as the current feature branch. It was created from the merged `main` baseline.
-- Do not assume `main` has the same architecture; `others` is a substantial refactor/reimplementation.
-- Do not commit real Telegram API credentials, Fernet keys, session strings, phone codes, 2FA passwords, database files, or browser remember-me tokens.
-- Before changing database schema, add a migration/versioning plan; the current code only uses `CREATE TABLE IF NOT EXISTS`.
-- Preserve per-Web-user ownership checks when accessing Telegram accounts.
-- Review the known correctness issues in `TASKS.md` before feature work.
+- Treat `feature/media-support` as the current source branch unless the user explicitly switches branches.
+- Re-fetch branch HEAD before editing; do not assume these notes are newer than Git.
+- Never commit Telegram API credentials, Fernet keys, session strings, phone codes, 2FA passwords, proxy passwords, browser remember tokens, SQLite data files, downloaded media, or backup artifacts.
+- Preserve Web-user ownership checks for Telegram accounts and chat-scoped identity for tags/media.
+- Database schema changes must increment/handle schema version and preserve existing data.
+- Horizontal multi-instance deployment is not supported by the current local SQLite/runtime/cache architecture.
+- Do not silently replace Pyrogram; its archived upstream status is documented and any replacement needs explicit session/behavior compatibility work.
 
 ## Local run
+
 ```bash
 git checkout feature/media-support
 python -m venv .venv
-# activate the environment
+# activate the virtual environment
 pip install -r requirements.txt
 cp .env.example .env
 # fill TELEGRAM_API_ID, TELEGRAM_API_HASH and TELEGRAM_SESSION_ENCRYPTION_KEY
 streamlit run app.py
 ```
 
-Generate a Fernet key with:
+Generate a Fernet key:
+
 ```bash
 python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
 ```
+
+## Docker run
+
+```bash
+docker compose up -d --build
+docker compose ps
+```
+
+See `docs/DEPLOYMENT.md`, `docs/SECURITY.md`, `docs/SCALING.md`, and `docs/BACKUP_RESTORE.md`.
