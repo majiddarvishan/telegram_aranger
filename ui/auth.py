@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 import extra_streamlit_components as stx
 import streamlit as st
 
+from config.branding import PRODUCT_NAME
 from db.auth_sessions import create_session, delete_session, get_user_by_session
 from db.login_attempts import (
     clear_failed_logins,
@@ -146,7 +147,7 @@ def _complete_successful_login(settings, user: dict, remember_me: bool) -> bool:
 
 
 def render_web_auth(settings):
-    st.title("🔐 Telegram Saved Messages Manager")
+    st.title(f"🔐 {PRODUCT_NAME}")
     login, register = st.tabs(["Login", "Create Account"])
 
     with login:
