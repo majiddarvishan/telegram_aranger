@@ -1,5 +1,7 @@
 # Telegram Harbor
 
+**Current version:** `v1.0.0`
+
 **Telegram Harbor** is a self-hosted, multi-user Telegram message and media manager built with Streamlit and Pyrogram.
 
 It provides one central place to connect multiple Telegram accounts, browse private chats, groups, supergroups, channels and Saved Messages, search and tag messages, preview media, play videos, and download Telegram video files.
