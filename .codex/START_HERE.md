@@ -2,9 +2,9 @@
 
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
-- Current working branch: `main`
-- Current phase status: P0/P1/P2/P3 implementation is complete, including real Telegram/browser media validation.
-- `feature/media-support` has been fast-forward merged into `main`; `main` is now the source of truth.
+- Current working branch: `gui`
+- Current phase status: stable application baseline is complete; `gui` is a visual-redesign planning/implementation branch.
+- `gui` was created from `main@2bd6fbd18ac6ab03a38ee5ffc586c2d76c8ccc49`. Functional behavior should continue to follow `main`; visual redesign work is isolated here.
 
 ## What the project is
 **Telegram Harbor** is a modular Streamlit Telegram message and media manager using Pyrogram.
@@ -47,15 +47,17 @@ Validation status:
 `docs/MANUAL_TESTING.md` remains the repeatable acceptance checklist for future regressions.
 
 ## Read order for future work
-1. `.codex/PROJECT_CONTEXT.md`
-2. `.codex/ARCHITECTURE.md`
-3. `.codex/DECISIONS.md`
-4. `.codex/TASKS.md`
-5. `.codex/SESSION.md`
-6. `docs/MANUAL_TESTING.md`
+1. `.codex/GUI_PLAN.md`
+2. `.codex/PROJECT_CONTEXT.md`
+3. `.codex/ARCHITECTURE.md`
+4. `.codex/DECISIONS.md`
+5. `.codex/TASKS.md`
+6. `.codex/SESSION.md`
+7. `docs/MANUAL_TESTING.md`
+8. `docs/GUI_DESIGN_PLAN_FA.md`
 
 ## Important rules
-- Treat `main` as the current source branch unless the user explicitly creates/switches branches.
+- Work on `gui` for visual redesign unless the user explicitly switches branches. Do not merge GUI work into `main` without explicit approval.
 - Re-fetch branch HEAD before editing; do not assume these notes are newer than Git.
 - Never commit Telegram API credentials, Fernet keys, session strings, phone codes, 2FA passwords, proxy passwords, browser remember tokens, SQLite data files, downloaded media, or backup artifacts.
 - Preserve Web-user ownership checks for Telegram accounts and chat-scoped identity for tags/media.
@@ -66,7 +68,7 @@ Validation status:
 ## Local run
 
 ```bash
-git checkout main
+git checkout gui
 python -m venv .venv
 # activate the virtual environment
 pip install -r requirements.txt
