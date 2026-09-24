@@ -60,7 +60,7 @@ Target style:
 - [x] Standardize media action hierarchy for preview/play/download/redownload.
 - [x] Normalize baseline card spacing.
 - [x] Desktop screenshot review completed for text/video cards.
-- [ ] Manually review a photo card before closing GUI-P3.
+- [x] Photo-card desktop review completed.
 
 ### GUI-P4 — Auth and state screens
 - [x] Centered branded auth card.
@@ -73,7 +73,9 @@ Target style:
 - [x] Keep Streamlit column stacking as the safe narrow-layout fallback.
 - [x] Add keyboard focus-visible treatment and reduced-motion support.
 - [x] Keep baseline control hit targets at 40px.
-- [ ] Manual Light/Dark contrast review.
+- [x] Light-theme contrast reviewed on desktop.
+- [x] Dark-theme screenshot review identified forced-light custom surfaces; adaptive-surface fix implemented.
+- [ ] Re-verify Dark mode after the adaptive-surface fix.
 - [x] Desktop screenshot review completed for the light theme.
 - [ ] Manual screenshot review at a narrow viewport.
 
@@ -119,3 +121,10 @@ Before moving to the next phase:
 
 Full Persian design audit:
 `docs/GUI_DESIGN_PLAN_FA.md`
+
+
+## Correctness fixes discovered during GUI validation
+- [x] Cached Telegram peer recovery: lazily rebuild Pyrogram peer state for a selected cached chat when history initially raises PeerIdInvalid.
+- [x] Prefer username-based peer warmup when available; otherwise perform one bounded dialog refresh using TELEGRAM_DIALOG_LIMIT.
+- [x] Distinguish message-fetch failure state from a legitimate empty result.
+- [ ] Backport the peer-recovery correctness fix to main before the next release if gui is not merged wholesale.
