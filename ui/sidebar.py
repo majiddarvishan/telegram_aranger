@@ -7,6 +7,7 @@ from pyrogram.errors import (
 )
 
 from config.branding import PRODUCT_NAME, PRODUCT_VERSION
+from db.dialogs import load_peer_records
 from db.telegram_accounts import (
     delete_account,
     get_account,
@@ -173,6 +174,10 @@ def _restore_selected_account(
                 account["encrypted_session"],
                 settings.session_encryption_key,
                 proxy,
+                peer_records=load_peer_records(
+                    settings.db_file,
+                    account_id,
+                ),
             )
     except Exception as exc:
         st.sidebar.error(
