@@ -381,9 +381,9 @@ def _fetch_messages_if_needed(settings, selected_chat_id, start_date, end_date):
         st.session_state.message_query_signature = None
         st.session_state.messages = []
 
-    result_limit = st.session_state.get(
-        "message_result_limit",
-        settings.default_message_limit,
+    result_limit = (
+        st.session_state.get("message_result_limit")
+        or settings.default_message_limit
     )
     signature = (*range_signature, result_limit)
 
@@ -559,9 +559,9 @@ def render_main(settings):
         messages.append((message, message_tags))
 
     loaded_count = len(st.session_state.messages)
-    result_limit = st.session_state.get(
-        "message_result_limit",
-        settings.default_message_limit,
+    result_limit = (
+        st.session_state.get("message_result_limit")
+        or settings.default_message_limit
     )
     if loaded_count >= result_limit:
         st.caption(
