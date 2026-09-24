@@ -246,26 +246,41 @@ def _message_text(message, media: dict | None) -> str:
 
 async def _history(chat_id, start_dt, end_dt, limit=100):
     client = get_runtime().client
+    if client is None:
+        raise RuntimeError("Telegram client is not connected.")
+
     out = []
 
-    async for message in client.get_chat_history(chat_id, limit=limit):
+    # Start at the requested range end instead of taking only the newest N
+    # messages in the chat. Pyrogram returns history in reverse chronological
+    # order, so we can stop as soon as the range start is crossed.
+    async for message in client.get_chat_history(
+        chat_id,
+        limit=0,
+        offset_date=end_dt,
+    ):
         if not message.date:
             continue
         if message.date < start_dt:
             break
-        if message.date <= end_dt:
-            media = _media_metadata(message)
-            out.append(
-                {
-                    "id": message.id,
-                    "chat_id": chat_id,
-                    "text": _message_text(message, media),
-                    "caption": message.caption or "",
-                    "date": message.date,
-                    "user_id": chat_id,
-                    "media": media,
-                }
-            )
+        if message.date > end_dt:
+            continue
+
+        media = _media_metadata(message)
+        out.append(
+            {
+                "id": message.id,
+                "chat_id": chat_id,
+                "text": _message_text(message, media),
+                "caption": message.caption or "",
+                "date": message.date,
+                "user_id": chat_id,
+                "media": media,
+            }
+        )
+
+        if limit and len(out) >= limit:
+            break
 
     return out
 
