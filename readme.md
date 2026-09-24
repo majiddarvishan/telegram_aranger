@@ -29,29 +29,44 @@ Despite the legacy title **Telegram Saved Messages Manager**, the current produc
 ## Project layout
 
 ```text
-telegram_saved_manager/
+telegram_aranger/
 ├── app.py
 ├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
 ├── .env.example
-├── README.md
 ├── config/
 │   └── settings.py
 ├── db/
+│   ├── auth_sessions.py
 │   ├── database.py
-│   ├── users.py
+│   ├── login_attempts.py
+│   ├── tags.py
 │   ├── telegram_accounts.py
-│   └── tags.py
+│   └── users.py
 ├── services/
 │   ├── media_cache.py
 │   ├── telegram_runtime.py
 │   └── telegram_service.py
 ├── ui/
 │   ├── auth.py
-│   ├── sidebar.py
-│   └── main.py
-└── utils/
-    ├── state.py
-    └── date_range.py
+│   ├── main.py
+│   └── sidebar.py
+├── utils/
+│   ├── date_range.py
+│   ├── logging.py
+│   └── state.py
+├── scripts/
+│   ├── backup_db.py
+│   └── restore_db.py
+├── docs/
+│   ├── BACKUP_RESTORE.md
+│   ├── DEPENDENCIES.md
+│   ├── DEPLOYMENT.md
+│   ├── MANUAL_TESTING.md
+│   ├── SCALING.md
+│   └── SECURITY.md
+└── tests/
 ```
 
 ## Setup
@@ -143,3 +158,10 @@ docker compose up -d --build
 The container exposes port 8501, runs as a non-root user, persists the database/media cache under `/data`, and uses Streamlit's `/_stcore/health` endpoint for its container health check.
 
 See `docs/DEPLOYMENT.md` for production deployment guidance.
+
+
+## Validation
+
+Automated unit/regression tests and Docker build/health checks run in GitHub Actions.
+
+For real Telegram/browser acceptance—photo preview, video playback, browser download, and interrupted-transfer recovery—follow `docs/MANUAL_TESTING.md`.
