@@ -162,19 +162,20 @@ Planning source:
 - [ ] Manually verify the visual result in both Light and Dark themes.
 
 ### GUI-P1 — Sidebar
-- [ ] Compact product branding.
-- [ ] Improve Web-account presentation.
-- [ ] Improve Telegram account selector and status hierarchy.
-- [ ] Move destructive Telegram-account actions into a lower-emphasis area.
-- [ ] Collapse proxy/network configuration into an expander.
-- [ ] Normalize sidebar spacing and action priorities.
+- [x] Compact product branding.
+- [x] Improve Web-account presentation.
+- [x] Improve Telegram account selector and status hierarchy.
+- [x] Move destructive Telegram-account actions into a lower-emphasis Account actions area.
+- [x] Collapse proxy/network configuration into an expander.
+- [x] Normalize sidebar spacing and action priorities.
+- [ ] Manually review expanded sidebar on desktop/narrow viewports.
 
 ### GUI-P2 — Main toolbar/action bar
-- [ ] Redesign Chat/Search/Tag hierarchy.
-- [ ] Make date navigation more compact.
-- [ ] Surface message counts in the action bar.
-- [ ] Normalize Refresh vs Load More visual priority.
-- [ ] Evaluate active-filter chips after baseline styling.
+- [x] Redesign Chat/Search/Tag hierarchy with cleaner labels.
+- [x] Make date navigation more compact.
+- [x] Surface visible/loaded message counts in the action bar.
+- [x] Normalize Refresh vs Load more visual priority.
+- [ ] Evaluate active-filter chips after visual review.
 
 ### GUI-P3 — Message cards
 - [x] Make message content visually dominant.
@@ -182,20 +183,22 @@ Planning source:
 - [x] Render tags as read-mode chips.
 - [x] Make tag editing on-demand.
 - [x] De-emphasize Delete until requested while preserving confirmation.
-- [ ] Normalize media action hierarchy.
+- [x] Normalize media action hierarchy.
 - [x] Normalize baseline card spacing.
 - [ ] Manually verify text/photo/video cards before closing GUI-P3.
 
 ### GUI-P4 — Auth and state screens
-- [ ] Branded centered auth card.
-- [ ] Dedicated empty states.
-- [ ] Unified loading/success/warning/error treatment.
+- [x] Branded centered auth card.
+- [x] Dedicated empty states for account/chat/message absence.
+- [x] Shared warning/success/error surface styling.
+- [ ] Review loading treatment after the next visual pass.
 
 ### GUI-P5 — Responsive/accessibility
-- [ ] Define desktop/laptop/tablet behavior.
-- [ ] Add toolbar wrapping rules.
-- [ ] Stack card management controls on narrow screens.
-- [ ] Review contrast, focus, disabled states and hit targets.
+- [x] Add baseline responsive behavior around a 900px breakpoint.
+- [x] Preserve safe Streamlit column stacking for narrow layouts.
+- [x] Add visible keyboard focus and reduced-motion support.
+- [x] Standardize baseline control hit targets.
+- [ ] Manual Light/Dark contrast validation.
 - [ ] Manual screenshot validation at multiple viewport widths.
 
 ### GUI-P6 — Polish
