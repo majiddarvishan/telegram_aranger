@@ -275,6 +275,18 @@ hr {{
     align-items: center;
 }}
 
+[class*="st-key-message-footer-"] .th-tag-row {{
+    margin: 0;
+}}
+
+[class*="st-key-message-footer-"] button {{
+    min-height: 30px;
+}}
+
+[class*="st-key-message-card-"] [data-testid="stVerticalBlock"] {{
+    gap: var(--th-space-2);
+}}
+
 .th-tag-row {{
     display: flex;
     flex-wrap: wrap;
