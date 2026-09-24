@@ -108,10 +108,12 @@ def load_peer_records(
 
     for dialog in dialogs:
         peer_type = dialog.get("peer_type", "")
+        access_hash = dialog.get("peer_access_hash")
         if not peer_type:
             continue
+        if peer_type != "group" and access_hash is None:
+            continue
 
-        access_hash = dialog.get("peer_access_hash")
         records.append(
             (
                 int(dialog["id"]),
@@ -126,8 +128,17 @@ def load_peer_records(
 
 
 def cache_has_peer_metadata(dialogs: list[dict]) -> bool:
-    """True when every cached dialog came from the peer-aware schema."""
-    return bool(dialogs) and all(
-        bool(dialog.get("peer_type"))
-        for dialog in dialogs
-    )
+    """True when every cached dialog has enough data to hydrate Pyrogram."""
+    if not dialogs:
+        return False
+
+    for dialog in dialogs:
+        peer_type = dialog.get("peer_type", "")
+        access_hash = dialog.get("peer_access_hash")
+
+        if not peer_type:
+            return False
+        if peer_type != "group" and access_hash is None:
+            return False
+
+    return True
