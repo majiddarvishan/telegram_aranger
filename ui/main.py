@@ -8,6 +8,7 @@ import streamlit as st
 from db.dialogs import load_dialogs as load_cached_dialogs, replace_dialogs
 from db.tags import all_tags, get_tags_for_messages, save_tags
 from services.telegram_service import delete_message, get_dialogs, history, start_media_download
+from ui.theme import MESSAGE_HEADER_CSS
 from utils.date_range import bounds, normalize_range
 
 
@@ -288,58 +289,7 @@ def _prepare_date_range(today):
 MESSAGE_HEADER_KEY = "message-header"
 MESSAGE_SCROLL_KEY = "message-scroll-area"
 
-MESSAGE_HEADER_CSS = """
-/*
- * Header stays in normal document flow. Messages scroll inside their own
- * Streamlit fixed-height container below, so overlap is structurally impossible.
- */
-.st-key-message-header {
-    position: relative;
-    z-index: 2;
-    padding: 12px 14px 14px 14px;
-    margin-bottom: 10px;
-    background: var(--background-color);
-    border: 1px solid rgba(128, 128, 128, 0.22);
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-}
-
-.st-key-message-header [data-testid="stHorizontalBlock"] {
-    align-items: end;
-    gap: 10px;
-}
-.st-key-message-header label {
-    margin-bottom: 4px;
-}
-.st-key-message-header [data-testid="stDateInput"] {
-    width: 100%;
-}
-.st-key-message-header [data-testid="stDateInput"] > div {
-    width: 100%;
-}
-.st-key-message-header button {
-    min-height: 40px;
-}
-
-/* Keep the official Streamlit scroll container visually integrated. */
-.st-key-message-scroll-area {
-    border: 1px solid rgba(128, 128, 128, 0.18) !important;
-    border-radius: 12px !important;
-    background: var(--background-color);
-}
-"""
-
-
-def _render_header_styles():
-    st.markdown(
-        f"<style>{MESSAGE_HEADER_CSS}</style>",
-        unsafe_allow_html=True,
-    )
-
-
 def _render_message_header(settings, options, current_chat_id, today):
-    _render_header_styles()
-
     account_id = st.session_state.selected_telegram_account_id
     tags = all_tags(settings.db_file, account_id)
     start_date, end_date = _prepare_date_range(today)
