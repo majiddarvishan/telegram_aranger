@@ -244,8 +244,8 @@ def _message_text(message, media: dict | None) -> str:
     return "[Message]"
 
 
-async def _history(chat_id, start_dt, end_dt, limit=100):
-    client = get_runtime().client
+async def _history(chat_id, start_dt, end_dt, limit=100, client=None):
+    client = client or get_runtime().client
     if client is None:
         raise RuntimeError("Telegram client is not connected.")
 
