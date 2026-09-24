@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import extra_streamlit_components as stx
 import streamlit as st
@@ -25,19 +25,36 @@ def get_cookie_manager():
 
 
 def restore_remembered_user(settings) -> bool:
-    """Restore the Web user from the persistent browser cookie, if present."""
+    """Restore the Web user from the persistent browser cookie, if present.
+
+    CookieManager is a custom Streamlit component. On a fresh browser/server
+    session its first render can return the component default before browser
+    cookies have arrived. Because the manager instance is intentionally kept in
+    session_state, relying on manager.get() would keep that initial snapshot
+    forever. Refresh the cookie snapshot explicitly on every restore attempt.
+    """
     if st.session_state.get("web_user") is not None:
         return True
 
     cookie_manager = get_cookie_manager()
-    token = cookie_manager.get(COOKIE_NAME)
+    cookies = cookie_manager.get_all(key="restore_remember_cookies") or {}
+
+    hydrated = st.session_state.get("_remember_cookie_hydrated", False)
+    if not hydrated:
+        st.session_state._remember_cookie_hydrated = True
+        if COOKIE_NAME not in cookies:
+            # Give the browser-side component one rerun to hydrate persisted
+            # cookies before deciding that no remembered login exists.
+            st.stop()
+
+    token = cookies.get(COOKIE_NAME)
     if not token:
         return False
 
     user = get_user_by_session(settings.db_file, token)
     if not user:
         try:
-            cookie_manager.delete(COOKIE_NAME)
+            cookie_manager.delete(COOKIE_NAME, key="delete_invalid_remember_cookie")
         except Exception:
             pass
         return False
@@ -66,7 +83,7 @@ def logout_web_user(settings) -> None:
 
 def _create_remember_session(settings, user: dict) -> None:
     token = create_session(settings.db_file, user["id"], settings.remember_me_days)
-    expires_at = datetime.now() + timedelta(days=settings.remember_me_days)
+    expires_at = datetime.now(timezone.utc) + timedelta(days=settings.remember_me_days)
     get_cookie_manager().set(
         COOKIE_NAME,
         token,
@@ -74,6 +91,7 @@ def _create_remember_session(settings, user: dict) -> None:
         path="/",
         expires_at=expires_at,
         secure=None,
+        max_age=settings.remember_me_days * 24 * 60 * 60,
         same_site="lax",
     )
     st.session_state.remember_token = token
