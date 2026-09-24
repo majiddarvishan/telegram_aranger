@@ -255,10 +255,11 @@ class TelegramMediaDownloadTests(unittest.TestCase):
                     max_megabytes=10,
                 )
             )
+            recovered_bytes = Path(second["path"]).read_bytes()
 
         self.assertEqual(client.download_count, 2)
         self.assertFalse(second["cached"])
-        self.assertEqual(Path(second["path"]).read_bytes(), b"video-data")
+        self.assertEqual(recovered_bytes, b"video-data")
 
     def test_force_download_bypasses_valid_cache(self):
         video = make_media(
