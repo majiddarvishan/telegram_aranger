@@ -303,6 +303,7 @@ async def _download_media(
     cache_max_mb: int,
     max_megabytes: int,
     progress_callback=None,
+    force_download: bool = False,
 ):
     runtime = get_runtime()
     client = runtime.client
@@ -346,6 +347,14 @@ async def _download_media(
         media_type=media["type"],
         file_name=cached_name,
     )
+
+    if force_download and final_path.exists():
+        try:
+            final_path.unlink()
+        except OSError as exc:
+            raise RuntimeError(
+                "Cached media could not be removed for a forced re-download."
+            ) from exc
 
     if is_valid_cached_file(
         final_path,
@@ -411,6 +420,7 @@ def start_media_download(
     account_id: int,
     settings,
     max_megabytes: int,
+    force_download: bool = False,
 ):
     runtime = get_runtime()
     progress = MediaDownloadProgress()
@@ -424,6 +434,7 @@ def start_media_download(
             cache_max_mb=settings.media_cache_max_mb,
             max_megabytes=max_megabytes,
             progress_callback=progress.update,
+            force_download=force_download,
         )
     )
     return future, progress
@@ -435,6 +446,7 @@ def download_media(
     account_id: int,
     settings,
     max_megabytes: int,
+    force_download: bool = False,
 ):
     future, _ = start_media_download(
         chat_id=chat_id,
@@ -442,6 +454,7 @@ def download_media(
         account_id=account_id,
         settings=settings,
         max_megabytes=max_megabytes,
+        force_download=force_download,
     )
     return future.result()
 
