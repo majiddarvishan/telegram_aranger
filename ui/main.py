@@ -251,7 +251,6 @@ def _prepare_date_range(today):
 
 MESSAGE_HEADER_KEY = "message-header"
 MESSAGE_SCROLL_KEY = "message-scroll-area"
-MESSAGE_SCROLL_HEIGHT = 420
 
 MESSAGE_HEADER_CSS = """
 /*
@@ -479,7 +478,7 @@ def _render_message_scroll_area(
     )
 
     with st.container(
-        height=MESSAGE_SCROLL_HEIGHT,
+        height=settings.message_scroll_height,
         border=True,
         key=MESSAGE_SCROLL_KEY,
     ):
