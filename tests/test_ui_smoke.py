@@ -36,9 +36,10 @@ class StickyHeaderTests(unittest.TestCase):
         actions_source = inspect.getsource(_render_message_actions)
         scroll_source = inspect.getsource(_render_message_scroll_area)
 
-        self.assertIn("Load More Messages", actions_source)
-        self.assertIn("Refresh Messages", actions_source)
-        self.assertNotIn("Load More Messages", scroll_source)
+        self.assertIn("Load more", actions_source)
+        self.assertIn("Refresh", actions_source)
+        self.assertIn("action_summary_html", actions_source)
+        self.assertNotIn("Load more", scroll_source)
 
 class UiMessageSmokeTests(unittest.TestCase):
     def setUp(self):
@@ -106,6 +107,19 @@ class UiMessageSmokeTests(unittest.TestCase):
         self.assertIn("st.text_input", tag_source)
         self.assertNotIn("Tags (comma-separated)", card_source)
 
+    def test_media_actions_use_compact_hierarchy(self):
+        import inspect
+        from ui.main import _render_media
+
+        source = inspect.getsource(_render_media)
+
+        self.assertIn("Play video", source)
+        self.assertIn("Prepare download", source)
+        self.assertIn("Download", source)
+        self.assertIn("Redownload", source)
+        self.assertNotIn("Load Video", source)
+        self.assertNotIn("Prepare Video Download", source)
+
     def test_message_card_and_editor_keys_are_stable(self):
         self.assertEqual(_message_card_key(7, 42), "message-card-7-42")
         self.assertEqual(
@@ -150,6 +164,27 @@ class UiMessageSmokeTests(unittest.TestCase):
         self.assertNotIn("7:-100:42:download", cleaned)
         self.assertIn("7:-100:43:preview", cleaned)
         self.assertIn("8:-100:42:preview", cleaned)
+
+
+class SidebarHierarchySmokeTests(unittest.TestCase):
+    def test_sidebar_groups_network_and_destructive_actions(self):
+        import inspect
+        from ui.sidebar import (
+            _render_connected_account_actions,
+            _render_network_settings,
+            _render_web_account,
+        )
+
+        network_source = inspect.getsource(_render_network_settings)
+        actions_source = inspect.getsource(
+            _render_connected_account_actions
+        )
+        web_source = inspect.getsource(_render_web_account)
+
+        self.assertIn("Network & proxy", network_source)
+        self.assertIn("Account actions", actions_source)
+        self.assertIn("Logout & remove account", actions_source)
+        self.assertIn("Sign out", web_source)
 
 
 class UiAccountSelectionSmokeTests(unittest.TestCase):
