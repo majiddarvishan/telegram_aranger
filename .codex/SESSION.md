@@ -400,3 +400,21 @@ Fix:
 - Added regression assertions for the opaque backdrop and stacking behavior.
 
 Current development version remains `1.0.1-dev`.
+
+
+## 2026-09-25 — Replace fixed overlay header with dedicated message scroll area
+
+User confirmed that multiple fixed/z-index/backdrop variants still allowed message cards to visually mix with the header while scrolling.
+
+Final architecture change:
+- Removed viewport-fixed header behavior entirely.
+- Removed the opaque backdrop and artificial fixed-header spacer.
+- Header now stays in normal Streamlit document flow.
+- Message cards are rendered inside an official fixed-height Streamlit container with its own vertical scrolling.
+- Because only the message area scrolls, messages can no longer pass behind or overlap the header.
+- Previous/Next date navigation remains inside the header.
+- Message scroll container uses key `message-scroll-area`.
+- Current scroll height is 420px to reduce the chance that the outer page itself needs to scroll on normal desktop viewports.
+- Updated UI regression coverage to ensure no fixed header/backdrop/spacer CSS returns.
+
+This replaces the earlier fixed-overlay approach; those earlier fixes should be considered superseded.
