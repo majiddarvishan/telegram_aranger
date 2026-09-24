@@ -29,6 +29,7 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 - [x] Keep message deletion behavior working for media messages exactly as it does for text messages.
 - [x] Verify captions, tags, search result rendering, and date filtering still work for media messages.
 - [x] Add tests for media-type detection and metadata mapping.
+  - Coverage: all supported media types (`photo`, `video`, `animation`, `document`, `audio`, `voice`, `video_note`) plus normalized metadata fields and text/caption fallback behavior.
 - [x] Add tests for lazy download/cache behavior.
 - [x] Add tests for video download naming/MIME behavior and failure paths.
 - [ ] Manually verify photo preview, inline video playback, and browser video download with small and large Telegram media.
