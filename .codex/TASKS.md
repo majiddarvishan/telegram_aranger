@@ -34,7 +34,7 @@ This file began as the 2026-09-24 review backlog and now tracks implementation s
   - Coverage: all supported media types (`photo`, `video`, `animation`, `document`, `audio`, `voice`, `video_note`) plus normalized metadata fields and text/caption fallback behavior.
 - [x] Add tests for lazy download/cache behavior.
 - [x] Add tests for video download naming/MIME behavior and failure paths.
-- [ ] Manually verify photo preview, inline video playback, browser video download, and interrupted-download recovery with real small/large Telegram media. Follow `docs/MANUAL_TESTING.md`.
+- [x] Manually verified photo preview, inline video playback, browser video download, and interrupted-download recovery with real Telegram media; user reported no issues.
 
 ### P1 media validation status
 - Pure cache tests were executed successfully in the available local runtime.
@@ -98,11 +98,11 @@ This file began as the 2026-09-24 review backlog and now tracks implementation s
 
 ## Current completion summary
 - P0 correctness: complete.
-- P1 implementation/tests/security: complete except real Telegram/browser media validation.
+- P1 implementation/tests/security: complete, including real Telegram/browser media validation.
 - P2 performance/data lifecycle: complete for current single-instance scope.
 - P3 operations/UX: complete for current scope.
 - GitHub Actions regression + Docker health: green on recent branch commits.
-- Do not merge solely on this checklist if the user wants real-device media verification first.
+- Real Telegram/browser validation has been completed successfully; the feature branch is ready for merge review.
 
 ## Review baseline
 Branch before context commit:
