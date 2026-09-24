@@ -151,11 +151,7 @@ GitHub Actions currently covers:
 - UI state smoke tests;
 - Docker build/start + Streamlit health.
 
-## Remaining validation
-Only real Telegram/browser media validation remains open:
-- small/large photo preview;
-- small/large inline video playback;
-- browser video download;
-- interrupted real Telegram video transfer recovery.
+## Validation status
+Real Telegram/browser validation has been completed successfully with no issues reported, including photo preview, inline video playback, browser video download, and interrupted-download recovery.
 
-Use `docs/MANUAL_TESTING.md`.
+`docs/MANUAL_TESTING.md` remains the regression checklist for future releases.
