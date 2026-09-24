@@ -8,7 +8,7 @@ from concurrent.futures import Future
 from utils.logging import log_event
 
 
-logger = logging.getLogger("telegram_aranger.telegram_runtime")
+logger = logging.getLogger("telegram_harbor.telegram_runtime")
 
 
 def _slow_call_threshold() -> float:
