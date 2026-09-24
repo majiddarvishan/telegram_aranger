@@ -36,7 +36,9 @@ def render_sidebar(settings):
         except Exception:
             pass
         logout_web_user(settings)
-        st.rerun()
+        # Cookie deletion is browser-side. Do not tear down the component
+        # immediately with st.rerun(); let its response trigger the rerun.
+        st.stop()
     st.sidebar.markdown("---"); st.sidebar.header("⚙️ Network Settings")
     st.session_state.use_proxy=st.sidebar.checkbox("Enable SOCKS5 Proxy",value=st.session_state.use_proxy)
     if st.session_state.use_proxy:
