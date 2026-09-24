@@ -4,6 +4,8 @@ All notable Telegram Harbor changes are recorded here.
 
 ## Unreleased
 
+## 1.0.4 - 2026-09-25
+
 - Cache Telegram dialogs in SQLite per Telegram account so normal startup does not repeatedly call `messages.GetDialogs`.
 - Limit initial/explicit Telegram dialog retrieval to `TELEGRAM_DIALOG_LIMIT` (default 100).
 - Make **Refresh Chats** the explicit network refresh path.
