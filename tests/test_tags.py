@@ -4,7 +4,7 @@ import unittest
 from pathlib import Path
 
 from db.database import get_db, initialize_database
-from db.tags import all_tags, get_tags, save_tags
+from db.tags import all_tags, get_tags, get_tags_for_messages, save_tags
 from db.telegram_accounts import delete_account, save_account
 from db.users import authenticate_user, create_user
 
@@ -39,6 +39,21 @@ class MessageTagIsolationTests(unittest.TestCase):
 
         self.assertEqual(get_tags(self.db_file, self.account_id, -100, 42), ["work"])
         self.assertEqual(get_tags(self.db_file, self.account_id, -200, 42), ["family"])
+
+    def test_batch_tag_lookup_returns_all_requested_messages(self):
+        save_tags(self.db_file, self.account_id, -100, 41, ["one"])
+        save_tags(self.db_file, self.account_id, -100, 42, ["two", "shared"])
+
+        result = get_tags_for_messages(
+            self.db_file,
+            self.account_id,
+            -100,
+            [41, 42, 43],
+        )
+
+        self.assertEqual(result[41], ["one"])
+        self.assertEqual(result[42], ["two", "shared"])
+        self.assertEqual(result[43], [])
 
     def test_all_tags_excludes_legacy_unassigned_rows(self):
         save_tags(self.db_file, self.account_id, -100, 1, ["work", "important"])
