@@ -298,6 +298,99 @@ hr {{
     color: #ffffff !important;
 }}
 
+
+.th-sidebar-brand {{
+    display: flex;
+    align-items: center;
+    gap: var(--th-space-3);
+    padding: var(--th-space-2) 0 var(--th-space-3);
+}}
+
+.th-sidebar-brand__mark {{
+    display: inline-flex;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--th-border);
+    border-radius: 10px;
+    background: var(--th-surface);
+    font-size: 1.05rem;
+}}
+
+.th-sidebar-brand__name {{
+    color: var(--th-text);
+    font-size: 1rem;
+    font-weight: 750;
+    line-height: 1.1;
+}}
+
+.th-sidebar-brand__version {{
+    margin-top: 2px;
+    color: var(--th-text-muted);
+    font-size: 0.74rem;
+}}
+
+.th-account-card {{
+    padding: var(--th-space-3);
+    border: 1px solid var(--th-border);
+    border-radius: var(--th-radius-panel);
+    background: var(--th-surface);
+}}
+
+.th-account-card__name {{
+    color: var(--th-text);
+    font-weight: 700;
+}}
+
+.th-account-card__meta {{
+    margin-top: 2px;
+    color: var(--th-text-muted);
+    font-size: 0.8rem;
+}}
+
+.th-action-summary {{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--th-space-2);
+    min-height: var(--th-control-height);
+    color: var(--th-text-muted);
+    font-size: 0.8rem;
+}}
+
+.th-action-summary strong {{
+    color: var(--th-text);
+    font-weight: 700;
+}}
+
+.th-media-meta {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--th-space-2);
+    margin: var(--th-space-2) 0;
+    color: var(--th-text-muted);
+    font-size: 0.78rem;
+}}
+
+[class*="st-key-media-play-"] button,
+[class*="st-key-media-photo-"] button {{
+    border-color: color-mix(in srgb, var(--th-accent) 42%, var(--th-border)) !important;
+}}
+
+[class*="st-key-media-redownload-"] button {{
+    border-color: transparent !important;
+    background: transparent !important;
+    color: var(--th-text-muted) !important;
+    box-shadow: none !important;
+}}
+
+[class*="st-key-media-redownload-"] button:hover {{
+    border-color: var(--th-border) !important;
+    background: var(--th-surface) !important;
+}}
+
 {MESSAGE_HEADER_CSS}
 
 @media (max-width: 900px) {{
@@ -375,3 +468,44 @@ def message_meta_html(
             ]
         )
     return f'<div class="th-message-meta">{"".join(parts)}</div>'
+
+
+
+def sidebar_brand_html(name: str, version: str) -> str:
+    return (
+        '<div class="th-sidebar-brand">'
+        '<span class="th-sidebar-brand__mark">⚓</span>'
+        '<span>'
+        f'<div class="th-sidebar-brand__name">{escape(name)}</div>'
+        f'<div class="th-sidebar-brand__version">v{escape(version)}</div>'
+        '</span>'
+        '</div>'
+    )
+
+
+def account_card_html(display_name: str, username: str) -> str:
+    return (
+        '<div class="th-account-card">'
+        f'<div class="th-account-card__name">{escape(display_name)}</div>'
+        f'<div class="th-account-card__meta">@{escape(username)}</div>'
+        '</div>'
+    )
+
+
+def action_summary_html(visible: int, loaded: int) -> str:
+    return (
+        '<div class="th-action-summary">'
+        f'<span><strong>{int(visible)}</strong> visible</span>'
+        '<span>•</span>'
+        f'<span><strong>{int(loaded)}</strong> loaded</span>'
+        '</div>'
+    )
+
+
+def media_meta_html(parts: list[str]) -> str:
+    safe_parts = [
+        f"<span>{escape(part)}</span>"
+        for part in parts
+        if part
+    ]
+    return f'<div class="th-media-meta">{"<span>•</span>".join(safe_parts)}</div>'
