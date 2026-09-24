@@ -71,6 +71,9 @@ jobs:
       - name: Database configuration tests
         run: python -m unittest discover -s tests -p "test_database.py" -v
 
+      - name: Backup and restore tests
+        run: python -m unittest discover -s tests -p "test_backup_restore.py" -v
+
       - name: Telegram account tests
         run: python -m unittest discover -s tests -p "test_telegram_accounts.py" -v
 
