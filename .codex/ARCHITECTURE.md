@@ -1,4 +1,4 @@
-# Architecture
+# Telegram Harbor Architecture
 
 ## High-level flow
 
