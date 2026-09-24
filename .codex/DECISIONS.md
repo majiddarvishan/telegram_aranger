@@ -1,6 +1,6 @@
 # Decisions / Observed Design Choices
 
-These are the current implementation/architecture decisions for `feature/media-support`. Update this file when the user changes a requirement or a later phase supersedes one.
+These are the current implementation/architecture decisions for **Telegram Harbor** on `main`. Update this file when the user changes a requirement or a later phase supersedes one.
 
 ## D-001 — Streamlit is the application shell
 Status: current
@@ -107,10 +107,12 @@ Status: current
 
 The supported container model is a single non-root Streamlit instance with persistent state under /data and health checking through Streamlit /_stcore/health. Telegram connectivity is user/session-specific and is not part of process readiness.
 
-## D-021 — Product scope is broader than the legacy display name
+## D-021 — Product name is Telegram Harbor
 Status: current
 
-The product behaves as a general Telegram message manager for private chats, groups, supergroups, channels, and Saved Messages. The legacy UI title remains until the user explicitly requests a rename.
+The product is named **Telegram Harbor** and behaves as a general Telegram message/media manager for private chats, groups, supergroups, channels, and Saved Messages.
+
+The GitHub repository name remains `telegram_aranger` for now. Persisted compatibility identifiers such as the existing cookie name, default database filename, and Docker volume name are intentionally retained to avoid breaking login persistence or hiding existing data.
 
 ## D-022 — Permanent message deletion requires confirmation
 Status: current
