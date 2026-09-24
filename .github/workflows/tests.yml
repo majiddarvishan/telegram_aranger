@@ -32,5 +32,29 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run unit tests
-        run: python -m unittest discover -s tests -v
+      - name: Media cache tests
+        run: python tests/test_media_cache.py
+
+      - name: Telegram media tests
+        run: python tests/test_telegram_media.py
+
+      - name: Remember-me restore tests
+        run: python tests/test_remember_me_restore.py
+
+      - name: Authentication tests
+        run: python tests/test_auth.py
+
+      - name: Login security tests
+        run: python tests/test_login_security.py
+
+      - name: Telegram account tests
+        run: python tests/test_telegram_accounts.py
+
+      - name: Tag isolation and migration tests
+        run: python tests/test_tags.py
+
+      - name: History tests
+        run: python tests/test_history.py
+
+      - name: UI state smoke tests
+        run: python tests/test_ui_smoke.py
