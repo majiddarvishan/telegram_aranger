@@ -1,4 +1,4 @@
-# Scaling and Performance
+# Telegram Harbor Scaling and Performance
 
 ## Current deployment model
 
