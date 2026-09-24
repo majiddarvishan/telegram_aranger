@@ -166,7 +166,7 @@ class MessageTagMigrationTests(unittest.TestCase):
 
             self.assertIn("chat_id", columns)
             self.assertEqual(row, (10, 0, 42, "legacy-tag"))
-            self.assertEqual(get_schema_version(db_file), 2)
+            self.assertEqual(get_schema_version(db_file), 3)
 
 
 if __name__ == "__main__":
