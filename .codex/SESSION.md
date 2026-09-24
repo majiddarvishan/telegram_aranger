@@ -766,3 +766,46 @@ Validation added:
 Manual status:
 - Light-theme desktop screenshot reviewed.
 - Dark-theme, narrow viewport and photo-card review remain open.
+
+
+## 2026-09-25 — Dark-mode and cached-peer validation
+
+User supplied additional screenshots covering:
+- a Telegram history failure for cached chat ID -1003075722346;
+- representative photo cards in Light mode;
+- a loaded photo preview;
+- Dark mode.
+
+Findings:
+1. The dialog SQLite cache can outlive Pyrogram's in-memory peer/access-hash cache. A cached channel/supergroup can therefore be visible in the selector while the first get_chat_history call raises PeerIdInvalid.
+2. Custom GUI surfaces were still effectively forcing a light palette in Dark mode. Message cards/header/account surfaces stayed white and some custom text/counts lost contrast.
+3. On fetch failure the UI showed both the red error and a misleading normal No messages found state.
+
+Correctness fix:
+- added lazy history recovery around PeerIdInvalid;
+- when a cached dialog has a username, Pyrogram warms that specific peer via get_chat(username);
+- otherwise it performs one bounded get_dialogs refresh using the configured dialog limit and then resolves the selected peer;
+- history is retried once after peer warmup;
+- the UI passes the selected cached dialog username as a recovery hint;
+- added tests for username-first warmup, bounded fallback, and single retry.
+
+Dark-mode fix:
+- removed light color fallbacks from custom Telegram Harbor text/surface tokens;
+- custom card/auth backgrounds no longer force white;
+- shared surfaces use neutral transparent overlays that adapt to the underlying Streamlit theme;
+- primary custom text now inherits the active Streamlit foreground;
+- added regression tests preventing reintroduction of forced-light card backgrounds.
+
+Fetch-state fix:
+- added message_fetch_error session state;
+- account changes/range changes clear stale fetch errors;
+- fetch failures render Messages unavailable rather than a false empty-result state.
+
+Manual validation status:
+- Light desktop reviewed.
+- Text/video/photo cards reviewed.
+- Dark screenshot reviewed before the adaptive-surface fix; one post-fix Dark screenshot remains required.
+- Narrow viewport review remains open.
+
+Release note:
+- PeerIdInvalid recovery is a correctness fix, not merely visual. Backport it to main before the next release if the GUI branch is not merged as a whole.
