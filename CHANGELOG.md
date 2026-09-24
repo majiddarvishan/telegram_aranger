@@ -4,6 +4,14 @@ All notable Telegram Harbor changes are recorded here.
 
 ## Unreleased
 
+- Cache Telegram dialogs in SQLite per Telegram account so normal startup does not repeatedly call `messages.GetDialogs`.
+- Limit initial/explicit Telegram dialog retrieval to `TELEGRAM_DIALOG_LIMIT` (default 100).
+- Make **Refresh Chats** the explicit network refresh path.
+- Serialize uncached dialog refreshes inside the process so concurrent Streamlit sessions do not hammer Telegram with duplicate `GetDialogs` requests.
+- Fall back to cached chats when an explicit Telegram refresh fails.
+- Log `application_ready` only once per Streamlit session instead of every rerun.
+- Upgrade SQLite schema to version 3 for dialog-cache persistence.
+
 - Remove Streamlit ScriptRunContext access from Telegram runtime coroutines.
 - Pass runtime/client objects from the Streamlit thread into background async Telegram operations instead of re-reading `st.session_state` inside `TelegramRuntime`.
 - Add operation names to slow Telegram wait logs, so long calls identify `restore_session`, `get_dialogs`, `history`, etc.
