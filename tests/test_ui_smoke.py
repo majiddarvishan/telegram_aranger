@@ -12,11 +12,17 @@ from ui.sidebar import _apply_account_selection
 
 
 class StickyHeaderTests(unittest.TestCase):
-    def test_message_header_uses_css_safe_key_and_sticky_positioning(self):
+    def test_message_header_is_fixed_without_overflowing_viewport(self):
         self.assertEqual(MESSAGE_HEADER_KEY, "message-header")
         self.assertIn(".st-key-message-header", MESSAGE_HEADER_CSS)
         self.assertIn("position: fixed", MESSAGE_HEADER_CSS)
-        self.assertIn("top: 0.75rem", MESSAGE_HEADER_CSS)
+        self.assertIn("top: 4rem", MESSAGE_HEADER_CSS)
+        self.assertIn("left: 5rem", MESSAGE_HEADER_CSS)
+        self.assertIn("right: 5rem", MESSAGE_HEADER_CSS)
+        self.assertIn("width: auto !important", MESSAGE_HEADER_CSS)
+        self.assertIn("background: var(--background-color)", MESSAGE_HEADER_CSS)
+        self.assertIn('[data-testid="stSidebar"][aria-expanded="true"]', MESSAGE_HEADER_CSS)
+        self.assertIn("left: 26rem", MESSAGE_HEADER_CSS)
         self.assertIn(".message-header-fixed-spacer", MESSAGE_HEADER_CSS)
 
 
