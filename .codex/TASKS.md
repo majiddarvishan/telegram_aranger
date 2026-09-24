@@ -92,6 +92,7 @@ This file began as the 2026-09-24 review backlog and now tracks implementation s
 - [x] Reconcile TgCrypto documentation: upstream can run without it, but this repository installs it and treats it as part of the supported deployment profile.
 
 ## P3 — UX / product definition
+- [x] Make the message filter/control area sticky while message content scrolls; fix the Streamlit container key/CSS selector mismatch and cover it with a regression test.
 - [x] Rename the product to **Telegram Harbor** across UI, documentation, Docker/CI naming, logger namespaces, and project context while preserving persisted compatibility identifiers.
 - [x] Surface loaded/visible counts, current message limit, end-of-range state, and an explicit `Load More Messages` action.
 - [x] Require an explicit second-step confirmation before permanently deleting a Telegram message.
@@ -109,3 +110,7 @@ This file began as the 2026-09-24 review backlog and now tracks implementation s
 Branch before context commit:
 - `others@5e7d1943b6289dc8c7def7f2a5426097016cc4c3`
 - Compared with `main@76f7b4e56ec21873b6ede338f0800cc9c33df2f4`: ahead 5, behind 0.
+
+
+## Release checkpoints
+- [x] Telegram Harbor v1.0.0 release checkpoint recorded at `bd8c8b211aa8e3ee5ca09c864b3e4803eac6807b` with root `VERSION=1.0.0`, sidebar version display, branding test, README version, and green CI.
