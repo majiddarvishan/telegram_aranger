@@ -6,7 +6,9 @@ from ui.main import (
     MESSAGE_HEADER_KEY,
     MESSAGE_SCROLL_KEY,
     _delete_state_key,
+    _message_card_key,
     _message_matches_filters,
+    _tag_editor_state_key,
     _remove_message_from_state,
 )
 from ui.sidebar import _apply_account_selection
@@ -90,6 +92,25 @@ class UiMessageSmokeTests(unittest.TestCase):
                 "",
                 "All",
             )
+        )
+
+    def test_message_card_uses_on_demand_tag_editor(self):
+        import inspect
+        from ui.main import _render_message_card, _render_tag_controls
+
+        card_source = inspect.getsource(_render_message_card)
+        tag_source = inspect.getsource(_render_tag_controls)
+
+        self.assertIn("tag_chips_html", tag_source)
+        self.assertIn("Edit tags", tag_source)
+        self.assertIn("st.text_input", tag_source)
+        self.assertNotIn("Tags (comma-separated)", card_source)
+
+    def test_message_card_and_editor_keys_are_stable(self):
+        self.assertEqual(_message_card_key(7, 42), "message-card-7-42")
+        self.assertEqual(
+            _tag_editor_state_key(7, -100, 42),
+            "7:-100:42",
         )
 
     def test_delete_confirmation_key_is_scoped_to_account_chat_and_message(self):
