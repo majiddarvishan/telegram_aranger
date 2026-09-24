@@ -175,14 +175,14 @@ def logout():
     )
 
 
-async def _dialogs(client):
+async def _dialogs(client, limit: int):
     """Return Telegram dialogs without relying on version-specific Dialog attributes."""
     if client is None:
         raise RuntimeError("Telegram client is not connected.")
 
     result = []
 
-    async for dialog in client.get_dialogs():
+    async for dialog in client.get_dialogs(limit=limit):
         chat = dialog.chat
         chat_type = getattr(chat.type, "value", str(chat.type)).lower()
 
@@ -207,10 +207,10 @@ async def _dialogs(client):
     return result
 
 
-def get_dialogs():
+def get_dialogs(limit: int):
     runtime = get_runtime()
     return runtime.run(
-        _dialogs(runtime.client),
+        _dialogs(runtime.client, limit),
         operation="get_dialogs",
     )
 
