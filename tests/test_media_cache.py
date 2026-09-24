@@ -4,7 +4,13 @@ import time
 import unittest
 from pathlib import Path
 
-from services.media_cache import cache_path, cleanup_cache, is_fresh, safe_file_name
+from services.media_cache import (
+    cache_path,
+    cleanup_cache,
+    is_fresh,
+    is_valid_cached_file,
+    safe_file_name,
+)
 
 
 class MediaCacheTests(unittest.TestCase):
@@ -34,6 +40,27 @@ class MediaCacheTests(unittest.TestCase):
             old = time.time() - 7200
             os.utime(path, (old, old))
             self.assertFalse(is_fresh(path, 1))
+
+    def test_valid_cache_requires_expected_size(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "video.mp4"
+            path.write_bytes(b"12345")
+
+            self.assertTrue(is_valid_cached_file(path, ttl_hours=1, expected_size=5))
+            self.assertFalse(is_valid_cached_file(path, ttl_hours=1, expected_size=10))
+
+    def test_cleanup_removes_interrupted_part_files_immediately(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            part_file = root / ".video.mp4.deadbeef.part"
+            fresh_file = root / "video.mp4"
+            part_file.write_bytes(b"partial")
+            fresh_file.write_bytes(b"complete")
+
+            cleanup_cache(tmp, ttl_hours=24, max_megabytes=100)
+
+            self.assertFalse(part_file.exists())
+            self.assertTrue(fresh_file.exists())
 
     def test_cleanup_removes_expired_files(self):
         with tempfile.TemporaryDirectory() as tmp:
