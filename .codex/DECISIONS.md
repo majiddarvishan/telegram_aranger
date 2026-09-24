@@ -53,3 +53,10 @@ The raw random token is kept in the browser cookie. Only SHA-256(token) and expi
 Status: current
 
 Compared with `main`, this branch significantly shrinks `app.py` and separates configuration, persistence, Telegram services/runtime, UI, and utilities. Future changes should preserve this separation unless a redesign is explicitly requested.
+
+## D-011 — Media is downloaded lazily
+Status: current
+
+Telegram message listing carries metadata only. Full media bytes are fetched only after an explicit user action such as photo preview, video playback, or video-download preparation.
+
+Downloaded media is stored in a bounded local cache scoped by Web-selected Telegram account, chat, and message. Cache TTL, total size, preview size, and download size are configurable. Video browser downloads use the cached file and keep the Telegram-facing download separate from the browser-facing download control.
