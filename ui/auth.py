@@ -120,6 +120,31 @@ def _create_remember_session(settings, user: dict) -> None:
     st.session_state.remember_token = token
 
 
+def _complete_successful_login(settings, user: dict, remember_me: bool) -> bool:
+    """Persist successful Web login state.
+
+    Returns True when the caller should force an immediate Streamlit rerun.
+
+    Remember-me cookie writes are performed by a browser-side custom component.
+    Forcing st.rerun() in the same script pass can tear down that component
+    before the browser has persisted the cookie. In that case the in-memory
+    Streamlit login works, but the next application/browser restart has no
+    cookie to restore.
+
+    When Remember Me is enabled, leave the current run in place so the
+    CookieManager component can complete the browser write. The component
+    response triggers the next Streamlit rerun naturally.
+    """
+    if remember_me:
+        _create_remember_session(settings, user)
+        st.session_state.web_user = user
+        return False
+
+    _clear_remember_cookie(settings)
+    st.session_state.web_user = user
+    return True
+
+
 def render_web_auth(settings):
     st.title("🔐 Telegram Saved Messages Manager")
     login, register = st.tabs(["Login", "Create Account"])
@@ -152,12 +177,13 @@ def render_web_auth(settings):
                     st.error("Invalid username or password.")
                 else:
                     clear_failed_logins(settings.db_file, username)
-                    if remember_me:
-                        _create_remember_session(settings, user)
-                    else:
-                        _clear_remember_cookie(settings)
-                    st.session_state.web_user = user
-                    st.rerun()
+                    should_rerun = _complete_successful_login(
+                        settings,
+                        user,
+                        remember_me,
+                    )
+                    if should_rerun:
+                        st.rerun()
 
     with register:
         with st.form("web_register"):
