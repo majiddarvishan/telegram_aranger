@@ -28,15 +28,17 @@ logger = logging.getLogger("telegram_harbor.app")
 
 settings = load_settings()
 initialize_database(settings.db_file)
-expired_sessions = cleanup_expired_sessions(settings.db_file)
 initialize_state()
 
-log_event(
-    logger,
-    "application_ready",
-    db_file=settings.db_file,
-    expired_sessions_removed=expired_sessions,
-)
+if not st.session_state.get("_application_ready_logged", False):
+    expired_sessions = cleanup_expired_sessions(settings.db_file)
+    log_event(
+        logger,
+        "application_ready",
+        db_file=settings.db_file,
+        expired_sessions_removed=expired_sessions,
+    )
+    st.session_state._application_ready_logged = True
 
 if st.session_state.web_user is None:
     restore_remembered_user(settings)
