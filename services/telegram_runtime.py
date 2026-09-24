@@ -1,7 +1,21 @@
 import asyncio
+import logging
+import os
 import threading
 import time
 from concurrent.futures import Future
+
+from utils.logging import log_event
+
+
+logger = logging.getLogger("telegram_aranger.telegram_runtime")
+
+
+def _slow_call_threshold() -> float:
+    try:
+        return max(0.0, float(os.getenv("TELEGRAM_SLOW_CALL_SECONDS", "1.0")))
+    except ValueError:
+        return 1.0
 
 
 class TelegramRuntime:
@@ -42,6 +56,14 @@ class TelegramRuntime:
             self.run_calls += 1
             self.last_wait_seconds = elapsed
             self.max_wait_seconds = max(self.max_wait_seconds, elapsed)
+            if elapsed >= _slow_call_threshold():
+                log_event(
+                    logger,
+                    "telegram_runtime_slow_wait",
+                    level=logging.WARNING,
+                    wait_seconds=round(elapsed, 3),
+                    run_calls=self.run_calls,
+                )
 
     def metrics(self) -> dict:
         return {
