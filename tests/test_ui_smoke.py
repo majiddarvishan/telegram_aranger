@@ -12,17 +12,22 @@ from ui.sidebar import _apply_account_selection
 
 
 class StickyHeaderTests(unittest.TestCase):
-    def test_message_header_is_fixed_without_overflowing_viewport(self):
+    def test_message_header_is_fixed_and_masks_scrolled_content(self):
         self.assertEqual(MESSAGE_HEADER_KEY, "message-header")
         self.assertIn(".st-key-message-header", MESSAGE_HEADER_CSS)
         self.assertIn("position: fixed", MESSAGE_HEADER_CSS)
-        self.assertIn("top: 4rem", MESSAGE_HEADER_CSS)
-        self.assertIn("left: 5rem", MESSAGE_HEADER_CSS)
-        self.assertIn("right: 5rem", MESSAGE_HEADER_CSS)
+        self.assertIn("--telegram-harbor-header-top: 4rem", MESSAGE_HEADER_CSS)
+        self.assertIn("--telegram-harbor-header-left: 5rem", MESSAGE_HEADER_CSS)
+        self.assertIn("--telegram-harbor-header-right: 5rem", MESSAGE_HEADER_CSS)
         self.assertIn("width: auto !important", MESSAGE_HEADER_CSS)
-        self.assertIn("background: var(--background-color)", MESSAGE_HEADER_CSS)
+        self.assertIn("z-index: 10000 !important", MESSAGE_HEADER_CSS)
+        self.assertIn("isolation: isolate", MESSAGE_HEADER_CSS)
+        self.assertIn("background: var(--background-color) !important", MESSAGE_HEADER_CSS)
+        self.assertIn(".message-header-backdrop", MESSAGE_HEADER_CSS)
+        self.assertIn("z-index: 9998", MESSAGE_HEADER_CSS)
+        self.assertIn("pointer-events: none", MESSAGE_HEADER_CSS)
         self.assertIn('[data-testid="stSidebar"][aria-expanded="true"]', MESSAGE_HEADER_CSS)
-        self.assertIn("left: 26rem", MESSAGE_HEADER_CSS)
+        self.assertIn("--telegram-harbor-header-left: 26rem", MESSAGE_HEADER_CSS)
         self.assertIn(".message-header-fixed-spacer", MESSAGE_HEADER_CSS)
 
 
