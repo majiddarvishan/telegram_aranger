@@ -1,4 +1,4 @@
-# Backup and Restore
+# Telegram Harbor Backup and Restore
 
 ## What must be protected together
 
@@ -37,7 +37,7 @@ Ensure `TELEGRAM_SESSION_ENCRYPTION_KEY` contains the key paired with the backup
 
 ```bash
 python scripts/restore_db.py \
-  --backup-dir backups/telegram-backup-YYYYMMDDTHHMMSSZ \
+  --backup-dir backups/telegram-harbor-backup-YYYYMMDDTHHMMSSZ \
   --db telegram_manager.db
 ```
 
