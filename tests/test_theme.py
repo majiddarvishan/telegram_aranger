@@ -5,7 +5,9 @@ from ui.theme import (
     DESIGN_TOKENS,
     MESSAGE_HEADER_CSS,
     badge_html,
+    message_meta_html,
     section_title_html,
+    tag_chips_html,
 )
 
 
@@ -50,6 +52,25 @@ class ThemeFoundationTests(unittest.TestCase):
 
         self.assertIn("th-section-title", markup)
         self.assertIn("&lt;Network&gt;", markup)
+
+    def test_tag_chips_escape_user_text(self):
+        markup = tag_chips_html(["work", "<admin>"])
+
+        self.assertIn("th-tag-chip", markup)
+        self.assertIn("work", markup)
+        self.assertIn("&lt;admin&gt;", markup)
+        self.assertNotIn("<admin>", markup)
+
+    def test_message_meta_markup_is_compact_and_safe(self):
+        markup = message_meta_html(
+            "2026-09-25 10:00:00",
+            42,
+            "<Video>",
+        )
+
+        self.assertIn("th-message-meta", markup)
+        self.assertIn("ID 42", markup)
+        self.assertIn("&lt;Video&gt;", markup)
 
 
 if __name__ == "__main__":
