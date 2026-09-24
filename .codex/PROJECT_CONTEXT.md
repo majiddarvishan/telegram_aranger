@@ -33,7 +33,7 @@ The product supports Saved Messages plus private chats, groups, supergroups, and
 - Real byte-level media download progress.
 - Bounded media cache with TTL/size limits.
 - Interrupted/corrupt media recovery and explicit **Redownload Video**.
-- SQLite schema versioning/migration.
+- SQLite schema versioning/migration (current development schema: v4).
 - Database backup/restore helpers.
 - Structured JSON logging with sensitive-context redaction.
 - Dockerfile + Docker Compose + Streamlit health check.
@@ -86,7 +86,7 @@ SQLite tables:
 - `web_sessions`: hashed remember tokens and expiry.
 - `web_login_attempts`: login throttling metadata.
 - `message_tags`: chat-scoped local tags.
-- `telegram_dialog_cache`: latest cached Telegram dialog snapshot per Telegram account.
+- `telegram_dialog_cache`: latest cached Telegram dialog snapshot plus Pyrogram peer type/access-hash metadata per Telegram account.
 
 Current message-tag identity:
 `(telegram_account_id, chat_id, message_id)`
@@ -185,3 +185,16 @@ Real Telegram/browser validation has been completed successfully with no issues 
 - Execution backlog: `.codex/GUI_PLAN.md`.
 - Focus: design system, sidebar, toolbar, message cards, auth/empty states, responsive behavior and accessibility.
 - Guardrail: avoid business-logic/database/runtime changes during GUI phases unless explicitly approved.
+
+
+## Pyrogram peer persistence
+- Exported Pyrogram session strings contain authentication/session data but do not contain Pyrogram's peer cache.
+- Telegram Harbor therefore persists peer metadata with each dialog-cache snapshot:
+  - canonical Pyrogram peer ID;
+  - peer type;
+  - access hash where required;
+  - username when available.
+- On Telegram account restore, persisted peer tuples are rehydrated through `client.storage.update_peers(...)` before normal message browsing.
+- Legacy dialog-cache rows without peer metadata are intentionally refreshed once after schema v4 migration.
+- This prevents cached channel/supergroup IDs from producing `PeerIdInvalid` merely because the process restarted.
+- Username/bounded-dialog lazy recovery remains as a fallback for stale or unavailable records.
