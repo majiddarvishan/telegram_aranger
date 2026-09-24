@@ -186,3 +186,56 @@ Completed:
 CI note:
 - Initial workflow failures were traced to invoking test files directly, which changed Python import roots.
 - Workflow was corrected to run each file through `python -m unittest discover`.
+
+
+## 2026-09-24 — P2/P3 completion and validation
+
+Continued implementation after P1.
+
+### P0 correctness closed
+- Message tags are now keyed by Telegram account + chat + message.
+- Legacy tag rows are migrated with chat_id=0.
+- History retrieval starts at the requested date-range end via Pyrogram offset_date.
+- Result limits apply inside the requested range and the UI supports Load More.
+- Date-range/Pyrogram timezone semantics are explicitly server-local and regression tested.
+- TelegramRuntime shutdown disconnects the active client before stopping/closing the loop.
+
+### P1 regression/security closed
+- Added broad authentication/session/account/tag/history/UI regression coverage.
+- Added persistent username-based login throttling.
+- Added explicit Secure/SameSite cookie configuration.
+- Enforced password policy in the domain layer.
+- Added expired remembered-session cleanup.
+- Documented HTTPS, key rotation, proxy secret handling, and multi-user trust boundaries.
+
+### P2 performance/data lifecycle closed
+- Eliminated N+1 tag reads using batch loading.
+- Added explicit Load More pagination.
+- Instrumented synchronous Telegram runtime wait duration.
+- Hardened SQLite concurrency settings.
+- Added schema version tracking.
+- Added online database backup and verified restore helpers.
+- Kept the simple tag model but added trim/de-duplication.
+- Documented search strategy, indexing policy, and the unsupported multi-instance boundary.
+
+### P3 operations/UX closed
+- Added secret-safe JSON structured logging.
+- Added non-root Dockerfile, Docker Compose, .dockerignore, persistent /data layout, and Streamlit healthcheck.
+- Added deployment/dependency/scaling/backup documentation.
+- Reconciled TgCrypto documentation with actual requirements.
+- Clarified general Telegram-manager product scope while keeping the legacy display title.
+- Added two-step confirmation for permanent Telegram message deletion.
+- Added Docker build/start/health verification to GitHub Actions.
+
+### CI status
+- Early CI failures were caused by test invocation/import layout and one test-lifetime mistake, not by production media behavior.
+- The workflow was made granular, those test issues were fixed, and subsequent full regression + Docker health runs are green.
+
+### Remaining open work
+Only real Telegram/browser media validation remains:
+- small/large photo preview;
+- small/large inline video playback;
+- browser video download;
+- interrupted real media transfer recovery.
+
+A repeatable checklist is in docs/MANUAL_TESTING.md.
