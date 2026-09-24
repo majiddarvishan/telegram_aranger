@@ -102,3 +102,17 @@ Completed/validated at this checkpoint:
 - Tests verify message-text precedence: text -> caption -> media label -> generic message label.
 
 No additional implementation work beyond this requested checkpoint was performed in this step.
+
+## 2026-09-24 — Media download percentage
+
+User requested a real percentage indicator for the existing "Downloading media from Telegram..." state.
+
+Implemented:
+- Added non-blocking coroutine submission support to `TelegramRuntime`.
+- Added a thread-safe media download progress tracker.
+- Wired Pyrogram `download_media(progress=...)` byte callbacks into the tracker.
+- Streamlit now renders a real percentage from 0 to 100 while the Telegram transfer is active.
+- When total size is known, UI also shows downloaded size / total size.
+- Progress is polled every 100 ms on the Streamlit thread; Streamlit UI is not called from the Telegram runtime thread.
+- Cache hits complete immediately and end at 100%.
+- Added a unit test proving byte progress callbacks reach the download layer.
