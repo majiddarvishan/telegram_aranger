@@ -66,13 +66,26 @@ def restore_remembered_user(settings) -> bool:
 
 def _clear_remember_cookie(settings) -> None:
     token = st.session_state.pop("remember_token", None)
-    if token:
-        delete_session(settings.db_file, token)
+    cookie_manager = get_cookie_manager()
 
     try:
-        get_cookie_manager().delete(COOKIE_NAME)
+        cookies = cookie_manager.get_all(key="clear_remember_cookies") or {}
     except Exception:
-        pass
+        cookies = {}
+
+    browser_token = cookies.get(COOKIE_NAME)
+    token_to_revoke = token or browser_token
+    if token_to_revoke:
+        delete_session(settings.db_file, token_to_revoke)
+
+    if browser_token:
+        try:
+            cookie_manager.delete(
+                COOKIE_NAME,
+                key="delete_remember_cookie",
+            )
+        except Exception:
+            pass
 
 
 def logout_web_user(settings) -> None:
