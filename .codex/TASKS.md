@@ -127,3 +127,9 @@ Branch before context commit:
 - [ ] Create Git tag `v1.0.1` pointing exactly to `a7648e64f1cd8efc0c098b4eb0a689e6bd94d873`; current GitHub connector does not expose tag-ref creation.
 - [x] Start `1.0.2-dev` after the checkpoint.
 - [x] Increase message-panel default height to 620px and make it configurable with `MESSAGE_SCROLL_HEIGHT`.
+
+
+## Release checkpoint v1.0.2
+- [x] Telegram Harbor v1.0.2 release checkpoint recorded at `9a4c429827ec4e31ef1376ae97b0b074a13dd7e9`.
+- [x] VERSION / README / CHANGELOG / branding regression updated for 1.0.2.
+- [ ] Create Git tag `v1.0.2` pointing exactly to `9a4c429827ec4e31ef1376ae97b0b074a13dd7e9`; current connector does not expose tag-ref creation.
