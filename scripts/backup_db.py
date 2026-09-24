@@ -40,10 +40,10 @@ def create_backup(
         raise FileNotFoundError(f"Database does not exist: {source_path}")
 
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    backup_dir = Path(output_dir) / f"telegram-backup-{stamp}"
+    backup_dir = Path(output_dir) / f"telegram-harbor-backup-{stamp}"
     suffix = 1
     while backup_dir.exists():
-        backup_dir = Path(output_dir) / f"telegram-backup-{stamp}-{suffix}"
+        backup_dir = Path(output_dir) / f"telegram-harbor-backup-{stamp}-{suffix}"
         suffix += 1
     backup_dir.mkdir(parents=True)
 
@@ -70,7 +70,7 @@ def create_backup(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Create a consistent SQLite backup for telegram_aranger."
+        description="Create a consistent SQLite backup for Telegram Harbor."
     )
     parser.add_argument("--db", default="telegram_manager.db")
     parser.add_argument("--output-dir", default="backups")
