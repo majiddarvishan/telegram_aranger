@@ -208,6 +208,8 @@ class AuthAndStateSmokeTests(unittest.TestCase):
         source = inspect.getsource(_render_message_scroll_area)
 
         self.assertIn("No messages found", source)
+        self.assertIn("Messages unavailable", source)
+        self.assertIn("message_fetch_error", source)
         self.assertIn("empty_state_html", source)
 
 
@@ -238,6 +240,7 @@ class UiAccountSelectionSmokeTests(unittest.TestCase):
             "selected_telegram_account_id": 1,
             "selected_chat_id": -100,
             "messages": [{"id": 1}],
+            "message_fetch_error": "old error",
             "dialogs": [{"id": -100}],
             "telegram_user": {"id": 123},
             "media_files": {"1:-100:1:preview": {"path": "cached"}},
@@ -249,6 +252,7 @@ class UiAccountSelectionSmokeTests(unittest.TestCase):
         self.assertEqual(state["selected_telegram_account_id"], 2)
         self.assertIsNone(state["selected_chat_id"])
         self.assertEqual(state["messages"], [])
+        self.assertIsNone(state["message_fetch_error"])
         self.assertEqual(state["dialogs"], [])
         self.assertIsNone(state["telegram_user"])
         self.assertEqual(state["media_files"], {})
