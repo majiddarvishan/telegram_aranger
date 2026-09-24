@@ -60,3 +60,18 @@ Status: current
 Telegram message listing carries metadata only. Full media bytes are fetched only after an explicit user action such as photo preview, video playback, or video-download preparation.
 
 Downloaded media is stored in a bounded local cache scoped by Web-selected Telegram account, chat, and message. Cache TTL, total size, preview size, and download size are configurable. Video browser downloads use the cached file and keep the Telegram-facing download separate from the browser-facing download control.
+
+## D-012 — Message tags are chat-scoped
+Status: current
+
+Telegram message identifiers are scoped to a chat. Local tags therefore use `(telegram_account_id, chat_id, message_id)` as their identity. Legacy rows from the older two-column key are preserved with `chat_id=0` during migration and are intentionally not applied to arbitrary chats.
+
+## D-013 — Web login security is database-backed
+Status: current
+
+Password minimum length is enforced outside the UI, remembered sessions are cleaned up at startup, and failed Web-login attempts are persisted in SQLite by normalized username. Internet-facing deployments should additionally enforce source-IP throttling at the reverse proxy/WAF.
+
+## D-014 — Production cookie policy is explicit
+Status: current
+
+Local development defaults to `WEB_COOKIE_SECURE=false` and `SameSite=lax`. HTTPS deployments should set `WEB_COOKIE_SECURE=true`. `SameSite=none` is rejected unless secure cookies are enabled.
