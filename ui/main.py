@@ -5,7 +5,11 @@ import time
 
 import streamlit as st
 
-from db.dialogs import load_dialogs as load_cached_dialogs, replace_dialogs
+from db.dialogs import (
+    cache_has_peer_metadata,
+    load_dialogs as load_cached_dialogs,
+    replace_dialogs,
+)
 from db.tags import all_tags, get_tags_for_messages, save_tags
 from services.telegram_service import delete_message, get_dialogs, history, start_media_download
 from ui.theme import (
@@ -334,13 +338,17 @@ def _load_or_refresh_dialogs(
     force_refresh: bool = False,
 ) -> tuple[list[dict], str | None]:
     cached = load_cached_dialogs(settings.db_file, account_id)
-    if cached and not force_refresh:
+    if (
+        cached
+        and not force_refresh
+        and cache_has_peer_metadata(cached)
+    ):
         return cached, None
 
     with _DIALOG_REFRESH_LOCK:
         if not force_refresh:
             cached = load_cached_dialogs(settings.db_file, account_id)
-            if cached:
+            if cached and cache_has_peer_metadata(cached):
                 return cached, None
 
         try:
