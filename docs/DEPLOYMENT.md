@@ -1,4 +1,4 @@
-# Deployment
+# Telegram Harbor Deployment
 
 ## Docker
 
@@ -7,7 +7,7 @@ The container runs Streamlit as a non-root user on port 8501.
 Build:
 
 ```bash
-docker build -t telegram-arranger .
+docker build -t telegram-harbor .
 ```
 
 Run with an environment file and persistent data volume:
@@ -17,7 +17,7 @@ docker run --rm \
   --env-file .env \
   -p 8501:8501 \
   -v telegram_data:/data \
-  telegram-arranger
+  telegram-harbor
 ```
 
 The image defaults to:
@@ -31,7 +31,7 @@ These can still be overridden with environment variables.
 ```bash
 docker compose up -d --build
 docker compose ps
-docker compose logs -f telegram-arranger
+docker compose logs -f telegram-harbor
 ```
 
 The named `telegram_data` volume contains database state and downloaded media cache. Back up the database through `scripts/backup_db.py`; do not rely on copying a live WAL-mode database file.
