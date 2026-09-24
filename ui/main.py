@@ -252,15 +252,23 @@ def _prepare_date_range(today):
 MESSAGE_HEADER_KEY = "message-header"
 
 MESSAGE_HEADER_CSS = """
+/*
+ * The message controls must stay visible while the Streamlit main area scrolls.
+ * Use a viewport-fixed block rather than sticky positioning because Streamlit
+ * places the main content inside nested scrolling/overflow containers.
+ */
 .st-key-message-header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    padding: 10px 0 12px 0;
-    margin-bottom: 12px;
-    background: var(--background-color);
-    border-bottom: 1px solid rgba(128, 128, 128, 0.28);
-    box-shadow: 0 8px 18px -18px rgba(0, 0, 0, 0.45);
+    position: fixed;
+    top: 0.75rem;
+    left: 26rem;
+    right: 5rem;
+    z-index: 10000;
+    padding: 12px 14px 14px 14px;
+    background: color-mix(in srgb, var(--background-color) 96%, transparent);
+    border: 1px solid rgba(128, 128, 128, 0.22);
+    border-radius: 12px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.10);
+    backdrop-filter: blur(10px);
 }
 .st-key-message-header [data-testid="stHorizontalBlock"] {
     align-items: end;
@@ -275,30 +283,29 @@ MESSAGE_HEADER_CSS = """
 .st-key-message-header [data-testid="stDateInput"] > div {
     width: 100%;
 }
-.st-key-message-navigation {
-    position: fixed;
-    bottom: 18px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 9999;
-    width: min(300px, calc(100vw - 48px));
-    padding: 8px 12px;
-    background: var(--background-color);
-    border: 1px solid rgba(128, 128, 128, 0.35);
-    border-radius: 12px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.15);
+.st-key-message-header button {
+    min-height: 40px;
 }
-.st-key-message-navigation button {
-    min-height: 38px;
-    font-size: 20px;
+.message-header-fixed-spacer {
+    height: 178px;
 }
-.message-bottom-spacer {
-    height: 82px;
+
+/* Keep the fixed header clear of the main content when the sidebar collapses. */
+[data-testid="stAppViewContainer"]:has(
+    [data-testid="stSidebar"][aria-expanded="false"]
+) .st-key-message-header {
+    left: 5rem;
 }
+
 @media (max-width: 900px) {
     .st-key-message-header {
-        padding-left: 0;
-        padding-right: 0;
+        top: 0.5rem;
+        left: 0.75rem;
+        right: 0.75rem;
+        padding: 8px 10px 10px 10px;
+    }
+    .message-header-fixed-spacer {
+        height: 245px;
     }
 }
 """
@@ -343,12 +350,41 @@ def _render_message_header(settings, options, current_chat_id, today):
                 key="message_tag_filter",
             )
 
-        picked = st.date_input(
-            "Message Date Range",
-            value=(start_date, end_date),
-            max_value=today,
-            key="message_date_range_picker",
-        )
+        date_col, previous_col, next_col = st.columns([8.0, 1.0, 1.0])
+
+        with date_col:
+            picked = st.date_input(
+                "Message Date Range",
+                value=(start_date, end_date),
+                max_value=today,
+                key="message_date_range_picker",
+            )
+
+        with previous_col:
+            if st.button(
+                "◀",
+                help="Previous Day",
+                use_container_width=True,
+                key="previous_day",
+            ):
+                _set_pending_date_range(
+                    start_date - timedelta(days=1),
+                    end_date - timedelta(days=1),
+                )
+                st.rerun()
+
+        with next_col:
+            if st.button(
+                "▶",
+                help="Next Day",
+                use_container_width=True,
+                key="next_day",
+                disabled=end_date >= today,
+            ):
+                new_end = min(end_date + timedelta(days=1), today)
+                new_start = min(start_date + timedelta(days=1), new_end)
+                _set_pending_date_range(new_start, new_end)
+                st.rerun()
 
     if isinstance(picked, (list, tuple)) and len(picked) == 2:
         start_date, end_date = picked
@@ -359,6 +395,11 @@ def _render_message_header(settings, options, current_chat_id, today):
         start_date, end_date = end_date, start_date
 
     st.session_state.message_date_range = (start_date, end_date)
+
+    st.markdown(
+        '<div class="message-header-fixed-spacer"></div>',
+        unsafe_allow_html=True,
+    )
 
     return selected_chat_id, search, tag, start_date, end_date
 
@@ -444,39 +485,6 @@ def _remove_message_from_state(
         if not key.startswith(prefix)
     }
     return remaining, cleaned_media
-
-
-def _render_navigation(start_date, end_date, today):
-    st.markdown('<div class="message-bottom-spacer"></div>', unsafe_allow_html=True)
-
-    with st.container(key="message_navigation"):
-        previous_col, next_col = st.columns(2)
-
-        with previous_col:
-            if st.button(
-                "◀",
-                help="Previous Day",
-                use_container_width=True,
-                key="previous_day",
-            ):
-                _set_pending_date_range(
-                    start_date - timedelta(days=1),
-                    end_date - timedelta(days=1),
-                )
-                st.rerun()
-
-        with next_col:
-            if st.button(
-                "▶",
-                help="Next Day",
-                use_container_width=True,
-                key="next_day",
-                disabled=end_date >= today,
-            ):
-                new_end = min(end_date + timedelta(days=1), today)
-                new_start = min(start_date + timedelta(days=1), new_end)
-                _set_pending_date_range(new_start, new_end)
-                st.rerun()
 
 
 def render_main(settings):
@@ -676,4 +684,3 @@ def render_main(settings):
                     st.session_state.pending_delete_message = delete_state_key
                     st.rerun()
 
-    _render_navigation(start_date, end_date, today)
