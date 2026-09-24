@@ -4,7 +4,13 @@ import unittest
 from pathlib import Path
 
 from db.database import get_db, get_schema_version, initialize_database
-from db.tags import all_tags, get_tags, get_tags_for_messages, save_tags
+from db.tags import (
+    all_tags,
+    get_tags,
+    get_tags_for_messages,
+    normalize_tags,
+    save_tags,
+)
 from db.telegram_accounts import delete_account, save_account
 from db.users import authenticate_user, create_user
 
@@ -32,6 +38,24 @@ class MessageTagIsolationTests(unittest.TestCase):
 
     def tearDown(self):
         self.tmp.cleanup()
+
+    def test_tag_normalization_trims_and_deduplicates(self):
+        self.assertEqual(
+            normalize_tags([" work ", "work", "", "important", "important "]),
+            ["work", "important"],
+        )
+
+        save_tags(
+            self.db_file,
+            self.account_id,
+            -100,
+            10,
+            [" work ", "work", "important"],
+        )
+        self.assertEqual(
+            get_tags(self.db_file, self.account_id, -100, 10),
+            ["work", "important"],
+        )
 
     def test_same_message_id_in_two_chats_has_independent_tags(self):
         save_tags(self.db_file, self.account_id, -100, 42, ["work"])
