@@ -55,6 +55,34 @@ class DialogServiceTests(unittest.TestCase):
         self.assertEqual(result[0]["peer_type"], "group")
         self.assertEqual(result[0]["peer_access_hash"], 0)
 
+    def test_channel_access_hash_is_captured_for_persistence(self):
+        class ChannelClient:
+            async def get_dialogs(self, limit=0):
+                chat_type = SimpleNamespace(value="channel")
+                chat = SimpleNamespace(
+                    id=-1001234567890,
+                    title="News",
+                    type=chat_type,
+                    username="news",
+                    first_name=None,
+                    last_name=None,
+                )
+                yield SimpleNamespace(chat=chat)
+
+            async def resolve_peer(self, chat_id):
+                return raw.types.InputPeerChannel(
+                    channel_id=1234567890,
+                    access_hash=987654321,
+                )
+
+        result = asyncio.run(_dialogs(ChannelClient(), 100))
+
+        self.assertEqual(result[0]["peer_type"], "channel")
+        self.assertEqual(
+            result[0]["peer_access_hash"],
+            987654321,
+        )
+
     def test_peer_cache_hydration_updates_pyrogram_storage(self):
         records = [
             (-1001234567890, 987654321, "channel", "news", ""),
