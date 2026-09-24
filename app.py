@@ -9,6 +9,7 @@ import logging
 
 import streamlit as st
 
+from config.branding import PRODUCT_NAME
 from config.settings import load_settings
 from db.auth_sessions import cleanup_expired_sessions
 from db.database import initialize_database
@@ -20,10 +21,10 @@ from utils.logging import configure_logging, log_event
 from utils.state import initialize_state
 
 
-st.set_page_config(page_title="Telegram Saved Messages Manager", layout="wide")
+st.set_page_config(page_title=PRODUCT_NAME, layout="wide")
 
 configure_logging()
-logger = logging.getLogger("telegram_aranger.app")
+logger = logging.getLogger("telegram_harbor.app")
 
 settings = load_settings()
 initialize_database(settings.db_file)
