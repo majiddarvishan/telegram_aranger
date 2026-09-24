@@ -6,7 +6,9 @@ from ui.theme import (
     MESSAGE_HEADER_CSS,
     account_card_html,
     action_summary_html,
+    auth_brand_html,
     badge_html,
+    empty_state_html,
     media_meta_html,
     message_meta_html,
     section_title_html,
@@ -92,6 +94,23 @@ class ThemeFoundationTests(unittest.TestCase):
         self.assertIn("100", summary)
         self.assertIn("th-media-meta", media)
         self.assertIn("2.0 MB", media)
+
+    def test_auth_and_empty_state_markup_are_safe(self):
+        auth = auth_brand_html(
+            "<Harbor>",
+            "Message <manager>",
+            "1.0.4",
+        )
+        empty = empty_state_html(
+            "<No messages>",
+            "Try <again>",
+            "0",
+        )
+
+        self.assertIn("&lt;Harbor&gt;", auth)
+        self.assertIn("Message &lt;manager&gt;", auth)
+        self.assertIn("&lt;No messages&gt;", empty)
+        self.assertIn("Try &lt;again&gt;", empty)
 
 
 if __name__ == "__main__":
