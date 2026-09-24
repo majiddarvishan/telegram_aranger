@@ -218,6 +218,89 @@ class TelegramMediaDownloadTests(unittest.TestCase):
         self.assertEqual(first["file_name"], "My_Clip.mp4")
         self.assertEqual(first["mime_type"], "video/mp4")
 
+    def test_truncated_cached_file_is_deleted_and_downloaded_again(self):
+        video = make_media(
+            file_name="clip.mp4",
+            mime_type="video/mp4",
+            file_size=10,
+        )
+        client = FakeClient(make_message(media_type="video", media=video))
+        runtime = SimpleNamespace(client=client)
+
+        with tempfile.TemporaryDirectory() as tmp, patch(
+            "services.telegram_service.get_runtime",
+            return_value=runtime,
+        ):
+            first = asyncio.run(
+                _download_media(
+                    chat_id=-100,
+                    message_id=10,
+                    account_id=1,
+                    cache_root=tmp,
+                    cache_ttl_hours=24,
+                    cache_max_mb=100,
+                    max_megabytes=10,
+                )
+            )
+            Path(first["path"]).write_bytes(b"broken")
+
+            second = asyncio.run(
+                _download_media(
+                    chat_id=-100,
+                    message_id=10,
+                    account_id=1,
+                    cache_root=tmp,
+                    cache_ttl_hours=24,
+                    cache_max_mb=100,
+                    max_megabytes=10,
+                )
+            )
+
+        self.assertEqual(client.download_count, 2)
+        self.assertFalse(second["cached"])
+        self.assertEqual(Path(second["path"]).read_bytes(), b"video-data")
+
+    def test_force_download_bypasses_valid_cache(self):
+        video = make_media(
+            file_name="clip.mp4",
+            mime_type="video/mp4",
+            file_size=10,
+        )
+        client = FakeClient(make_message(media_type="video", media=video))
+        runtime = SimpleNamespace(client=client)
+
+        with tempfile.TemporaryDirectory() as tmp, patch(
+            "services.telegram_service.get_runtime",
+            return_value=runtime,
+        ):
+            first = asyncio.run(
+                _download_media(
+                    chat_id=-100,
+                    message_id=10,
+                    account_id=1,
+                    cache_root=tmp,
+                    cache_ttl_hours=24,
+                    cache_max_mb=100,
+                    max_megabytes=10,
+                )
+            )
+            second = asyncio.run(
+                _download_media(
+                    chat_id=-100,
+                    message_id=10,
+                    account_id=1,
+                    cache_root=tmp,
+                    cache_ttl_hours=24,
+                    cache_max_mb=100,
+                    max_megabytes=10,
+                    force_download=True,
+                )
+            )
+
+        self.assertEqual(client.download_count, 2)
+        self.assertFalse(first["cached"])
+        self.assertFalse(second["cached"])
+
     def test_download_reports_byte_progress(self):
         video = make_media(
             file_name="clip.mp4",
