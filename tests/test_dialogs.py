@@ -1,3 +1,4 @@
+import asyncio
 import tempfile
 import time
 import unittest
@@ -9,8 +10,40 @@ from db.database import initialize_database
 from db.dialogs import load_dialogs, replace_dialogs
 from db.telegram_accounts import save_account
 from db.users import authenticate_user, create_user
+from services.telegram_service import _dialogs
 from ui.main import _load_or_refresh_dialogs
 
+
+
+
+class FakeDialogClient:
+    def __init__(self):
+        self.requested_limit = None
+
+    async def get_dialogs(self, limit=0):
+        self.requested_limit = limit
+        chat_type = SimpleNamespace(value="group")
+        chat = SimpleNamespace(
+            id=-100,
+            title="Test Group",
+            type=chat_type,
+            username="test_group",
+            first_name=None,
+            last_name=None,
+        )
+        yield SimpleNamespace(chat=chat)
+
+
+class DialogServiceTests(unittest.TestCase):
+    def test_dialog_limit_is_passed_to_pyrogram(self):
+        client = FakeDialogClient()
+
+        result = asyncio.run(_dialogs(client, 100))
+
+        self.assertEqual(client.requested_limit, 100)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]["id"], -100)
+        self.assertEqual(result[0]["title"], "Test Group")
 
 class DialogCacheTests(unittest.TestCase):
     def setUp(self):
