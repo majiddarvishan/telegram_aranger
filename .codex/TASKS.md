@@ -72,16 +72,16 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 ## P2 — Performance / scalability
 - [x] Eliminate per-message N+1 SQLite tag lookups with `get_tags_for_messages()` batch loading.
 - [x] Add range-aware history retrieval plus `Load More Messages` result pagination in increments of `default_message_limit`.
-- [ ] Consider server-side/Telegram-side search strategy for large histories.
-- [ ] Measure the impact of synchronous `.result()` waits on Streamlit responsiveness.
-- [ ] Review SQLite contention under multiple concurrent Streamlit users.
-- [ ] If multi-instance deployment is required, replace local Streamlit session/runtime assumptions and local SQLite with shared infrastructure.
+- [x] Define search strategy: keep search local over explicitly loaded range pages to avoid per-keystroke Telegram calls; document an explicit-submit `search_messages()` design for future full-history search.
+- [x] Instrument `TelegramRuntime.run()` with call count / last wait / max wait metrics so blocking Telegram operations can be measured before converting more UI paths to async/progress flows.
+- [x] Review and harden SQLite concurrency with WAL, 30s `busy_timeout`, `synchronous=NORMAL`, batched tag reads, and regression tests.
+- [x] Document that multi-instance deployment is unsupported by the current local-runtime/SQLite/cache architecture and define the required shared-state redesign in `docs/SCALING.md`.
 
 ## P2 — Data model / lifecycle
 - [x] Add SQLite `schema_meta` / `schema_version` tracking and a versioned migration path for chat-scoped message tags.
-- [ ] Normalize tags if richer tag features are planned instead of comma-separated text.
-- [ ] Define backup/restore for the SQLite database and Fernet key as one operational unit.
-- [ ] Consider indexes after real query profiling.
+- [x] Keep the current simple comma-separated tag storage for present scope, but trim/de-duplicate tags consistently; defer normalized tag tables until rename/delete/richer metadata is required.
+- [x] Add `docs/BACKUP_RESTORE.md` plus SQLite online backup/restore helpers that bind backups to a Fernet-key fingerprint without storing the key in the DB backup.
+- [x] Review current hot queries and retain existing PK/unique/index coverage; defer additional indexes until measured query profiling demonstrates a need.
 
 ## P3 — Operations
 - [ ] Add structured logging and useful error context without leaking tokens, phone codes, passwords, session strings, or API secrets.
