@@ -15,9 +15,13 @@ class StickyHeaderTests(unittest.TestCase):
     def test_message_header_uses_css_safe_key_and_sticky_positioning(self):
         self.assertEqual(MESSAGE_HEADER_KEY, "message-header")
         self.assertIn(".st-key-message-header", MESSAGE_HEADER_CSS)
-        self.assertIn("position: sticky", MESSAGE_HEADER_CSS)
-        self.assertIn("top: 0", MESSAGE_HEADER_CSS)
+        self.assertIn("position: fixed", MESSAGE_HEADER_CSS)
+        self.assertIn("top: 0.75rem", MESSAGE_HEADER_CSS)
+        self.assertIn(".message-header-fixed-spacer", MESSAGE_HEADER_CSS)
 
+
+    def test_bottom_navigation_container_is_removed(self):
+        self.assertNotIn(".st-key-message-navigation", MESSAGE_HEADER_CSS)
 
 class UiMessageSmokeTests(unittest.TestCase):
     def setUp(self):
