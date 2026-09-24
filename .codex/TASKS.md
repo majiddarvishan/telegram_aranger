@@ -155,10 +155,11 @@ Planning source:
 - `docs/GUI_DESIGN_PLAN_FA.md`
 
 ### GUI-P0 — Design foundation
-- [ ] Centralize UI CSS/theme and define semantic design tokens.
-- [ ] Standardize spacing, radius, borders, shadows and typography.
-- [ ] Preserve light/dark mode compatibility.
-- [ ] Add regression coverage for sensitive Streamlit CSS selectors.
+- [x] Centralize UI CSS/theme and define semantic design tokens.
+- [x] Standardize baseline spacing, radius, borders, shadows and typography.
+- [x] Use Streamlit theme variables so the foundation adapts to light/dark mode.
+- [x] Add regression coverage for sensitive Streamlit CSS selectors and reusable markup helpers.
+- [ ] Manually verify the visual result in both Light and Dark themes.
 
 ### GUI-P1 — Sidebar
 - [ ] Compact product branding.
