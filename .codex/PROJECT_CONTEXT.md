@@ -20,7 +20,7 @@ The product supports Saved Messages plus private chats, groups, supergroups, and
 - Telegram phone login, code verification, and 2FA.
 - Fernet-encrypted exported Telegram session strings.
 - SOCKS5 proxy configuration.
-- Private/group/supergroup/channel dialog discovery.
+- Private/group/supergroup/channel dialog discovery with persistent per-account SQLite dialog caching and bounded Telegram refresh.
 - Date-range message history starting from the selected range end.
 - Explicit **Load More Messages** pagination.
 - Local search over loaded messages.
@@ -70,6 +70,7 @@ Storage/media:
 - `MEDIA_PREVIEW_MAX_MB=200`
 - `MEDIA_DOWNLOAD_MAX_MB=200`
 - `MESSAGE_SCROLL_HEIGHT=620`
+- `TELEGRAM_DIALOG_LIMIT=100`
 
 Operations:
 - `LOG_LEVEL=INFO`
@@ -85,6 +86,7 @@ SQLite tables:
 - `web_sessions`: hashed remember tokens and expiry.
 - `web_login_attempts`: login throttling metadata.
 - `message_tags`: chat-scoped local tags.
+- `telegram_dialog_cache`: latest cached Telegram dialog snapshot per Telegram account.
 
 Current message-tag identity:
 `(telegram_account_id, chat_id, message_id)`
@@ -130,7 +132,7 @@ Important:
 - the host administrator remains inside the trust boundary;
 - horizontal multi-instance deployment is not supported;
 - Pyrogram upstream is archived and should not be replaced silently;
-- TgCrypto is installed by this repository and is part of the supported deployment profile.
+- `tgcrypto2` is installed by this repository and provides the `tgcrypto` module used by Pyrogram.
 
 ## Windows compatibility
 - Crypto acceleration uses `tgcrypto2>=1.3.6,<2`, which exposes the `tgcrypto` import expected by Pyrogram.
@@ -162,7 +164,15 @@ Real Telegram/browser validation has been completed successfully with no issues 
 
 
 ## Release status
-- Latest release: `v1.0.2`
-- v1.0.2 checkpoint SHA: `9a4c429827ec4e31ef1376ae97b0b074a13dd7e9`
-- Latest release: `v1.0.2`
-- Current development version: `1.0.3-dev`
+- Latest release: `v1.0.3`
+- v1.0.3 checkpoint SHA: `6c27b0343f7534a2c7ff906f27483791df601fe4`
+- Current development version: `1.0.4-dev`
+
+
+## Dialog startup behavior
+- Normal startup first reads `telegram_dialog_cache` from SQLite.
+- Telegram `messages.GetDialogs` is not called again on every Streamlit rerun/startup when cache exists.
+- The first uncached fetch is bounded by `TELEGRAM_DIALOG_LIMIT` (default 100).
+- `Refresh Chats` is the explicit network refresh path.
+- Uncached refreshes are serialized with a process-level lock to prevent duplicate concurrent `GetDialogs` calls from multiple Streamlit sessions.
+- If an explicit refresh fails and cache exists, the cached dialog list remains usable.
