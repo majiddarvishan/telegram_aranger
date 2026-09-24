@@ -4,6 +4,14 @@ All notable Telegram Harbor changes are recorded here.
 
 ## Unreleased
 
+- Add the Telegram Harbor GUI redesign foundation with centralized theme tokens, compact sidebar/navigation, content-first message cards, tag chips, refined media actions, branded auth/empty states, responsive polish, and verified Light/Dark desktop presentation.
+- Render message text with direction-aware RTL/LTR handling and compact message footers.
+- Distinguish Telegram fetch failures from legitimate empty-result states.
+- Persist Pyrogram peer metadata (`access_hash` + peer type) in the SQLite dialog cache and hydrate it into in-memory Pyrogram sessions after restart.
+- Upgrade SQLite schema to version 4 for persisted peer metadata.
+- Treat pre-v4 dialog caches as legacy and refresh them once so future restarts can avoid `Peer id invalid` failures without repeatedly scanning Telegram dialogs.
+- Keep a targeted peer-recovery fallback for stale or unavailable peer records.
+
 ## 1.0.4 - 2026-09-25
 
 - Cache Telegram dialogs in SQLite per Telegram account so normal startup does not repeatedly call `messages.GetDialogs`.
