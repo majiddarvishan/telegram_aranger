@@ -146,3 +146,62 @@ Branch before context commit:
 - [x] Telegram Harbor v1.0.4 release checkpoint recorded at `0c3144f4d99201a917c9353c788def4df9fb4258`.
 - [x] VERSION / README / CHANGELOG / branding regression updated for 1.0.4.
 - [ ] Create Git tag `v1.0.4` pointing exactly to `0c3144f4d99201a917c9353c788def4df9fb4258`; current GitHub connector does not expose tag-ref creation.
+
+
+## GUI redesign backlog
+
+Planning source:
+- `.codex/GUI_PLAN.md`
+- `docs/GUI_DESIGN_PLAN_FA.md`
+
+### GUI-P0 — Design foundation
+- [ ] Centralize UI CSS/theme and define semantic design tokens.
+- [ ] Standardize spacing, radius, borders, shadows and typography.
+- [ ] Preserve light/dark mode compatibility.
+- [ ] Add regression coverage for sensitive Streamlit CSS selectors.
+
+### GUI-P1 — Sidebar
+- [ ] Compact product branding.
+- [ ] Improve Web-account presentation.
+- [ ] Improve Telegram account selector and status hierarchy.
+- [ ] Move destructive Telegram-account actions into a lower-emphasis area.
+- [ ] Collapse proxy/network configuration into an expander.
+- [ ] Normalize sidebar spacing and action priorities.
+
+### GUI-P2 — Main toolbar/action bar
+- [ ] Redesign Chat/Search/Tag hierarchy.
+- [ ] Make date navigation more compact.
+- [ ] Surface message counts in the action bar.
+- [ ] Normalize Refresh vs Load More visual priority.
+- [ ] Evaluate active-filter chips after baseline styling.
+
+### GUI-P3 — Message cards
+- [ ] Make message content visually dominant.
+- [ ] Add compact metadata header/footer structure.
+- [ ] Render tags as read-mode chips.
+- [ ] Make tag editing on-demand.
+- [ ] De-emphasize Delete until requested.
+- [ ] Normalize media action hierarchy and card spacing.
+
+### GUI-P4 — Auth and state screens
+- [ ] Branded centered auth card.
+- [ ] Dedicated empty states.
+- [ ] Unified loading/success/warning/error treatment.
+
+### GUI-P5 — Responsive/accessibility
+- [ ] Define desktop/laptop/tablet behavior.
+- [ ] Add toolbar wrapping rules.
+- [ ] Stack card management controls on narrow screens.
+- [ ] Review contrast, focus, disabled states and hit targets.
+- [ ] Manual screenshot validation at multiple viewport widths.
+
+### GUI-P6 — Polish
+- [ ] Consistent icon treatment.
+- [ ] Subtle hover/transition behavior.
+- [ ] Active/selected state polish.
+- [ ] Microcopy cleanup.
+
+### GUI guardrails
+- [ ] Do not change Telegram runtime/service behavior as part of visual-only phases.
+- [ ] Do not change database/tag/message-history/media-cache semantics without explicit approval.
+- [ ] Keep each GUI phase independently reviewable with green CI.
