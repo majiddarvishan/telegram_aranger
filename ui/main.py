@@ -251,7 +251,7 @@ def _prepare_date_range(today):
 
 MESSAGE_HEADER_KEY = "message-header"
 MESSAGE_SCROLL_KEY = "message-scroll-area"
-MESSAGE_SCROLL_HEIGHT = 500
+MESSAGE_SCROLL_HEIGHT = 420
 
 MESSAGE_HEADER_CSS = """
 /*
