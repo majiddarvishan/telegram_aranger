@@ -216,6 +216,58 @@ hr {{
     color: var(--th-text-muted);
 }}
 
+[class*="st-key-message-card-"] {{
+    margin-bottom: var(--th-space-3);
+}}
+
+[class*="st-key-message-card-"] [data-testid="stVerticalBlockBorderWrapper"] {{
+    border-color: var(--th-border) !important;
+    border-radius: var(--th-radius-panel) !important;
+    background: var(--th-bg);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.035);
+}}
+
+[class*="st-key-message-card-"] p {{
+    line-height: 1.55;
+}}
+
+.th-message-meta {{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--th-space-2);
+    margin-bottom: var(--th-space-2);
+    color: var(--th-text-muted);
+    font-size: 0.78rem;
+    line-height: 1.2;
+}}
+
+.th-message-meta__separator {{
+    opacity: 0.55;
+}}
+
+.th-tag-row {{
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--th-space-1);
+    margin-top: var(--th-space-3);
+    margin-bottom: var(--th-space-2);
+}}
+
+.th-tag-chip {{
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding: 2px var(--th-space-2);
+    border: 1px solid var(--th-border);
+    border-radius: var(--th-radius-pill);
+    background: var(--th-surface);
+    color: var(--th-text);
+    font-size: 0.76rem;
+    font-weight: 600;
+    line-height: 1.2;
+}}
+
 {MESSAGE_HEADER_CSS}
 
 @media (max-width: 900px) {{
@@ -260,3 +312,36 @@ def badge_html(label: str, tone: str = "neutral") -> str:
 def section_title_html(label: str) -> str:
     """Return safe markup for small UI section headings."""
     return f'<div class="th-section-title">{escape(label)}</div>'
+
+
+
+def tag_chips_html(tags: list[str]) -> str:
+    """Return safe read-mode tag chips for a message card."""
+    if not tags:
+        return ""
+    chips = "".join(
+        f'<span class="th-tag-chip">{escape(tag)}</span>'
+        for tag in tags
+    )
+    return f'<div class="th-tag-row">{chips}</div>'
+
+
+def message_meta_html(
+    timestamp: str,
+    message_id: int,
+    media_label: str | None = None,
+) -> str:
+    """Return safe compact metadata for the top of a message card."""
+    parts = [
+        f"<span>{escape(timestamp)}</span>",
+        '<span class="th-message-meta__separator">•</span>',
+        f"<span>ID {int(message_id)}</span>",
+    ]
+    if media_label:
+        parts.extend(
+            [
+                '<span class="th-message-meta__separator">•</span>',
+                f"<span>{escape(media_label)}</span>",
+            ]
+        )
+    return f'<div class="th-message-meta">{"".join(parts)}</div>'
