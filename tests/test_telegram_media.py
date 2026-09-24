@@ -339,6 +339,7 @@ class TelegramMediaDownloadTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "too large"):
                 asyncio.run(
                     _download_media(
+                        client=client,
                         chat_id=-100,
                         message_id=10,
                         account_id=1,
@@ -369,6 +370,7 @@ class TelegramMediaDownloadTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "did not complete"):
                 asyncio.run(
                     _download_media(
+                        client=client,
                         chat_id=-100,
                         message_id=10,
                         account_id=1,
