@@ -1,10 +1,11 @@
 from datetime import date, timedelta
 from pathlib import Path
+import time
 
 import streamlit as st
 
 from db.tags import all_tags, get_tags, save_tags
-from services.telegram_service import delete_message, download_media, get_dialogs, history
+from services.telegram_service import delete_message, get_dialogs, history, start_media_download
 from utils.date_range import bounds, normalize_range
 
 
@@ -47,19 +48,49 @@ def _prepare_media(
     if existing:
         return existing
 
-    with st.spinner("Downloading media from Telegram..."):
-        try:
-            result = download_media(
-                chat_id=chat_id,
-                message_id=message_id,
-                account_id=account_id,
-                settings=settings,
-                max_megabytes=max_megabytes,
-            )
-        except Exception as exc:
-            st.error(f"Failed to download media: {exc}")
-            return None
+    progress_bar = st.progress(
+        0,
+        text="Downloading media from Telegram... 0%",
+    )
 
+    try:
+        future, progress = start_media_download(
+            chat_id=chat_id,
+            message_id=message_id,
+            account_id=account_id,
+            settings=settings,
+            max_megabytes=max_megabytes,
+        )
+
+        last_percent = -1
+        while not future.done():
+            current, total = progress.snapshot()
+            percent = int((current * 100) / total) if total else 0
+            percent = max(0, min(percent, 100))
+
+            if percent != last_percent:
+                size_text = ""
+                if total:
+                    size_text = f" · {_format_bytes(current)} / {_format_bytes(total)}"
+                progress_bar.progress(
+                    percent,
+                    text=f"Downloading media from Telegram... {percent}%{size_text}",
+                )
+                last_percent = percent
+
+            time.sleep(0.1)
+
+        result = future.result()
+        progress_bar.progress(
+            100,
+            text="Downloading media from Telegram... 100%",
+        )
+    except Exception as exc:
+        progress_bar.empty()
+        st.error(f"Failed to download media: {exc}")
+        return None
+
+    progress_bar.empty()
     st.session_state.media_files[key] = result
     return result
 
