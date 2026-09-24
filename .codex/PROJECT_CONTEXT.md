@@ -6,9 +6,9 @@
 The UI still carries the legacy title **Telegram Saved Messages Manager**, but current behavior supports Saved Messages plus private chats, groups, supergroups, and channels.
 
 ## Current branch
-- Working branch: `feature/media-support`
-- Created from the merged `main` baseline.
-- This branch contains the current media, security, testing, performance, migration, logging, backup, and Docker work.
+- Working branch: `main`
+- `feature/media-support` was fast-forward merged into `main`.
+- `main` contains the current media, security, testing, performance, migration, logging, backup, Docker, and Remember Me race fixes.
 - Re-check GitHub branch HEAD before making future edits.
 
 ## Current capabilities
