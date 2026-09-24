@@ -809,3 +809,42 @@ Manual validation status:
 
 Release note:
 - PeerIdInvalid recovery is a correctness fix, not merely visual. Backport it to main before the next release if the GUI branch is not merged as a whole.
+
+
+## 2026-09-25 — Persist Pyrogram peer cache across restarts
+
+Additional Light/Dark screenshots were reviewed.
+
+Visual status:
+- Light mode: good.
+- Dark mode: adaptive surfaces/text contrast now look correct.
+- Representative photo/text/video message cards are acceptable on desktop.
+- Remaining GUI review is mainly narrow-viewport/responsive polish and final P6 micro-polish.
+
+PeerIdInvalid root cause was confirmed from Pyrogram source:
+- exported session strings contain authentication/session state only;
+- Pyrogram's peer database (`id, access_hash, type, username, ...`) lives separately;
+- Telegram Harbor restores sessions with `session_string + in_memory=True`, therefore Pyrogram's peer table starts empty after process restart;
+- our own SQLite dialog cache previously stored only chat ID/title/type/username, so a cached channel/supergroup could be selectable while Pyrogram no longer knew its access hash.
+
+Implemented durable fix:
+- SQLite schema upgraded from v3 to v4;
+- `telegram_dialog_cache` now stores `peer_access_hash` and `peer_type`;
+- dialog retrieval resolves the already-known Pyrogram InputPeer and persists its access hash/type with the cache snapshot;
+- account restore loads the latest peer tuples from SQLite and calls `client.storage.update_peers(...)` before normal use;
+- existing pre-v4 dialog cache rows have empty peer metadata after migration and are deliberately refreshed once;
+- channel/supergroup access hashes are therefore available on subsequent restarts without a Telegram dialog scan;
+- lazy username/bounded-dialog peer recovery remains only as fallback.
+
+Regression coverage:
+- schema-v3 -> schema-v4 peer-column migration;
+- peer-aware cache completeness validation;
+- storage-compatible peer tuple generation;
+- Pyrogram storage hydration;
+- channel access-hash capture;
+- legacy peer-less cache automatic refresh;
+- existing history retry fallback retained.
+
+Validation:
+- full Unit Tests + Docker + Windows/Python 3.14 were green at the persisted-peer hydration checkpoint.
+- An additional channel-access-hash test was added afterward and its final workflow should be checked before release/merge.
