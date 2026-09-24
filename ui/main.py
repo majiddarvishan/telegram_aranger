@@ -497,6 +497,7 @@ def _fetch_messages_if_needed(
         st.session_state.message_result_limit = settings.default_message_limit
         st.session_state.message_query_signature = None
         st.session_state.messages = []
+        st.session_state.message_fetch_error = None
 
     result_limit = (
         st.session_state.get("message_result_limit")
@@ -523,8 +524,10 @@ def _fetch_messages_if_needed(
                 peer_username=peer_username,
                 dialog_limit=settings.telegram_dialog_limit,
             )
+            st.session_state.message_fetch_error = None
             st.session_state.message_query_signature = signature
         except Exception as exc:
+            st.session_state.message_fetch_error = str(exc)
             st.error(f"Failed to fetch messages: {exc}")
             st.session_state.messages = []
             st.session_state.message_query_signature = signature
@@ -843,17 +846,30 @@ def _render_message_scroll_area(
         key=MESSAGE_SCROLL_KEY,
     ):
         if not messages:
-            st.markdown(
-                empty_state_html(
-                    "No messages found",
-                    (
-                        "No loaded message matches the current chat, "
-                        "date range, search or tag filters."
+            if st.session_state.get("message_fetch_error"):
+                st.markdown(
+                    empty_state_html(
+                        "Messages unavailable",
+                        (
+                            "Telegram could not load this chat. "
+                            "Use Refresh to retry."
+                        ),
+                        "!",
                     ),
-                    "0",
-                ),
-                unsafe_allow_html=True,
-            )
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown(
+                    empty_state_html(
+                        "No messages found",
+                        (
+                            "No loaded message matches the current chat, "
+                            "date range, search or tag filters."
+                        ),
+                        "0",
+                    ),
+                    unsafe_allow_html=True,
+                )
             return
 
         for message, current_tags in messages:
