@@ -3,9 +3,9 @@
 No source-code fixes were made during the 2026-09-24 review. Items below are findings for future work.
 
 ## P0 — Correctness
-- [ ] Fix tag identity: `message_tags` currently uses only `(telegram_account_id, message_id)`. Telegram message IDs are chat-scoped, so include `chat_id` (and migrate existing data) to prevent cross-chat tag collisions.
-- [ ] Rework historical message retrieval. `get_chat_history(..., limit=100)` limits iteration to the latest 100 messages; an older requested date range may never be reached in active chats.
-- [ ] Decide pagination/load-more behavior instead of treating 100 messages as a complete date-range result.
+- [x] Fix tag identity: `message_tags` now uses `(telegram_account_id, chat_id, message_id)` with an in-place migration that preserves legacy rows under `chat_id=0`.
+- [x] Rework historical message retrieval to start from the requested `end_dt` via Pyrogram `offset_date` and apply the result limit inside the requested range.
+- [x] Treat `default_message_limit` as the maximum number of returned messages inside the selected date range; `limit=0` is supported internally for unlimited test/service retrieval.
 - [ ] Verify timezone handling end-to-end between Pyrogram message datetimes and locally constructed date-range bounds.
 - [ ] Ensure stopping a `TelegramRuntime` cleanly disconnects its active Pyrogram client before stopping the loop.
 
@@ -51,14 +51,14 @@ No source-code fixes were made during the 2026-09-24 review. Items below are fin
 
 ## P1 — Tests and regression safety
 - [x] Fix and cover Remember Me regression after application restart: refresh browser cookies instead of relying on the CookieManager constructor snapshot.
-- [ ] Add unit tests for password hashing/authentication.
-- [ ] Add tests for remember-me token creation, expiry, restore, and revocation.
-- [ ] Add database tests for ownership isolation between Web users.
-- [ ] Add tests for Telegram account save/update/delete behavior.
-- [ ] Add tests for tag identity across multiple chats.
-- [ ] Add service tests around date-range/history behavior using an injectable Telegram adapter/fake.
-- [ ] Add UI-level smoke tests for login, account selection, filters, and deletion.
-- [ ] Add a minimal CI workflow.
+- [x] Add unit tests for password hashing/authentication.
+- [x] Add tests for remember-me token creation, expiry, restore, and revocation.
+- [x] Add database tests for ownership isolation between Web users, including protection of another user's account tags during delete attempts.
+- [x] Add tests for Telegram account save/update/delete behavior.
+- [x] Add tests for tag identity across multiple chats and legacy schema migration.
+- [x] Add service tests around date-range/history behavior using an injectable fake Telegram client.
+- [x] Add UI smoke coverage for remembered-login restore plus account-selection, filtering, and deletion state transitions.
+- [x] Add a minimal GitHub Actions CI workflow on Python 3.12 running `unittest discover`.
 
 ## P1 — Security hardening
 - [ ] Decide production cookie policy explicitly; review `secure=None`, SameSite, HTTPS assumptions, and reverse-proxy deployment.
