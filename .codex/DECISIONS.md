@@ -233,26 +233,28 @@ Raw `proxy` values remain forbidden through generic yt-dlp `extra_options`; only
 This proxy support is ordinary network routing only. It does not enable cookies, login-protected/private content, DRM bypass, geo-bypass flags, or other access-control circumvention.
 
 
-## D-035 — YouTube authentication uses ephemeral cookies
+## D-035 — YouTube authentication prefers local browser session
 Status: implemented on `feature/youtube-download`
 
-YouTube authenticated access is implemented with a user-supplied Netscape-format `cookies.txt`, not Google username/password and not OAuth.
+YouTube authenticated access is cookie-session based. Telegram Harbor does not collect Google username/password and does not implement YouTube OAuth.
 
-Rationale:
-- yt-dlp no longer supports YouTube OAuth login;
-- cookie authentication is the supported yt-dlp mechanism when YouTube requires a signed-in session;
-- Telegram Harbor should never collect or store the user's Google password.
+Preferred local mode:
+- use yt-dlp's supported browser-cookie integration;
+- browser profile must exist on the same host and under the same OS user as Telegram Harbor;
+- UI offers Auto plus explicit supported browsers and an optional profile field;
+- Auto checks only standard browser-profile locations before an explicit authenticated operation;
+- no browser cookie values are persisted to SQLite, logs, or validation reports.
 
-Security contract:
-- authentication is optional and disabled by default;
-- UI upload is scoped to the active Streamlit session;
-- Telegram Harbor does not persist cookie contents to SQLite, logs, or validation JSON;
-- cookie bytes are materialized to a restrictive temporary file only for the lifetime of one Inspect/Download operation and are deleted afterward;
-- the accepted cookie file must be Mozilla/Netscape format and contain only `youtube.com` cookie rows;
-- validation reports record only whether authenticated mode was enabled, never the cookie path, cookie names, or cookie values;
-- raw `cookiefile` / `cookiesfrombrowser` injection through generic yt-dlp options remains blocked.
+Fallback mode:
+- user-supplied Netscape-format `cookies.txt`;
+- intended for Docker/remote installations where the browser is on another machine;
+- upload is session-only;
+- only `youtube.com` rows are accepted;
+- a restrictive temporary file is created only for the yt-dlp operation and removed afterward.
 
-Scope guard:
-- authenticated cookies may help with YouTube anti-bot/sign-in challenges and account-required ordinary access;
-- private/member-only/premium/DRM states remain blocked by product policy even if the account itself could access them;
-- no browser-profile scraping or OAuth flow is added in this version.
+Security/scope:
+- generic yt-dlp `cookiefile` and `cookiesfrombrowser` remain forbidden; only validated auth config may set them;
+- authenticated access is compatible with the independent YouTube SOCKS5 configuration;
+- private/member-only/premium/DRM states remain blocked even if the authenticated account could access them;
+- browser/account cookies are secrets and authenticated mode is opt-in.
+
