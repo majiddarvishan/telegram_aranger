@@ -183,6 +183,17 @@ class YouTubeValidationSummaryTests(unittest.TestCase):
         self.assertFalse(mixed["single_source_commit"])
         self.assertFalse(mixed["release_runner_evidence_ready"])
 
+    def test_windows_container_does_not_count_as_native_windows(self):
+        container_report = report(
+            mode="video_audio",
+            platform="Windows",
+            docker=True,
+        )
+        summary = summarize_reports([container_report])
+
+        self.assertFalse(summary["coverage"]["windows_live_download"])
+        self.assertTrue(summary["coverage"]["docker_live_download"])
+
     def test_windows_and_docker_require_successful_live_downloads(self):
         reports = [
             report(
