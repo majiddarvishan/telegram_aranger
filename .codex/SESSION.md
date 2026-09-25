@@ -1872,3 +1872,19 @@ Effects:
 - video-ID identity checks remain unchanged.
 
 Regression coverage verifies canonicalization for youtu.be, Shorts, Live and youtube-nocookie Embed shapes plus Inspect and Download backend calls.
+
+
+## 2026-09-26 — Stricter release-evidence semantics
+
+Tightened `scripts/youtube_validation_summary.py` to avoid two release-readiness false positives.
+
+Native Windows:
+- `windows_live_download` now requires `platform=Windows` and `docker=false`;
+- a Windows container can satisfy Docker evidence but cannot substitute for native Windows acceptance.
+
+Unreadable reports:
+- summary now exposes `report_set_readable`;
+- any JSON read/parse failure forces `release_runner_evidence_ready=false`;
+- CLI still returns the dedicated read-error exit code.
+
+Regression tests cover both Windows-container separation and CLI JSON output when an unreadable report is supplied.
