@@ -2030,3 +2030,25 @@ A legacy UI smoke assertion still expected the old sidebar sentence and caused C
 
 Manual item still open:
 - verify one real YouTube Inspect and one real download through an actual SOCKS5 endpoint.
+
+
+## 2026-09-26 — YouTube SOCKS5 full-green automated checkpoint
+
+GitHub Actions run `36200616307` completed successfully on commit `47b11460dd407e475a84495e8f92d37d8cbeae8c`.
+
+Validated:
+- Linux unittest: success;
+- YouTube service SOCKS5 tests: success;
+- YouTube download-engine SOCKS5 tests: success;
+- YouTube UI/session-state proxy isolation tests: success;
+- manual-runner SOCKS5 Inspect/Download evidence tests: success;
+- validation-summary SOCKS5 release-gate tests: success;
+- UI smoke tests: success;
+- Windows/Python 3.14 YouTube path/download/manual-runner/summary tests: success;
+- Docker build, FFmpeg/FFprobe preflight, Streamlit start and health: success.
+
+The strict runner evidence gate now requires:
+- one successful SOCKS5 Inspect;
+- one successful SOCKS5 live Download.
+
+This automated checkpoint does not complete the real SOCKS5 acceptance item. A live proxy endpoint still needs to be exercised manually.
