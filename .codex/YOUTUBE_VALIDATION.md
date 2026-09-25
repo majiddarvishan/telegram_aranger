@@ -356,3 +356,38 @@ docker compose build
 ```
 
 This ensures the validation report can be tied back to the exact source commit rather than only to an image tag.
+
+
+## Validation report summary
+
+After collecting manual/live reports, summarize them offline:
+
+```bash
+python scripts/youtube_validation_summary.py validation-reports/*.json
+```
+
+To require all core runner scenarios:
+
+```bash
+python scripts/youtube_validation_summary.py \
+  --require-core \
+  validation-reports/*.json
+```
+
+The summary reports runner evidence for:
+- preflight;
+- public Inspect;
+- Video + Audio;
+- Audio-only;
+- Manual subtitle;
+- Auto-generated caption;
+- intentional collision second run;
+- live Save-directory containment;
+- native Windows live download;
+- Docker live download;
+- public acknowledged download;
+- at least one structured failure report.
+
+It also reports whether the evidence comes from one source commit or mixed commits.
+
+The aggregator does **not** mark visual/manual-only items complete. Light/Dark/narrow review, real Streamlit warning/error presentation, and final merge/release review remain separate manual acceptance items.
