@@ -94,10 +94,9 @@ class ManualValidationHelperTests(unittest.TestCase):
             self.assertEqual(_detect_commit_sha(), "docker-build-sha")
 
     def test_environment_summary_records_build_identity_without_hostname(self):
-        with patch.dict(
-            "os.environ",
-            {"TELEGRAM_HARBOR_BUILD_SHA": "abc123def456"},
-            clear=False,
+        with patch(
+            "scripts.youtube_manual_validate._detect_commit_sha",
+            return_value="abc123def456",
         ):
             summary = _environment_summary()
 
