@@ -240,3 +240,10 @@ Planning source:
 - [x] Keep Sign out inside the Web Account card instead of rendering it outside the card boundary.
 - [x] Ensure Saved Messages is present in the dialog cache and selected by default on Telegram account startup.
 - [x] Preserve the user's subsequently selected chat across normal reruns.
+
+
+## Message date-range UX
+- [x] Auto-show latest messages when a newly selected chat has no messages in the current date range.
+- [x] Synchronize the Date range picker to the oldest/newest dates represented by the latest-message batch.
+- [x] Keep the automatic fallback one-shot so later manual empty date selections are preserved.
+- [x] Keep Saved Messages as the default startup chat when available.
