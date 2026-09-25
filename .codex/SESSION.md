@@ -956,3 +956,26 @@ Regression coverage:
 Manual status:
 - the pre-fix narrow screenshot has been reviewed;
 - one post-fix narrow screenshot remains required to close responsive validation.
+
+
+## 2026-09-25 — Responsive GUI validation complete
+
+User supplied a post-fix narrow-width screenshot with the Sidebar open.
+
+Validated:
+- Chat selector uses a full readable row;
+- Search and Tag remain readable;
+- Date range and previous/next controls retain usable widths;
+- Refresh and Load more display their full labels;
+- visible/loaded summary remains readable;
+- message card content remains legible in RTL;
+- Preview photo remains usable;
+- Edit tags and Delete no longer collapse to single-letter controls;
+- Sidebar account/network actions remain usable.
+
+Result:
+- compact-workspace responsive validation passes;
+- GUI-P5 responsive/accessibility review is complete for the tested desktop/narrow layouts;
+- GUI-P6 final visual polish review is complete for Light, Dark and narrow desktop widths.
+
+The `gui` branch is now considered visually ready for merge, subject to the user's explicit approval. Do not merge automatically.
