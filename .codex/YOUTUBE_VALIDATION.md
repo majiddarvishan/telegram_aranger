@@ -111,9 +111,22 @@ Do not record cookies, auth headers, browser session data, Telegram secrets, dow
 
 ## Manual validation runner
 
-Use `scripts/youtube_manual_validate.py` for repeatable service-level live checks. The script is intentionally excluded from CI execution; its own unit tests are offline.
+Use `scripts/youtube_manual_validate.py` for repeatable validation. CI may execute **preflight only**; CI never supplies a YouTube URL and never performs a live YouTube request. Download/Inspect scenarios remain manual/live.
 
-It does not persist the original YouTube URL, thumbnails, signed media URLs, cookies or browser/authentication state in the JSON report.
+### Offline preflight
+
+Validate FFmpeg/FFprobe plus Save-directory/allowed-root behavior without contacting YouTube:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --mode preflight \
+  --save-directory "/absolute/path/to/output" \
+  --allowed-root "/absolute/path/to"
+```
+
+A successful preflight produces a JSON report with environment/build identity, FFmpeg capability and validated Save directory.
+
+For live modes it does not persist the original YouTube URL, thumbnails, signed media URLs, cookies or browser/authentication state in the JSON report. Invalid URLs are returned as structured failure reports rather than uncaught tracebacks.
 
 ### Inspect only
 
