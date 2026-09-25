@@ -10,7 +10,7 @@ Primary Persian design document:
 
 Validation matrix: `.codex/YOUTUBE_VALIDATION.md`
 
-Latest confirmed full-green readiness checkpoint in this handoff: `9bb8695f61e246cc96340f378413add67d298b50`
+Latest confirmed full-green readiness checkpoint in this handoff: `47b11460dd407e475a84495e8f92d37d8cbeae8c`
 
 ## Confirmed user requirements
 
