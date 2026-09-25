@@ -3,10 +3,12 @@
 Branch: `feature/youtube-download`
 Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`
 
-Status: implementation active. YT-P1 through YT-P6 are implemented; YT-P5 manual Light/Dark/responsive review and YT-P7 manual/live validation remain open.
+Status: YT-P7 validation active. YT-P1 through YT-P6 are implemented; automated CI baseline is green; YT-P5 manual Light/Dark/responsive review and YT-P7 live/manual validation remain open.
 
 Primary Persian design document:
 `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
+
+Validation matrix: `.codex/YOUTUBE_VALIDATION.md`
 
 ## Confirmed user requirements
 
