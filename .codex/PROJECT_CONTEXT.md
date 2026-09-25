@@ -238,6 +238,7 @@ Real Telegram/browser validation has been completed successfully with no issues 
 - Collision suffixes are applied to the complete output group so paired files remain aligned.
 - UI should show a general copyright/service notice and stronger restriction warnings where signals exist.
 - Warning remains non-blocking for ordinarily accessible public content after acknowledgement.
+- YouTube supports optional Browser Session authentication on local installs, with a youtube.com-only `cookies.txt` fallback for Docker/remote deployments. Browser/account cookie values are never persisted by Telegram Harbor.
 - YouTube has an optional independent SOCKS5 proxy for both Inspect and Download. It is disabled by default, supports optional username/password, keeps the password out of validation reports, and never auto-reuses Telegram proxy state.
 - YouTube also supports optional session-only cookie authentication via a validated Netscape-format `cookies.txt`. Telegram Harbor does not request Google username/password, does not use OAuth, does not persist cookie content, and removes the temporary cookie file after each operation.
 - V1 does not include DRM/paywall/private/member-only/login-protection bypass.
