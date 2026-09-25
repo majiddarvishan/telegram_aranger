@@ -23,6 +23,8 @@ YOUTUBE_FAILURE_CODES = {
     "video_unavailable",
     "network_error",
     "downloader_error",
+    "metadata_video_mismatch",
+    "download_video_mismatch",
     "format_unavailable",
     "post_processing_failed",
     "subtitle_unavailable",
