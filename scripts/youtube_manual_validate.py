@@ -22,6 +22,7 @@ from services.youtube_download import (  # noqa: E402
 )
 from services.youtube_policy import evaluate_download_policy  # noqa: E402
 from services.youtube_service import (  # noqa: E402
+    YouTubeProxyConfig,
     YouTubeServiceError,
     detect_ffmpeg,
     inspect_video,
@@ -97,7 +98,32 @@ def _environment_summary() -> dict[str, Any]:
     }
 
 
+def _proxy_from_args(args) -> YouTubeProxyConfig | None:
+    host = str(getattr(args, "proxy_host", "") or "").strip()
+    if not host:
+        return None
+
+    password_env = str(
+        getattr(
+            args,
+            "proxy_password_env",
+            "YOUTUBE_SOCKS5_PASSWORD",
+        )
+        or "YOUTUBE_SOCKS5_PASSWORD"
+    )
+    password = os.getenv(password_env, "")
+
+    return YouTubeProxyConfig(
+        enabled=True,
+        host=host,
+        port=int(getattr(args, "proxy_port", 1080)),
+        username=str(getattr(args, "proxy_user", "") or ""),
+        password=password,
+    )
+
+
 def _request_summary(args) -> dict[str, Any]:
+    proxy = _proxy_from_args(args)
     return {
         "mode": args.mode,
         "quality": (
@@ -113,6 +139,17 @@ def _request_summary(args) -> dict[str, Any]:
         "acknowledged": bool(args.acknowledge),
         "expect_collision": bool(
             getattr(args, "expect_collision", False)
+        ),
+        "proxy": (
+            proxy.as_safe_dict()
+            if proxy is not None
+            else {
+                "enabled": False,
+                "host": "",
+                "port": None,
+                "username_configured": False,
+                "password_configured": False,
+            }
         ),
     }
 
@@ -423,6 +460,32 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--proxy-host",
+        help=(
+            "Optional SOCKS5 host/IP for YouTube Inspect and Download. "
+            "Omit for a direct connection."
+        ),
+    )
+    parser.add_argument(
+        "--proxy-port",
+        type=int,
+        default=1080,
+        help="SOCKS5 port. Defaults to 1080.",
+    )
+    parser.add_argument(
+        "--proxy-user",
+        default="",
+        help="Optional SOCKS5 username.",
+    )
+    parser.add_argument(
+        "--proxy-password-env",
+        default="YOUTUBE_SOCKS5_PASSWORD",
+        help=(
+            "Environment variable containing the optional SOCKS5 password. "
+            "The password is never written to validation reports."
+        ),
+    )
+    parser.add_argument(
         "--report-file",
         help=(
             "Optional JSON report path. Prefer validation-reports/...; "
@@ -449,6 +512,10 @@ def run(args) -> tuple[dict[str, Any], int]:
     }
 
     try:
+        proxy = _proxy_from_args(args)
+        if proxy is not None:
+            proxy.proxy_url()
+
         if args.mode == "preflight":
             if not args.save_directory:
                 raise DownloadPathError(
@@ -479,6 +546,11 @@ def run(args) -> tuple[dict[str, Any], int]:
                 "ffmpeg_runtime_ok": ffmpeg_runtime_ok,
                 "ffprobe_runtime_ok": ffprobe_runtime_ok,
                 "ffmpeg_runtime_ready": runtime_ready,
+                "proxy": (
+                    proxy.as_safe_dict()
+                    if proxy is not None
+                    else {"enabled": False}
+                ),
             }
             report["status"] = "passed" if runtime_ready else "failed"
             if not ffmpeg.fully_available:
@@ -500,7 +572,10 @@ def run(args) -> tuple[dict[str, Any], int]:
         validated = validate_youtube_url(args.url or "")
         report["video_id"] = validated["video_id"]
 
-        metadata = inspect_video(validated["url"])
+        metadata = inspect_video(
+            validated["url"],
+            proxy=proxy,
+        )
         report["metadata"] = _safe_metadata_summary(metadata)
 
         policy = evaluate_download_policy(
@@ -552,6 +627,7 @@ def run(args) -> tuple[dict[str, Any], int]:
                 quality=("best" if args.mode == "audio_only" else args.quality),
                 subtitle=subtitle,
                 acknowledged=bool(args.acknowledge),
+                proxy=proxy,
             ),
             metadata,
             allowed_roots=tuple(args.allowed_root),
