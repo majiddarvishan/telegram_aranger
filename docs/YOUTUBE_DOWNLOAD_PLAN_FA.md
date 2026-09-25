@@ -655,3 +655,20 @@ CI نباید به YouTube live network وابسته باشد.
 - thumbnail-only downloads
 
 این موارد در صورت نیاز می‌توانند بعداً جداگانه طراحی شوند.
+
+
+## پشتیبانی SOCKS5 برای YouTube
+
+در V1، بخش YouTube می‌تواند به‌صورت اختیاری از SOCKS5 استفاده کند.
+
+تصمیم نهایی:
+- Proxy یوتیوب مستقل از Proxy تلگرام است.
+- به‌صورت پیش‌فرض خاموش است.
+- کاربر در Workspace یوتیوب آن را فعال می‌کند.
+- Host/IP و Port قابل تنظیم است.
+- Username و Password اختیاری هستند.
+- Password فقط در Session جاری Streamlit نگهداری می‌شود و نباید در Log یا Validation Report ذخیره شود.
+- تغییر تنظیمات Proxy، نتیجه Inspect قبلی را invalidate می‌کند تا Download بر اساس مسیر شبکه‌ی متفاوت و Metadata قدیمی انجام نشود.
+- همان Proxy برای Inspect و Download استفاده می‌شود.
+- تنظیم `proxy` از طریق generic yt-dlp extra-options همچنان ممنوع است؛ فقط مسیر validate‌شده‌ی برنامه مجاز است.
+- این قابلیت صرفاً برای Network Routing است و هیچ Cookie/Login/DRM/Geo-bypass یا دور زدن Access Control اضافه نمی‌کند.
