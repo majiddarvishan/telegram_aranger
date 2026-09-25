@@ -50,15 +50,7 @@ if st.session_state.web_user is None:
     render_web_auth(settings)
     st.stop()
 
-render_sidebar(settings)
-
-st.sidebar.markdown("### Workspace")
-workspace = st.sidebar.radio(
-    "Workspace",
-    ("Telegram Messages", "YouTube Download"),
-    key="workspace",
-    label_visibility="collapsed",
-)
+workspace = render_sidebar(settings)
 
 if workspace == "YouTube Download":
     render_youtube(settings)
