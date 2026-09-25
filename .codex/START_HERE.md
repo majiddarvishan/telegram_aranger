@@ -2,9 +2,9 @@
 
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
-- Current working branch: `gui`
-- Current phase status: stable application baseline is complete; `gui` is a visual-redesign planning/implementation branch.
-- `gui` was created from `main@2bd6fbd18ac6ab03a38ee5ffc586c2d76c8ccc49`. Functional behavior should continue to follow `main`; visual redesign work is isolated here.
+- Current working branch: `main`
+- Current phase status: GUI redesign, peer persistence, responsive validation, and v1.1.0 release preparation are complete.
+- The completed `gui` branch was fast-forward merged into `main`; `main` is the source of truth.
 
 ## What the project is
 **Telegram Harbor** is a modular Streamlit Telegram message and media manager using Pyrogram.
@@ -57,7 +57,7 @@ Validation status:
 8. `docs/GUI_DESIGN_PLAN_FA.md`
 
 ## Important rules
-- Work on `gui` for visual redesign unless the user explicitly switches branches. Do not merge GUI work into `main` without explicit approval.
+- Work on `main` unless the user explicitly requests a new branch.
 - Re-fetch branch HEAD before editing; do not assume these notes are newer than Git.
 - Never commit Telegram API credentials, Fernet keys, session strings, phone codes, 2FA passwords, proxy passwords, browser remember tokens, SQLite data files, downloaded media, or backup artifacts.
 - Preserve Web-user ownership checks for Telegram accounts and chat-scoped identity for tags/media.
@@ -68,7 +68,7 @@ Validation status:
 ## Local run
 
 ```bash
-git checkout gui
+git checkout main
 python -m venv .venv
 # activate the virtual environment
 pip install -r requirements.txt
