@@ -11,7 +11,7 @@ from scripts.youtube_manual_validate import (
     build_parser,
     run,
 )
-from services.youtube_download import DownloadResult
+from services.youtube_download import DownloadProgress, DownloadResult
 from services.youtube_service import FFmpegCapability, YouTubeServiceError
 
 
@@ -245,6 +245,19 @@ class ManualValidationHelperTests(unittest.TestCase):
                 subtitle_format=None,
                 subtitle_source=None,
             )
+            def fake_download(*call_args, **call_kwargs):
+                callback = call_kwargs.get("progress_callback")
+                if callback is not None:
+                    callback(
+                        DownloadProgress(
+                            phase="completed",
+                            status="finished",
+                            percent=100.0,
+                            final_output_path=str(media_path),
+                        )
+                    )
+                return result
+
             with (
                 patch(
                     "scripts.youtube_manual_validate.inspect_video",
@@ -256,15 +269,15 @@ class ManualValidationHelperTests(unittest.TestCase):
                 ),
                 patch(
                     "scripts.youtube_manual_validate.download_video",
-                    return_value=result,
+                    side_effect=fake_download,
                 ) as download_mock,
             ):
                 report, code = run(args)
 
-            self.assertEqual(code, 4)
+            self.assertEqual(code, 0)
             self.assertEqual(report["result"]["media_path"], result.media_path)
-            self.assertFalse(report["checks"]["completed_progress_observed"])
-            self.assertFalse(report["checks"]["all_passed"])
+            self.assertTrue(report["checks"]["completed_progress_observed"])
+            self.assertTrue(report["checks"]["all_passed"])
             request = download_mock.call_args.args[0]
             self.assertTrue(request.acknowledged)
             self.assertEqual(request.mode, "video_audio")
