@@ -409,6 +409,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Materialize fallback auth cookies only for one Inspect/Download operation and delete the temporary file afterward.
 - [x] Keep raw `cookiefile`/`cookiesfrombrowser` generic yt-dlp options forbidden; only the validated auth path may supply cookies.
 - [x] Require authenticated Inspect + live Download evidence in the strict validation-summary release gate.
+- [x] Allow `availability=needs_auth` after successful configured authentication while keeping private/member/premium/DRM states blocked.
 - [ ] Manually validate one Browser Session Inspect and one Browser Session download on a local installation.
 - [ ] Manually validate the `cookies.txt` fallback on a remote/Docker-style installation.
 - [ ] Manually validate YouTube Inspect and one download through a real SOCKS5 endpoint.
