@@ -951,6 +951,11 @@ class ManualValidationHelperTests(unittest.TestCase):
                 return result
 
             with (
+                patch.dict(
+                    "os.environ",
+                    {"YOUTUBE_TEST_PROXY_PASSWORD": "proxy-secret"},
+                    clear=False,
+                ),
                 patch(
                     "scripts.youtube_manual_validate.inspect_video",
                     return_value=metadata,
