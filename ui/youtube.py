@@ -189,7 +189,6 @@ def _render_metadata(metadata: Mapping[str, Any]) -> None:
 def _render_restriction_state(metadata: Mapping[str, Any]):
     policy = evaluate_download_policy(metadata, acknowledged=False)
 
-    st.info(GENERAL_RIGHTS_NOTICE)
     for warning in policy.warnings:
         st.warning(warning.message)
 
@@ -302,6 +301,7 @@ def render_youtube(settings) -> None:
         "running Telegram Harbor. On a remote/server installation, this is the "
         "server host — not your browser device."
     )
+    st.info(GENERAL_RIGHTS_NOTICE)
 
     ffmpeg = detect_ffmpeg()
     if ffmpeg.fully_available:
