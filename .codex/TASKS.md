@@ -361,6 +361,9 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Contain downloader-returned media/subtitle paths to the per-job temporary directory before moving final outputs.
 - [x] Reject direct outside paths and symlink escapes with regression coverage.
 - [x] Expand Windows/Python 3.14 offline coverage to run YouTube download-engine and manual-runner tests in addition to path tests.
+- [x] Hide Telegram account/proxy controls while the YouTube workspace is selected, with explicit UI copy that Telegram SOCKS5 is not reused.
+- [x] Move workspace selection ownership into the shared sidebar routing and add regression coverage.
+- [x] Scan all GitHub Actions workflow YAML files for accidental live YouTube URLs/direct live runner usage.
 
 - [ ] Public test video.
 - [ ] Video + audio.
