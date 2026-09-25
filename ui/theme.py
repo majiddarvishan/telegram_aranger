@@ -648,6 +648,40 @@ a[href]:hover {{
     }}
 }}
 
+@media (max-width: 700px) {{
+    [data-testid="stAppViewContainer"] .block-container,
+    [data-testid="stMainBlockContainer"] {{
+        padding-left: var(--th-space-3);
+        padding-right: var(--th-space-3);
+        padding-top: 36px;
+    }}
+
+    .st-key-message-header {{
+        padding:
+            var(--th-space-3)
+            var(--th-space-3)
+            var(--th-space-3);
+        border-radius: 10px;
+    }}
+
+    .st-key-message-scroll-area {{
+        border-radius: 10px !important;
+    }}
+
+    .th-action-summary {{
+        gap: var(--th-space-1);
+        font-size: 0.76rem;
+    }}
+
+    [class*="st-key-message-card-"] {{
+        margin-bottom: var(--th-space-2);
+    }}
+
+    [class*="st-key-message-footer-"] button {{
+        font-size: 0.78rem;
+    }}
+}}
+
 @media (prefers-reduced-motion: reduce) {{
     .stButton > button,
     .stDownloadButton > button,
