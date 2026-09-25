@@ -639,6 +639,18 @@ a[href]:hover {{
     box-shadow: 0 0 0 1px var(--th-accent);
 }}
 
+.st-key-youtube-thumbnail {
+    max-width: 720px;
+}
+
+.st-key-youtube-thumbnail img {
+    border-radius: var(--th-radius-panel);
+}
+
+.st-key-youtube-metadata-metrics [data-testid="stMetric"] {
+    min-height: 88px;
+}
+
 .st-key-sidebar-add-first-account button,
 .st-key-sidebar-add-account-connected button,
 .st-key-sidebar-add-account-disconnected button {{
