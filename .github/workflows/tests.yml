@@ -60,6 +60,9 @@ jobs:
       - name: YouTube UI tests
         run: python -m unittest discover -s tests -p "test_youtube_ui.py" -v
 
+      - name: YouTube manual-runner offline tests
+        run: python -m unittest discover -s tests -p "test_youtube_manual_validate.py" -v
+
       - name: Import Telegram service
         run: python -c "import services.telegram_service"
 
