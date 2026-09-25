@@ -1527,3 +1527,26 @@ Regression coverage:
 
 CI network guard improvement:
 - `tests/test_youtube_ci_policy.py` now scans every `.github/workflows/*.yml` and `*.yaml`, not just `tests.yml`, for live YouTube URLs/direct live-runner use.
+
+
+## 2026-09-26 — Self-validating YT-P7 download reports
+
+Enhanced `scripts/youtube_manual_validate.py` so live/manual download evidence is checked immediately after the engine returns.
+
+For download modes the JSON report now verifies:
+- media file exists;
+- media path resolves under the selected Save directory;
+- a completed progress event was observed;
+- when subtitle/caption is selected:
+  - subtitle exists;
+  - subtitle resolves under the Save directory;
+  - media/subtitle stems are identical.
+
+The runner returns a non-zero exit code when these post-download checks fail.
+
+Offline tests cover:
+- successful matched-basename case;
+- mismatched subtitle basename failure;
+- normal download wiring with a simulated completion event.
+
+Real collision suffix acceptance still requires two live runs with the first output group retained.
