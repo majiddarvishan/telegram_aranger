@@ -1417,3 +1417,33 @@ Regression coverage:
 - the runner itself is never invoked against live YouTube by CI.
 
 Manual/live items remain open until actually exercised through the real application/environment.
+
+
+## 2026-09-26 — YouTube release-readiness hardening during YT-P7
+
+Performed a code-level readiness review while live/manual execution remains unavailable in the current chat environment.
+
+Workspace independence:
+- confirmed `render_sidebar()` does not stop the application when no Telegram account is configured/connected;
+- YouTube Download therefore remains reachable as an independent workspace after Web login and is not blocked by Telegram account state.
+
+Responsive hardening:
+- replaced the fixed 420px YouTube thumbnail with a container-width image;
+- added stable YouTube container keys for thumbnail, metadata metrics, output controls and save controls;
+- added design-system responsive rules:
+  - compact view wraps the four metadata metrics into two-column-capable rows;
+  - output/quality controls wrap safely;
+  - <=700px forces metadata/output columns to full width;
+  - thumbnail remains bounded to the available container;
+- no YouTube-specific hard-coded light/dark colors were added; existing adaptive design tokens remain authoritative;
+- added theme/UI regression tests for the responsive structure.
+- manual Light/Dark/narrow screenshot review is still open and is not being claimed complete.
+
+Error-disclosure hardening:
+- unknown yt-dlp/downloader exceptions no longer surface raw exception strings;
+- unexpected Inspect/Download UI exceptions now show generic messages;
+- manual validation runner unexpected errors retain only a generic message plus exception type;
+- known normalized error categories still retain their specific user-facing messages;
+- regression tests explicitly ensure a synthetic signed URL/query token does not appear in normalized error messages or validation reports.
+
+A transient CSS f-string escaping issue introduced during the responsive edit was caught immediately during review and corrected before considering the change ready for CI.
