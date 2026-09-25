@@ -93,6 +93,13 @@ class ThemeFoundationTests(unittest.TestCase):
         )
 
     def test_compact_viewport_polish_is_defined(self):
+        self.assertIn("@media (max-width: 1100px)", APP_CSS)
+        self.assertIn(".st-key-message-filters", APP_CSS)
+        self.assertIn(".st-key-message-date-nav", APP_CSS)
+        self.assertIn(".st-key-message-actions", APP_CSS)
+        self.assertIn("st-key-message-footer-actions-", APP_CSS)
+        self.assertIn("st-key-media-actions-", APP_CSS)
+        self.assertIn("flex-wrap: wrap", APP_CSS)
         self.assertIn("@media (max-width: 700px)", APP_CSS)
         self.assertIn("padding-top: 36px", APP_CSS)
 
