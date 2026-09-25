@@ -151,19 +151,25 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn("subtitle_format", source)
         self.assertIn("subtitle_source", source)
 
-    def test_ui_exposes_session_only_youtube_cookie_login(self):
+    def test_ui_prefers_local_browser_session_with_cookie_file_fallback(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         state_source = Path("utils/state.py").read_text(encoding="utf-8")
 
         self.assertIn("Use authenticated YouTube session", source)
+        self.assertIn("Browser session", source)
+        self.assertIn("cookies.txt fallback", source)
+        self.assertIn("youtube_auth_browser", source)
+        self.assertIn("youtube_auth_profile", source)
         self.assertIn("YouTube cookies.txt", source)
         self.assertIn("st.file_uploader", source)
         self.assertIn("youtube_cookie_upload", source)
         self.assertIn("YouTubeAuthConfig", source)
         self.assertIn("auth=_youtube_auth_config()", source)
-        self.assertIn("does not persist the cookie file", source)
+        self.assertIn("does not store", source)
         self.assertNotIn("Google password", source)
         self.assertIn('"youtube_use_auth": False', state_source)
+        self.assertIn('"youtube_auth_source": "Browser session"', state_source)
+        self.assertIn('"youtube_auth_browser": "Auto"', state_source)
 
     def test_auth_changes_invalidate_previous_inspection(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
