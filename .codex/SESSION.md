@@ -1507,3 +1507,23 @@ It now also runs:
 All of these remain offline; no live YouTube request is introduced.
 
 This strengthens Windows implementation confidence but does not replace the still-open native Windows real-download validation in YT-P7.
+
+
+## 2026-09-26 — YouTube workspace/sidebar isolation hardening
+
+Release-readiness review found that the YouTube workspace still displayed Telegram-specific account and SOCKS5 proxy controls in the sidebar. Although those settings were not technically reused by YouTube, the UI could imply that they applied.
+
+Changed:
+- workspace selector is now owned by `render_sidebar()`;
+- common brand/Web-account controls remain visible in both workspaces;
+- Telegram network/proxy/account/login controls are rendered only for **Telegram Messages**;
+- **YouTube Download** instead shows explicit copy that YouTube uses the host network directly and Telegram SOCKS5 proxy settings are not reused;
+- `app.py` routes based on the workspace returned by the sidebar.
+
+Regression coverage:
+- confirms the sidebar owns the workspace selector;
+- confirms the YouTube branch occurs before Telegram network settings;
+- confirms the explicit no-proxy-reuse copy is present.
+
+CI network guard improvement:
+- `tests/test_youtube_ci_policy.py` now scans every `.github/workflows/*.yml` and `*.yaml`, not just `tests.yml`, for live YouTube URLs/direct live-runner use.
