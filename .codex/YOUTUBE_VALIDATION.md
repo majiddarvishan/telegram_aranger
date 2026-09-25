@@ -473,3 +473,43 @@ The following still require actual Streamlit/manual acceptance:
 - Light/Dark/narrow visual review;
 - warning/error presentation;
 - final merge/release review.
+
+
+### SOCKS5 live validation
+
+YouTube SOCKS5 is independent from Telegram proxy state and must be validated separately.
+
+Unauthenticated proxy:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --proxy-host 127.0.0.1 \
+  --proxy-port 1080 \
+  --report-file validation-reports/proxy-inspect.json
+```
+
+Authenticated proxy:
+
+```bash
+export YOUTUBE_SOCKS5_PASSWORD='your-proxy-password'
+
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode video_audio \
+  --quality max_720p \
+  --save-directory "/absolute/path/to/output" \
+  --proxy-host 127.0.0.1 \
+  --proxy-port 1080 \
+  --proxy-user your-user \
+  --acknowledge \
+  --report-file validation-reports/proxy-download.json
+```
+
+Acceptance:
+- Inspect and at least one Download succeed through a real SOCKS5 endpoint;
+- changing proxy settings invalidates old Inspect metadata in the UI;
+- report contains `request.proxy.enabled=true`;
+- password value is absent from report/log/UI output;
+- Telegram proxy state is not modified or reused automatically.
