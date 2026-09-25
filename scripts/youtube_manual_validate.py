@@ -77,6 +77,23 @@ def _environment_summary() -> dict[str, Any]:
     }
 
 
+def _request_summary(args) -> dict[str, Any]:
+    return {
+        "mode": args.mode,
+        "quality": (
+            "best"
+            if args.mode == "audio_only"
+            else args.quality
+        ),
+        "save_directory": args.save_directory,
+        "create_directory": bool(args.create_directory),
+        "allowed_roots": list(args.allowed_root),
+        "subtitle_language": args.subtitle_language,
+        "subtitle_source": args.subtitle_source,
+        "acknowledged": bool(args.acknowledge),
+    }
+
+
 def _safe_metadata_summary(metadata: dict[str, Any]) -> dict[str, Any]:
     subtitles = metadata.get("subtitles")
     if not isinstance(subtitles, list):
@@ -304,6 +321,7 @@ def run(args) -> tuple[dict[str, Any], int]:
         "mode": args.mode,
         "quality": args.quality,
         "video_id": validated["video_id"],
+        "request": _request_summary(args),
         "environment": _environment_summary(),
         "ffmpeg": ffmpeg.as_dict(),
         "status": "started",
