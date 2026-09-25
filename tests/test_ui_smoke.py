@@ -5,6 +5,7 @@ from ui.main import (
     MESSAGE_HEADER_CSS,
     MESSAGE_HEADER_KEY,
     MESSAGE_SCROLL_KEY,
+    _chat_label,
     _delete_state_key,
     _display_message_text,
     _message_card_key,
@@ -42,6 +43,26 @@ class StickyHeaderTests(unittest.TestCase):
         self.assertIn("Refresh", actions_source)
         self.assertIn("action_summary_html", actions_source)
         self.assertNotIn("Load more", scroll_source)
+
+class ChatLabelPolishTests(unittest.TestCase):
+    def test_chat_labels_use_textual_type_not_decorative_emoji(self):
+        label = _chat_label(
+            {
+                "title": "Operations",
+                "type": "supergroup",
+                "username": "ops",
+            }
+        )
+
+        self.assertEqual(
+            label,
+            "Operations · @ops · Group",
+        )
+        self.assertNotIn("👤", label)
+        self.assertNotIn("👥", label)
+        self.assertNotIn("📢", label)
+        self.assertNotIn("💬", label)
+
 
 class UiMessageSmokeTests(unittest.TestCase):
     def setUp(self):
@@ -151,6 +172,15 @@ class UiMessageSmokeTests(unittest.TestCase):
             "Actual caption",
         )
 
+    def test_delete_microcopy_is_explicit_and_irreversible(self):
+        import inspect
+        from ui.main import _render_message_footer
+
+        source = inspect.getsource(_render_message_footer)
+
+        self.assertIn("This cannot be undone", source)
+        self.assertIn("Delete message", source)
+
     def test_delete_confirmation_key_is_scoped_to_account_chat_and_message(self):
         self.assertEqual(_delete_state_key(7, -100, 42), "7:-100:42")
         self.assertNotEqual(
@@ -230,7 +260,7 @@ class SidebarHierarchySmokeTests(unittest.TestCase):
 
         self.assertIn("Network & proxy", network_source)
         self.assertIn("Account actions", actions_source)
-        self.assertIn("Logout & remove account", actions_source)
+        self.assertIn("Log out & remove", actions_source)
         self.assertIn("Sign out", web_source)
 
 
