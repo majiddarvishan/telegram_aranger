@@ -3,8 +3,9 @@
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
 - Current working branch: `feature/youtube-download`
-- Current phase status: YT-P7 validation/readiness review is active. YT-P1 through YT-P6 are implemented. Responsive structure, error-disclosure safety, warning order, offline-CI enforcement, downloader temp-output containment and expanded Windows offline coverage have been added. Manual Light/Dark/narrow review and YT-P7 live downloads remain open.
+- Current phase status: YouTube V1 automated implementation/readiness hardening is complete through checkpoint `65d032829c5529a016cc3e36343d2c1e1a9fc050` with full Linux/Windows/Docker CI success. Remaining work is manual YT-P5 Light/Dark/narrow visual review, YT-P7 real YouTube/Windows/Docker/UI acceptance, and final merge/release review.
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
+- Automated YouTube checkpoint: `65d032829c5529a016cc3e36343d2c1e1a9fc050` (full Linux/Windows/Docker GitHub Actions success).
 - The completed `gui` branch is already merged into `main`.
 
 ## What the project is
