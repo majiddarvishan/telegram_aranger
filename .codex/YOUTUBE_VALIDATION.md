@@ -271,11 +271,12 @@ The validation script does not load Telegram settings, so Telegram credentials a
 To verify grouped collision behavior with a real output:
 1. complete one media + subtitle download;
 2. keep both files in the Save directory;
-3. run the same command again;
-4. confirm the second media and subtitle both receive the same numeric suffix, for example:
+3. run the same command again and add `--expect-collision`;
+4. the runner must report `collision_expectation_met=true` and a numeric `collision_number` of 2 or greater;
+5. confirm the second media and subtitle both receive the same numeric suffix, for example:
    - `Example (2).mp4`
    - `Example (2).srt`
-5. record both filenames in the validation evidence.
+6. record both filenames in the validation evidence.
 
 Do not delete/rename the first pair until the second run has completed.
 
@@ -306,10 +307,16 @@ Checks include:
 - final media file exists;
 - final media remains under the selected Save directory;
 - completion progress event was observed;
+- output basename is derived from the sanitized video title, allowing only the defined numeric collision suffix;
+- media extension matches the requested mode (.mp4 or .mp3);
 - when subtitle/caption is enabled:
   - subtitle file exists;
   - subtitle remains under the selected Save directory;
-  - media and subtitle have exactly the same basename.
+  - media and subtitle have exactly the same basename;
+  - subtitle source matches Manual vs Auto-generated selection;
+  - subtitle language matches the selected language;
+  - subtitle extension matches the actual reported output format;
+- when `--expect-collision` is supplied, a numeric collision suffix such as `(2)` is mandatory.
 
 This makes the manual evidence self-validating for the matched-basename and final-path parts of YT-P7. Collision validation still requires a second real run with the first output pair left in place.
 
