@@ -8,6 +8,7 @@ from scripts.youtube_manual_validate import (
     _binary_runtime_available,
     _detect_commit_sha,
     _environment_summary,
+    _proxy_from_args,
     _request_summary,
     _result_checks,
     _safe_metadata_summary,
@@ -42,6 +43,38 @@ class ManualValidationHelperTests(unittest.TestCase):
 
         self.assertFalse(_binary_runtime_available(None))
 
+    def test_proxy_from_args_uses_password_environment_without_reporting_secret(self):
+        args = SimpleNamespace(
+            proxy_host="127.0.0.1",
+            proxy_port=1080,
+            proxy_user="proxy-user",
+            proxy_password_env="YOUTUBE_TEST_PROXY_PASSWORD",
+        )
+        with patch.dict(
+            "os.environ",
+            {"YOUTUBE_TEST_PROXY_PASSWORD": "proxy-secret"},
+            clear=False,
+        ):
+            proxy = _proxy_from_args(args)
+            summary = proxy.as_safe_dict()
+
+        self.assertEqual(
+            proxy.proxy_url(),
+            "socks5://proxy-user:proxy-secret@127.0.0.1:1080",
+        )
+        self.assertTrue(summary["enabled"])
+        self.assertTrue(summary["password_configured"])
+        self.assertNotIn("proxy-secret", str(summary))
+
+    def test_proxy_from_args_is_disabled_without_host(self):
+        args = SimpleNamespace(
+            proxy_host=None,
+            proxy_port=1080,
+            proxy_user="",
+            proxy_password_env="YOUTUBE_SOCKS5_PASSWORD",
+        )
+        self.assertIsNone(_proxy_from_args(args))
+
     def test_request_summary_records_safe_reproducible_inputs(self):
         args = SimpleNamespace(
             mode="video_audio",
@@ -62,6 +95,7 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(summary["subtitle_language"], "en")
         self.assertEqual(summary["subtitle_source"], "manual")
         self.assertTrue(summary["acknowledged"])
+        self.assertFalse(summary["proxy"]["enabled"])
         self.assertNotIn("url", summary)
 
     def test_native_git_head_overrides_stale_build_sha_environment(self):
@@ -187,9 +221,18 @@ class ManualValidationHelperTests(unittest.TestCase):
                 "--mode",
                 "video_audio",
                 "--expect-collision",
+                "--proxy-host",
+                "127.0.0.1",
+                "--proxy-port",
+                "1081",
+                "--proxy-user",
+                "proxy-user",
             ]
         )
         self.assertTrue(collision.expect_collision)
+        self.assertEqual(collision.proxy_host, "127.0.0.1")
+        self.assertEqual(collision.proxy_port, 1081)
+        self.assertEqual(collision.proxy_user, "proxy-user")
 
     def test_missing_url_returns_structured_failure_report(self):
         args = SimpleNamespace(
@@ -446,6 +489,60 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(report["request"]["mode"], "inspect")
         self.assertNotIn("url", report["request"])
         self.assertNotIn(args.url, str(report))
+
+    def test_run_inspect_passes_socks5_proxy_without_reporting_password(self):
+        args = SimpleNamespace(
+            url="https://youtu.be/BaW_jenozKc",
+            mode="inspect",
+            quality="best",
+            save_directory=None,
+            create_directory=False,
+            allowed_root=[],
+            subtitle_language=None,
+            subtitle_source=None,
+            acknowledge=False,
+            expect_collision=False,
+            report_file=None,
+            proxy_host="127.0.0.1",
+            proxy_port=1080,
+            proxy_user="proxy-user",
+            proxy_password_env="YOUTUBE_TEST_PROXY_PASSWORD",
+        )
+        metadata = {
+            "video_id": "BaW_jenozKc",
+            "title": "Test Video",
+            "availability": "public",
+            "age_limit": 0,
+            "has_drm": False,
+            "formats": [{"format_id": "18"}],
+            "subtitles": [],
+        }
+        with (
+            patch.dict(
+                "os.environ",
+                {"YOUTUBE_TEST_PROXY_PASSWORD": "super-secret"},
+                clear=False,
+            ),
+            patch(
+                "scripts.youtube_manual_validate.inspect_video",
+                return_value=metadata,
+            ) as inspect_mock,
+            patch(
+                "scripts.youtube_manual_validate.detect_ffmpeg",
+                return_value=FFmpegCapability("/ffmpeg", "/ffprobe"),
+            ),
+        ):
+            report, code = run(args)
+
+        self.assertEqual(code, 0)
+        proxy = inspect_mock.call_args.kwargs["proxy"]
+        self.assertEqual(
+            proxy.proxy_url(),
+            "socks5://proxy-user:super-secret@127.0.0.1:1080",
+        )
+        self.assertTrue(report["request"]["proxy"]["enabled"])
+        self.assertTrue(report["request"]["proxy"]["password_configured"])
+        self.assertNotIn("super-secret", str(report))
 
     def test_unexpected_runner_error_does_not_expose_raw_message(self):
         args = SimpleNamespace(
