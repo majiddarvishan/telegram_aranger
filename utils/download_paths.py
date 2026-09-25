@@ -61,7 +61,8 @@ def sanitize_youtube_title(title: str | None, *, max_length: int = 160) -> str:
     candidate = _avoid_windows_reserved_name(candidate)
     candidate = _truncate_utf16_units(candidate, max_length).rstrip(" .")
     candidate = _avoid_windows_reserved_name(candidate)
-    return candidate or "YouTube Video"
+    candidate = _truncate_utf16_units(candidate, max_length).rstrip(" .")
+    return candidate or _truncate_utf16_units("YouTube Video", max_length) or "_"
 
 
 def _avoid_windows_reserved_name(value: str) -> str:
