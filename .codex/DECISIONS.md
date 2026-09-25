@@ -160,10 +160,12 @@ V1 must not introduce mechanisms that bypass DRM, paywalls, private/member-only 
 
 The baseline scope is public content that the downloader can access normally without bypass behavior.
 
-## D-029 — YouTube V1 is single-video, unauthenticated, and non-batch
+## D-029 — YouTube V1 is single-video and non-batch
 Status: implemented/enforced on `feature/youtube-download`
 
-V1 intentionally excludes playlists, full channels, browser-cookie import, authenticated/private content, batch queues, scheduling, and automatic geo-bypass.
+V1 intentionally excludes playlists, full channels, private/member-only/premium content, DRM/access-control bypass, batch queues, scheduling, and automatic geo-bypass.
+
+Optional cookie-session authentication is supported for otherwise in-scope videos that YouTube requires a signed-in session to access. Local Browser Session is preferred; youtube.com-only Netscape `cookies.txt` is the remote/Docker fallback.
 
 ## D-030 — FFmpeg is an operational dependency for full YouTube output support
 Status: implemented on `feature/youtube-download`; Docker/Windows platform setup documented
