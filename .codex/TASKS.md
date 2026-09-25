@@ -379,6 +379,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Add an offline validation-report aggregator for core runner scenarios, Windows/Docker live evidence, mixed-commit detection, and structured failures.
 - [x] Add `--require-core` summary mode without treating visual/manual-only checks as automated.
 - [x] Treat missing/unknown source commit identity as incomplete evidence; `single_source_commit` is true only when every report has one identical concrete SHA.
+- [x] Run validation-summary tests on Windows/Python 3.14 in addition to Linux CI.
 
 - [ ] Public test video.
 - [ ] Video + audio.
