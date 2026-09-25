@@ -1646,3 +1646,37 @@ Updated the persisted result block to retain:
 - Manual vs Auto-generated source.
 
 Regression coverage verifies these provenance fields remain part of the completed-output UI contract.
+
+
+## 2026-09-26 — Offline YT-P7 validation report aggregation
+
+Added `scripts/youtube_validation_summary.py` to aggregate already-generated manual validation JSON reports without any network access.
+
+Coverage summary includes:
+- preflight;
+- public Inspect;
+- Video + Audio;
+- Audio-only;
+- Manual subtitle;
+- Auto-generated caption;
+- explicit collision second run;
+- live Save-directory containment;
+- native Windows live download;
+- Docker live download;
+- public acknowledged download;
+- structured failure evidence.
+
+Source traceability:
+- collects source commit SHAs from reports;
+- flags mixed-commit evidence via `single_source_commit=false`.
+
+The optional `--require-core` flag returns non-zero until all core runner scenarios are represented by passing reports.
+
+Guardrail:
+- visual Light/Dark/narrow review;
+- real Streamlit warning/error presentation;
+- final merge/release review
+
+remain manual-only and are explicitly listed as such by the summary rather than being auto-completed.
+
+Added offline unit tests for complete core coverage, Windows/Docker live requirements, collision evidence, mixed commits, structured failures, and invalid JSON handling.
