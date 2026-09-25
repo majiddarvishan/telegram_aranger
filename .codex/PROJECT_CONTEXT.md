@@ -6,9 +6,10 @@
 The product supports Saved Messages plus private chats, groups, supergroups, and channels. The GitHub repository remains `majiddarvishan/telegram_aranger` for compatibility/history.
 
 ## Current branch
-- Working branch: `main`
-- The completed `gui` redesign branch was fast-forward merged into `main`.
-- `main` is the current source of truth.
+- Working branch: `feature/youtube-download`
+- Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
+- This branch is currently documentation/planning only for the YouTube download feature.
+- The completed `gui` redesign is already merged into `main`.
 - Re-check GitHub branch HEAD before making future edits.
 
 ## Current capabilities
@@ -205,3 +206,26 @@ Real Telegram/browser validation has been completed successfully with no issues 
 - The visible Date range is then synchronized to the oldest/newest dates represented by that latest-message batch.
 - The fallback is one-shot per chat selection. If the user later manually chooses an empty range, Telegram Harbor preserves that choice instead of jumping away from it.
 - The startup/default chat remains Saved Messages when it is available.
+
+
+## Planned YouTube download capability
+- Planning branch: `feature/youtube-download`.
+- No implementation code has been added yet.
+- V1 scope: single public YouTube video URL.
+- User must provide a Save directory.
+- On local installations the path is local to the user machine; on remote deployments it is a server-host path and must be labeled as such.
+- Hosted/multi-user mode should support allowed save roots.
+- Planned outputs:
+  - Video + audio;
+  - Audio only;
+  - simple quality presets.
+- Metadata must be inspected before download.
+- UI should show a general copyright/service notice and stronger restriction warnings where signals exist.
+- Warning remains non-blocking for ordinarily accessible public content after acknowledgement.
+- V1 does not include DRM/paywall/private/member-only/login-protection bypass.
+- V1 does not include playlists, channels, browser-cookie import, batch queues, scheduling, or automatic geo-bypass.
+- FFmpeg is an expected operational dependency for merging/extraction.
+- Downloader behavior must be isolated behind a service layer; Streamlit UI must not depend directly on the downloader library.
+- Detailed plans:
+  - `.codex/YOUTUBE_PLAN.md`
+  - `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
