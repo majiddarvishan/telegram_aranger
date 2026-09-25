@@ -60,6 +60,22 @@ def _detect_commit_sha() -> str | None:
     return value or configured or None
 
 
+def _binary_runtime_available(path: str | None) -> bool:
+    if not path:
+        return False
+    try:
+        completed = subprocess.run(
+            [path, "-version"],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return False
+    return completed.returncode == 0
+
+
 def _environment_summary() -> dict[str, Any]:
     version_path = ROOT / "VERSION"
     try:
@@ -442,14 +458,26 @@ def run(args) -> tuple[dict[str, Any], int]:
                 allowed_roots=tuple(args.allowed_root),
                 create=bool(args.create_directory),
             )
+            ffmpeg_runtime_ok = _binary_runtime_available(
+                ffmpeg.ffmpeg_path
+            )
+            ffprobe_runtime_ok = _binary_runtime_available(
+                ffmpeg.ffprobe_path
+            )
+            runtime_ready = (
+                ffmpeg.fully_available
+                and ffmpeg_runtime_ok
+                and ffprobe_runtime_ok
+            )
             report["preflight"] = {
                 "save_directory": str(validated_directory),
                 "save_directory_valid": True,
                 "ffmpeg_fully_available": ffmpeg.fully_available,
+                "ffmpeg_runtime_ok": ffmpeg_runtime_ok,
+                "ffprobe_runtime_ok": ffprobe_runtime_ok,
+                "ffmpeg_runtime_ready": runtime_ready,
             }
-            report["status"] = (
-                "passed" if ffmpeg.fully_available else "failed"
-            )
+            report["status"] = "passed" if runtime_ready else "failed"
             if not ffmpeg.fully_available:
                 report["error"] = {
                     "code": "ffmpeg_unavailable",
@@ -457,7 +485,14 @@ def run(args) -> tuple[dict[str, Any], int]:
                         "FFmpeg and FFprobe are required for YouTube V1 downloads."
                     ),
                 }
-            return report, 0 if ffmpeg.fully_available else 4
+            elif not runtime_ready:
+                report["error"] = {
+                    "code": "ffmpeg_runtime_unavailable",
+                    "message": (
+                        "FFmpeg or FFprobe was found but could not be executed."
+                    ),
+                }
+            return report, 0 if runtime_ready else 4
 
         validated = validate_youtube_url(args.url or "")
         report["video_id"] = validated["video_id"]
