@@ -81,13 +81,23 @@ These are regression evidence, not substitutes for YT-P7 live/manual acceptance.
 
 ## Suggested live media candidate
 
-For the basic public-video smoke test, a small video that the tester has permission to save should be used.
+For the basic public-video smoke test, use a small video with a documented reuse license when possible.
 
-One commonly used downloader test ID is:
+The old downloader test ID `BaW_jenozKc` is no longer suitable for YT-P7. yt-dlp issue #12263 documents that the video became unavailable, so it must not be used as the acceptance candidate.
 
-`BaW_jenozKc`
+Current preferred smoke-test candidate:
 
-Before validation, confirm it is still publicly accessible and appropriate to use. Do not add this or any other live URL to CI.
+- Video ID: `w2S5Ov-7Mzo`
+- Title: `Open Culture Voices Vlog Series "Introduction"`
+- Source/uploader: Creative Commons
+- Historical license evidence: Wikimedia Commons records the YouTube source as released under Creative Commons Attribution 3.0.
+- Duration in the archived Commons copy: about 2 minutes 13 seconds.
+
+Use:
+
+`https://www.youtube.com/watch?v=w2S5Ov-7Mzo`
+
+Runtime accessibility must still be confirmed by Telegram Harbor Inspect at test time. Do not add this or any other live URL to CI.
 
 For manual/auto subtitle cases, use public videos where the tester has permission to save the media/captions and where the required track type is visibly reported by Inspect.
 
