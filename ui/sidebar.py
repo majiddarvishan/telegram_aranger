@@ -554,8 +554,8 @@ def render_sidebar(settings) -> str:
 
     if workspace == "YouTube Download":
         st.sidebar.caption(
-            "YouTube uses the host network directly. "
-            "Telegram SOCKS5 proxy settings are not reused."
+            "YouTube can use its own optional SOCKS5 proxy settings. "
+            "Telegram SOCKS5 proxy settings are not reused automatically."
         )
         return workspace
 
