@@ -324,17 +324,17 @@ Planning source:
 - [x] Error handling and cleanup.
 
 ### YT-P5 — Streamlit UI
-- [ ] Add independent YouTube workspace.
-- [ ] URL input + Inspect action.
-- [ ] Metadata/thumbnail preview.
-- [ ] Mode and quality controls.
-- [ ] Subtitle enable/disable control.
-- [ ] Subtitle language selector with Manual / Auto-generated labeling.
-- [ ] Subtitle output-format indication.
-- [ ] Save directory control.
-- [ ] Warning/acknowledgement UI.
-- [ ] Download progress/status.
-- [ ] Completed/failure states.
+- [x] Add independent YouTube workspace.
+- [x] URL input + Inspect action.
+- [x] Metadata/thumbnail preview.
+- [x] Mode and quality controls.
+- [x] Subtitle enable/disable control.
+- [x] Subtitle language selector with Manual / Auto-generated labeling.
+- [x] Subtitle output-format indication.
+- [x] Save directory control.
+- [x] Warning/acknowledgement UI.
+- [x] Download progress/status.
+- [x] Completed/failure states.
 - [ ] Light/Dark/responsive review.
 
 ### YT-P6 — Platform / docs
