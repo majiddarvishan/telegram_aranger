@@ -99,6 +99,14 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn("inspect_video", source)
         self.assertIn("download_video", source)
 
+    def test_ui_uses_responsive_workspace_keys(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+        self.assertIn('key="youtube-thumbnail"', source)
+        self.assertIn('key="youtube-metadata-metrics"', source)
+        self.assertIn('key="youtube-output-controls"', source)
+        self.assertIn('key="youtube-save-controls"', source)
+        self.assertIn("use_container_width=True", source)
+
     def test_ui_contains_v1_safety_and_progress_contract(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         self.assertIn("Save directory", source)
