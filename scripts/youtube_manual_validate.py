@@ -34,7 +34,7 @@ from utils.download_paths import (  # noqa: E402
 )
 
 
-MODES = ("inspect", "video_audio", "audio_only")
+MODES = ("preflight", "inspect", "video_audio", "audio_only")
 QUALITIES = ("best", "max_1080p", "max_720p", "max_480p")
 SUBTITLE_SOURCES = ("manual", "automatic")
 
@@ -284,12 +284,15 @@ def build_parser() -> argparse.ArgumentParser:
             "This script is intentionally not used by CI."
         )
     )
-    parser.add_argument("--url", required=True, help="One public YouTube video URL.")
+    parser.add_argument(
+        "--url",
+        help="One public YouTube video URL. Not required for preflight mode.",
+    )
     parser.add_argument(
         "--mode",
         choices=MODES,
         default="inspect",
-        help="Inspect metadata only, or execute one download mode.",
+        help="Run offline preflight, inspect metadata, or execute one download mode.",
     )
     parser.add_argument(
         "--quality",
@@ -338,7 +341,6 @@ def build_parser() -> argparse.ArgumentParser:
 
 def run(args) -> tuple[dict[str, Any], int]:
     started_at = datetime.now(timezone.utc)
-    validated = validate_youtube_url(args.url)
     ffmpeg = detect_ffmpeg()
     progress_events: list[dict[str, Any]] = []
 
@@ -346,7 +348,7 @@ def run(args) -> tuple[dict[str, Any], int]:
         "started_at": started_at.isoformat(),
         "mode": args.mode,
         "quality": args.quality,
-        "video_id": validated["video_id"],
+        "video_id": None,
         "request": _request_summary(args),
         "environment": _environment_summary(),
         "ffmpeg": ffmpeg.as_dict(),
@@ -354,6 +356,38 @@ def run(args) -> tuple[dict[str, Any], int]:
     }
 
     try:
+        if args.mode == "preflight":
+            if not args.save_directory:
+                raise DownloadPathError(
+                    "save_directory_required",
+                    "--save-directory is required for preflight mode.",
+                )
+
+            validated_directory = validate_save_directory(
+                args.save_directory,
+                allowed_roots=tuple(args.allowed_root),
+                create=bool(args.create_directory),
+            )
+            report["preflight"] = {
+                "save_directory": str(validated_directory),
+                "save_directory_valid": True,
+                "ffmpeg_fully_available": ffmpeg.fully_available,
+            }
+            report["status"] = (
+                "passed" if ffmpeg.fully_available else "failed"
+            )
+            if not ffmpeg.fully_available:
+                report["error"] = {
+                    "code": "ffmpeg_unavailable",
+                    "message": (
+                        "FFmpeg and FFprobe are required for YouTube V1 downloads."
+                    ),
+                }
+            return report, 0 if ffmpeg.fully_available else 4
+
+        validated = validate_youtube_url(args.url or "")
+        report["video_id"] = validated["video_id"]
+
         metadata = inspect_video(validated["url"])
         report["metadata"] = _safe_metadata_summary(metadata)
 
@@ -455,8 +489,10 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.mode != "inspect" and not args.acknowledge:
+    if args.mode in {"video_audio", "audio_only"} and not args.acknowledge:
         parser.error("--acknowledge is required for download modes.")
+    if args.mode != "preflight" and not args.url:
+        parser.error("--url is required unless --mode preflight is used.")
 
     report, exit_code = run(args)
     _write_report(report, args.report_file)
