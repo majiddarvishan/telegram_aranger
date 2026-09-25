@@ -1182,3 +1182,26 @@ Updated planning artifacts:
 - `.codex/START_HERE.md`
 
 No production code, dependency, Streamlit UI, downloader implementation or Docker change was added.
+
+
+## 2026-09-25 — YouTube feature new-chat handoff
+
+User requested that the project be ready to continue in a new chat with no need to repeat requirements.
+
+Recorded:
+- branch remains `feature/youtube-download`;
+- YouTube feature remains planning-only;
+- all confirmed V1 requirements are preserved in `.codex/YOUTUBE_PLAN.md` and `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`;
+- created `.codex/NEXT_CHAT_PROMPT.md` with a copy/paste continuation prompt;
+- updated `.codex/START_HERE.md` so a future session reads the continuation prompt first;
+- corrected the Deferred section so subtitles are not incorrectly listed as fully deferred: one optional subtitle track is in V1, while multiple subtitle languages / advanced subtitle management remain deferred.
+
+Critical continuation constraints:
+- do not implement production YouTube code until explicit approval;
+- work only on `feature/youtube-download` unless the user says otherwise;
+- save directory is user-supplied;
+- rights/service warnings are non-blocking for ordinarily accessible public content after acknowledgement;
+- no DRM/paywall/private/member/login-protection bypass;
+- service abstraction separates Streamlit UI from downloader library;
+- FFmpeg is part of the deployment/platform plan;
+- no live YouTube dependency in CI.
