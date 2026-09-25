@@ -390,6 +390,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Reject zero-byte YouTube media/subtitle outputs and record output sizes in manual validation evidence.
 - [x] Treat zero-byte converted SRT as conversion failure and fall back to the original non-empty subtitle.
 - [x] Execute `ffmpeg -version` and `ffprobe -version` during offline preflight; binary discovery alone is not sufficient.
+- [x] Canonicalize accepted YouTube URLs before Inspect/Download, strip incidental query/fragment data, and reject embedded credentials/explicit ports.
 
 - [ ] Public test video.
 - [ ] Video + audio.
