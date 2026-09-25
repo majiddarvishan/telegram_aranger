@@ -15,6 +15,8 @@ DESIGN_TOKENS = {
     "radius_pill": "999px",
     "control_height": "40px",
     "top_safe_area": "48px",
+    "motion_fast": "120ms",
+    "motion_normal": "180ms",
 }
 
 
@@ -30,6 +32,18 @@ MESSAGE_HEADER_CSS = """
     border: 1px solid var(--th-border);
     border-radius: var(--th-radius-panel);
     box-shadow: var(--th-shadow-sm);
+}
+
+.st-key-message-header::before {
+    content: "";
+    position: absolute;
+    top: var(--th-space-3);
+    bottom: var(--th-space-3);
+    left: 0;
+    width: 3px;
+    border-radius: 0 var(--th-radius-pill) var(--th-radius-pill) 0;
+    background: var(--th-accent);
+    opacity: 0.72;
 }
 
 .st-key-message-header [data-testid="stHorizontalBlock"] {
@@ -79,6 +93,8 @@ APP_CSS = f"""
     --th-radius-pill: {DESIGN_TOKENS["radius_pill"]};
     --th-control-height: {DESIGN_TOKENS["control_height"]};
     --th-top-safe-area: {DESIGN_TOKENS["top_safe_area"]};
+    --th-motion-fast: {DESIGN_TOKENS["motion_fast"]};
+    --th-motion-normal: {DESIGN_TOKENS["motion_normal"]};
 
     --th-border: rgba(128, 128, 128, 0.22);
     --th-border-strong: rgba(128, 128, 128, 0.34);
@@ -120,6 +136,17 @@ body,
     margin-top: calc(var(--th-space-1) * -1);
 }}
 
+[data-testid="stExpander"] summary {{
+    border-radius: var(--th-radius-control);
+    transition:
+        background-color var(--th-motion-fast) ease,
+        color var(--th-motion-fast) ease;
+}}
+
+[data-testid="stExpander"] summary:hover {{
+    background: var(--th-surface);
+}}
+
 [data-testid="stForm"] {{
     border: 1px solid var(--th-border);
     border-radius: var(--th-radius-panel);
@@ -133,15 +160,27 @@ body,
     border-radius: var(--th-radius-control);
     font-weight: 600;
     transition:
-        border-color 120ms ease,
-        box-shadow 120ms ease,
-        transform 120ms ease;
+        border-color var(--th-motion-fast) ease,
+        background-color var(--th-motion-fast) ease,
+        box-shadow var(--th-motion-fast) ease,
+        transform var(--th-motion-fast) ease;
 }}
 
 .stButton > button:hover,
 .stDownloadButton > button:hover,
 [data-testid="stFormSubmitButton"] > button:hover {{
     border-color: var(--th-border-strong);
+}}
+
+.stButton > button:active,
+.stDownloadButton > button:active,
+[data-testid="stFormSubmitButton"] > button:active {{
+    transform: translateY(1px);
+}}
+
+.stButton > button:disabled,
+.stDownloadButton > button:disabled {{
+    opacity: 0.52;
 }}
 
 .stButton > button:focus-visible,
@@ -157,6 +196,22 @@ body,
 [data-baseweb="select"] > div {{
     min-height: var(--th-control-height);
     border-radius: var(--th-radius-control) !important;
+    transition:
+        border-color var(--th-motion-fast) ease,
+        box-shadow var(--th-motion-fast) ease;
+}}
+
+.stTextInput:focus-within input,
+.stNumberInput:focus-within input,
+[data-testid="stDateInput"]:focus-within input,
+[data-baseweb="select"]:focus-within > div {{
+    border-color: var(--th-accent) !important;
+    box-shadow: 0 0 0 1px var(--th-accent);
+}}
+
+.st-key-chat_selector [data-baseweb="select"] > div,
+[data-testid="stSidebar"] [data-testid="stSelectbox"] [data-baseweb="select"] > div {{
+    box-shadow: inset 3px 0 0 var(--th-accent);
 }}
 
 [data-testid="stAlert"] {{
@@ -170,6 +225,16 @@ small {{
 
 hr {{
     border-color: var(--th-border);
+}}
+
+a[href] {{
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+    transition: opacity var(--th-motion-fast) ease;
+}}
+
+a[href]:hover {{
+    opacity: 0.82;
 }}
 
 .th-badge {{
@@ -229,6 +294,14 @@ hr {{
     border-radius: var(--th-radius-panel) !important;
     background: transparent;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.035);
+    transition:
+        border-color var(--th-motion-normal) ease,
+        box-shadow var(--th-motion-normal) ease;
+}}
+
+[class*="st-key-message-card-"] [data-testid="stVerticalBlockBorderWrapper"]:hover {{
+    border-color: var(--th-border-strong) !important;
+    box-shadow: var(--th-shadow-sm);
 }}
 
 [class*="st-key-message-card-"] p {{
@@ -303,6 +376,14 @@ hr {{
     font-size: 0.76rem;
     font-weight: 600;
     line-height: 1.2;
+    transition:
+        border-color var(--th-motion-fast) ease,
+        background-color var(--th-motion-fast) ease;
+}}
+
+.th-tag-chip:hover {{
+    border-color: var(--th-border-strong);
+    background: rgba(128, 128, 128, 0.10);
 }}
 
 [class*="st-key-edit-tags-"] button,
@@ -528,6 +609,14 @@ hr {{
     color: var(--th-danger) !important;
 }}
 
+.st-key-load_more_messages button {{
+    border-color: var(--th-accent) !important;
+}}
+
+.st-key-load_more_messages button:hover {{
+    box-shadow: 0 0 0 1px var(--th-accent);
+}}
+
 .st-key-sidebar-add-first-account button,
 .st-key-sidebar-add-account-connected button,
 .st-key-sidebar-add-account-disconnected button {{
@@ -562,7 +651,10 @@ hr {{
 @media (prefers-reduced-motion: reduce) {{
     .stButton > button,
     .stDownloadButton > button,
-    [data-testid="stFormSubmitButton"] > button {{
+    [data-testid="stFormSubmitButton"] > button,
+    [class*="st-key-message-card-"] [data-testid="stVerticalBlockBorderWrapper"],
+    .th-tag-chip,
+    [data-testid="stExpander"] summary {{
         transition: none;
     }}
 }}
