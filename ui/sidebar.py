@@ -230,8 +230,8 @@ def _render_connected_account_actions(
         expanded=False,
     ):
         st.caption(
-            "Disconnect keeps the stored session. "
-            "Logout removes the Telegram account from this application."
+            "Disconnect keeps this account saved. "
+            "Log out removes it from Telegram Harbor."
         )
 
         if st.button(
@@ -245,7 +245,7 @@ def _render_connected_account_actions(
             st.rerun()
 
         if st.button(
-            "Logout & remove account",
+            "Log out & remove",
             key="sidebar-logout-telegram",
             use_container_width=True,
         ):
