@@ -122,6 +122,98 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(args.quality, "best")
         self.assertFalse(args.acknowledge)
 
+        preflight = build_parser().parse_args(
+            ["--mode", "preflight", "--save-directory", "/tmp"]
+        )
+        self.assertEqual(preflight.mode, "preflight")
+        self.assertIsNone(preflight.url)
+
+    def test_invalid_url_returns_structured_failure_report(self):
+        args = SimpleNamespace(
+            url="https://example.com/not-youtube",
+            mode="inspect",
+            quality="best",
+            save_directory=None,
+            create_directory=False,
+            allowed_root=[],
+            subtitle_language=None,
+            subtitle_source=None,
+            acknowledge=False,
+            report_file=None,
+        )
+        with patch(
+            "scripts.youtube_manual_validate.detect_ffmpeg",
+            return_value=FFmpegCapability("/ffmpeg", "/ffprobe"),
+        ):
+            report, code = run(args)
+
+        self.assertEqual(code, 2)
+        self.assertEqual(report["status"], "failed")
+        self.assertEqual(report["error"]["code"], "unsupported_url")
+        self.assertIsNone(report["video_id"])
+        self.assertIn("finished_at", report)
+
+    def test_preflight_validates_path_and_ffmpeg_without_network(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = SimpleNamespace(
+                url=None,
+                mode="preflight",
+                quality="best",
+                save_directory=tmp,
+                create_directory=False,
+                allowed_root=[],
+                subtitle_language=None,
+                subtitle_source=None,
+                acknowledge=False,
+                report_file=None,
+            )
+            with (
+                patch(
+                    "scripts.youtube_manual_validate.detect_ffmpeg",
+                    return_value=FFmpegCapability("/ffmpeg", "/ffprobe"),
+                ),
+                patch(
+                    "scripts.youtube_manual_validate.inspect_video"
+                ) as inspect_mock,
+                patch(
+                    "scripts.youtube_manual_validate.download_video"
+                ) as download_mock,
+            ):
+                report, code = run(args)
+
+        self.assertEqual(code, 0)
+        self.assertEqual(report["status"], "passed")
+        self.assertTrue(report["preflight"]["save_directory_valid"])
+        self.assertTrue(report["preflight"]["ffmpeg_fully_available"])
+        self.assertIsNone(report["video_id"])
+        inspect_mock.assert_not_called()
+        download_mock.assert_not_called()
+
+    def test_preflight_fails_when_ffmpeg_is_incomplete(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = SimpleNamespace(
+                url=None,
+                mode="preflight",
+                quality="best",
+                save_directory=tmp,
+                create_directory=False,
+                allowed_root=[],
+                subtitle_language=None,
+                subtitle_source=None,
+                acknowledge=False,
+                report_file=None,
+            )
+            with patch(
+                "scripts.youtube_manual_validate.detect_ffmpeg",
+                return_value=FFmpegCapability("/ffmpeg", None),
+            ):
+                report, code = run(args)
+
+        self.assertEqual(code, 4)
+        self.assertEqual(report["status"], "failed")
+        self.assertEqual(report["error"]["code"], "ffmpeg_unavailable")
+        self.assertFalse(report["preflight"]["ffmpeg_fully_available"])
+
     def test_run_inspect_uses_normalized_safe_report(self):
         args = SimpleNamespace(
             url="https://youtu.be/BaW_jenozKc?feature=share",
