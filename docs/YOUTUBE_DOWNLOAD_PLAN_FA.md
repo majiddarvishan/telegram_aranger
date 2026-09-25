@@ -672,3 +672,12 @@ CI نباید به YouTube live network وابسته باشد.
 - همان Proxy برای Inspect و Download استفاده می‌شود.
 - تنظیم `proxy` از طریق generic yt-dlp extra-options همچنان ممنوع است؛ فقط مسیر validate‌شده‌ی برنامه مجاز است.
 - این قابلیت صرفاً برای Network Routing است و هیچ Cookie/Login/DRM/Geo-bypass یا دور زدن Access Control اضافه نمی‌کند.
+
+
+## احراز هویت YouTube
+
+برای اجرای Local، روش اصلی **Browser Session** است. Telegram Harbor با استفاده از قابلیت `cookies-from-browser` خود yt-dlp از Session مرورگری که روی همان Host/OS User اجرا می‌شود استفاده می‌کند و Username/Password گوگل را دریافت نمی‌کند.
+
+برای Docker/Server که Browser روی سیستم دیگری است، `cookies.txt` فقط به‌عنوان fallback باقی می‌ماند.
+
+Cookieها در SQLite، Log یا Validation Report ذخیره نمی‌شوند و محدودیت‌های Private/Members/Premium/DRM همچنان برقرار هستند.
