@@ -33,7 +33,7 @@ Target style:
 - [x] Standardize baseline spacing/radius/border/shadow/typography.
 - [x] Base colors on Streamlit theme variables for light/dark compatibility.
 - [x] Add regression coverage for sensitive Streamlit selectors and safe badge/section markup.
-- [ ] Manually review the resulting UI in both Light and Dark themes before closing GUI-P0.
+- [x] Manually review the resulting UI in both Light and Dark themes.
 
 ### GUI-P1 — Sidebar
 - [x] Compact brand block.
@@ -66,7 +66,7 @@ Target style:
 - [x] Centered branded auth card.
 - [x] Dedicated empty states for no account, no chats and no matching messages.
 - [x] Apply shared radius/surface treatment to warning/error/success components.
-- [ ] Review loading feedback after the visual pass; existing media progress remains unchanged.
+- [x] Standardize loading microcopy while preserving byte-level media progress.
 
 ### GUI-P5 — Responsive/accessibility
 - [x] Add a first responsive breakpoint at 900px for spacing/action alignment.
@@ -80,10 +80,12 @@ Target style:
 - [ ] Manual screenshot review at a narrow viewport.
 
 ### GUI-P6 — Polish
-- [ ] Subtle hover/transition behavior.
-- [ ] Consistent icon treatment.
-- [ ] Microcopy cleanup.
-- [ ] Selected/active state polish.
+- [x] Subtle hover/transition behavior for buttons, cards, tags, links and expanders.
+- [x] Consistent icon treatment: remove application-added chat emoji and reserve the anchor mark for Telegram Harbor branding.
+- [x] Microcopy cleanup for loading, navigation, account actions and destructive confirmation.
+- [x] Selected/active state polish for the active chat workspace and account/chat selectors.
+- [x] Add compact <=700px spacing refinement without overriding Streamlit's native stacking behavior.
+- [ ] Final narrow-viewport screenshot review.
 
 ## Implementation order
 
