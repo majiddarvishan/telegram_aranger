@@ -402,6 +402,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Support optional SOCKS5 username/password while keeping password out of logs and validation reports.
 - [x] Keep generic yt-dlp `extra_options["proxy"]` forbidden; proxy must enter through validated `YouTubeProxyConfig`.
 - [x] Require SOCKS5 Inspect + live Download in the strict validation-summary release gate.
+- [x] Distinguish YouTube anti-bot verification (`Sign in to confirm you're not a bot`) from true authenticated/private content; do not describe it as copyright/authenticated-content restriction.
 - [ ] Manually validate YouTube Inspect and one download through a real SOCKS5 endpoint.
 
 - [ ] Public test video.
