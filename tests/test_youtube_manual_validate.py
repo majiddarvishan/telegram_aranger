@@ -286,6 +286,11 @@ class ManualValidationHelperTests(unittest.TestCase):
                 "subtitles": [],
             }
             with (
+                patch.dict(
+                    "os.environ",
+                    {"YOUTUBE_TEST_PROXY_PASSWORD": "proxy-secret"},
+                    clear=False,
+                ),
                 patch(
                     "scripts.youtube_manual_validate.inspect_video",
                     return_value=metadata,
@@ -905,6 +910,10 @@ class ManualValidationHelperTests(unittest.TestCase):
                 subtitle_source=None,
                 acknowledge=True,
                 report_file=None,
+                proxy_host="127.0.0.1",
+                proxy_port=1080,
+                proxy_user="proxy-user",
+                proxy_password_env="YOUTUBE_TEST_PROXY_PASSWORD",
             )
             metadata = {
                 "video_id": "BaW_jenozKc",
@@ -965,6 +974,13 @@ class ManualValidationHelperTests(unittest.TestCase):
             self.assertTrue(request.acknowledged)
             self.assertEqual(request.mode, "video_audio")
             self.assertEqual(request.quality, "max_720p")
+            self.assertIsNotNone(request.proxy)
+            self.assertEqual(
+                request.proxy.proxy_url(),
+                "socks5://proxy-user:proxy-secret@127.0.0.1:1080",
+            )
+            self.assertTrue(report["request"]["proxy"]["enabled"])
+            self.assertNotIn("proxy-secret", str(report))
 
 
 if __name__ == "__main__":
