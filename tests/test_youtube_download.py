@@ -13,6 +13,8 @@ from services.youtube_download import (
     format_selector,
     normalize_download_error,
     progress_hook,
+    resolve_media_source,
+    resolve_subtitle_source,
     try_convert_subtitle_to_srt,
 )
 from services.youtube_service import FFmpegCapability, YouTubeServiceError
@@ -386,6 +388,81 @@ class DownloadExecutionTests(unittest.TestCase):
                 )
 
             self.assertEqual(list(root.iterdir()), [])
+
+
+class TempOutputContainmentTests(unittest.TestCase):
+    def test_media_filepath_outside_job_temp_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            job = root / "job"
+            job.mkdir()
+            outside = root / "outside.mp4"
+            outside.write_bytes(b"outside")
+
+            with self.assertRaises(YouTubeServiceError) as caught:
+                resolve_media_source(
+                    {"filepath": str(outside)},
+                    job,
+                    "My Video",
+                    "mp4",
+                )
+
+            self.assertEqual(caught.exception.code, "output_missing")
+            self.assertTrue(outside.exists())
+
+    def test_subtitle_filepath_outside_job_temp_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            job = root / "job"
+            job.mkdir()
+            outside = root / "outside.srt"
+            outside.write_text("outside", encoding="utf-8")
+
+            with self.assertRaises(YouTubeServiceError) as caught:
+                resolve_subtitle_source(
+                    {
+                        "requested_subtitles": {
+                            "en": {"filepath": str(outside)}
+                        }
+                    },
+                    job,
+                    "My Video",
+                    {
+                        "language": "en",
+                        "requested_format": "srt",
+                    },
+                )
+
+            self.assertEqual(
+                caught.exception.code,
+                "subtitle_output_missing",
+            )
+            self.assertTrue(outside.exists())
+
+    def test_symlink_inside_job_temp_cannot_escape(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            job = root / "job"
+            job.mkdir()
+            outside = root / "outside.mp4"
+            outside.write_bytes(b"outside")
+            link = job / "My Video.mp4"
+
+            try:
+                link.symlink_to(outside)
+            except (OSError, NotImplementedError):
+                self.skipTest("Symlinks are not available in this environment.")
+
+            with self.assertRaises(YouTubeServiceError) as caught:
+                resolve_media_source(
+                    {"filepath": str(link)},
+                    job,
+                    "My Video",
+                    "mp4",
+                )
+
+            self.assertEqual(caught.exception.code, "output_missing")
+            self.assertTrue(outside.exists())
 
 
 class ProgressAndErrorTests(unittest.TestCase):
