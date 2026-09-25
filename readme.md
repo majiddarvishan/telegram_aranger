@@ -29,6 +29,12 @@ It provides one central place to connect multiple Telegram accounts, browse priv
 - Dedicated asyncio runtime thread for Pyrogram.
 - Python 3.14 import compatibility workaround.
 - SOCKS5 proxy support.
+- Independent YouTube Download workspace for one public video URL per job.
+- YouTube metadata Inspect before download, including formats and subtitle/caption tracks.
+- Video + Audio and Audio-only output with simple quality presets.
+- Optional one-track subtitle/caption download with Manual / Auto-generated labeling.
+- Title-based non-overwriting output naming with matched media/subtitle basenames.
+- Host save-directory validation, optional allowed roots, and FFmpeg capability checks.
 
 ## Project layout
 
@@ -52,15 +58,20 @@ telegram-harbor/
 ├── services/
 │   ├── media_cache.py
 │   ├── telegram_runtime.py
-│   └── telegram_service.py
+│   ├── telegram_service.py
+│   ├── youtube_service.py
+│   ├── youtube_policy.py
+│   └── youtube_download.py
 ├── ui/
 │   ├── auth.py
 │   ├── main.py
 │   ├── sidebar.py
-│   └── theme.py
+│   ├── theme.py
+│   └── youtube.py
 ├── utils/
 │   ├── date_range.py
 │   ├── logging.py
+│   ├── download_paths.py
 │   └── state.py
 ├── scripts/
 │   ├── backup_db.py
@@ -116,6 +127,15 @@ python -c "import tgcrypto; print(tgcrypto.__file__)"
 
 The last command should print the installed `tgcrypto` module path without an import error.
 
+For YouTube output support, install FFmpeg/FFprobe on Windows and make sure both executables are available on `PATH`:
+
+```powershell
+ffmpeg -version
+ffprobe -version
+```
+
+Restart the terminal/Streamlit process after changing `PATH`.
+
 ## Important
 
 Telegram sessions are encrypted at rest with the Fernet key. Keep `TELEGRAM_SESSION_ENCRYPTION_KEY` secret and back it up securely. Losing it makes stored Telegram sessions undecryptable.
@@ -167,6 +187,35 @@ TELEGRAM_DIALOG_LIMIT=100
 The cache path is ignored by Git. Cache entries are namespaced by Telegram account, chat, and message, and old files are removed by TTL/size cleanup. Increase the preview/download limits only when the Streamlit host has enough memory/disk capacity.
 
 
+## YouTube Download workspace
+
+The YouTube workspace is separate from Telegram message cards.
+
+V1:
+- accepts one public YouTube video URL per job;
+- performs an Inspect step before downloading media;
+- supports Video + Audio and Audio-only output;
+- offers Best, max 1080p, max 720p and max 480p quality presets;
+- supports one optional Manual or Auto-generated subtitle/caption track;
+- prefers SRT and reports the actual fallback format if SRT conversion is unavailable;
+- requires an explicit host filesystem Save directory;
+- never overwrites an existing output automatically;
+- uses the sanitized video title as the shared media/subtitle basename.
+
+The Save directory belongs to the machine running Telegram Harbor. On a remote deployment it is a server path, not a path on the browser user's computer.
+
+For hosted/multi-user deployments, configure optional allowed roots:
+
+```env
+YOUTUBE_DOWNLOAD_ROOTS=/srv/telegram-harbor/youtube
+```
+
+Use the platform path separator for multiple roots. The Docker image defaults to `/data/youtube`.
+
+Telegram Harbor shows a rights/service notice and stronger restriction warnings where metadata exposes them. The warning is informational and does not make a legal determination. V1 does not implement DRM bypass, paywall bypass, private/member-only/login-protected access, browser-cookie import, authenticated private-content support or automatic geo-bypass.
+
+FFmpeg and FFprobe are required for full output support.
+
 ## Security
 
 For production cookie settings, Web-login throttling, Fernet key backup/rotation, proxy-secret handling, media-cache security, and the multi-user threat model, see `docs/SECURITY.md`.
@@ -180,7 +229,7 @@ Build and run with Docker Compose:
 docker compose up -d --build
 ```
 
-The container exposes port 8501, runs as a non-root user, persists the database/media cache under `/data`, and uses Streamlit's `/_stcore/health` endpoint for its container health check.
+The container exposes port 8501, runs as a non-root user, persists the database/media cache under `/data`, includes FFmpeg/FFprobe, provides `/data/youtube` as the default allowed YouTube save root, and uses Streamlit's `/_stcore/health` endpoint for its container health check.
 
 See `docs/DEPLOYMENT.md` for Telegram Harbor production deployment guidance.
 
