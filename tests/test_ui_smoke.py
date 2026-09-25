@@ -387,6 +387,36 @@ class SidebarHierarchySmokeTests(unittest.TestCase):
         self.assertEqual(WEB_ACCOUNT_CARD_KEY, "web-account-card")
 
 
+class WorkspaceSidebarSmokeTests(unittest.TestCase):
+    def test_youtube_workspace_hides_telegram_network_controls(self):
+        import inspect
+        from ui.sidebar import render_sidebar
+
+        source = inspect.getsource(render_sidebar)
+        youtube_branch = source.index(
+            'if workspace == "YouTube Download":'
+        )
+        proxy_render = source.index("_render_network_settings()")
+
+        self.assertLess(youtube_branch, proxy_render)
+        self.assertIn(
+            "Telegram SOCKS5 proxy settings are not reused.",
+            source,
+        )
+        self.assertIn("return workspace", source)
+
+    def test_sidebar_owns_workspace_selector(self):
+        import inspect
+        from ui.sidebar import render_sidebar
+
+        source = inspect.getsource(render_sidebar)
+        self.assertIn(
+            '("Telegram Messages", "YouTube Download")',
+            source,
+        )
+        self.assertIn('key="workspace"', source)
+
+
 class UiAccountSelectionSmokeTests(unittest.TestCase):
     def test_account_switch_resets_chat_messages_runtime_view_state(self):
         state = {
