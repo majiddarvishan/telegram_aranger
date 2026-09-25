@@ -1393,3 +1393,27 @@ Added:
 - `.codex/YOUTUBE_VALIDATION.md` with a validation matrix, evidence requirements and a strict separation between automated regression evidence and manual/live acceptance.
 
 A commonly used downloader test video ID (`BaW_jenozKc`) is recorded only as a possible manual smoke-test candidate. It must be confirmed accessible/appropriate at test time and must never be wired into CI.
+
+
+## 2026-09-26 — YT-P7 repeatable manual validation runner
+
+Continued YT-P7 without marking unperformed live/manual cases complete.
+
+Added:
+- `scripts/youtube_manual_validate.py` for explicit manual/live validation outside CI;
+- modes: metadata-only Inspect, Video + Audio, Audio-only;
+- optional quality preset, subtitle language/source, explicit directory creation and allowed-root checks;
+- explicit `--acknowledge` requirement for download modes;
+- normalized progress output to stderr and safe JSON validation report output;
+- reports retain video ID and normalized metadata/result evidence but intentionally omit original URL, thumbnail/signed media URLs, cookies and browser/authentication state;
+- optional report files are intended for `validation-reports/`, which is now gitignored;
+- Linux/macOS-style shell, Windows PowerShell, Docker, subtitle and collision procedures are documented in `.codex/YOUTUBE_VALIDATION.md`;
+- `docs/MANUAL_TESTING.md` links the same repeatable runner.
+
+Regression coverage:
+- added `tests/test_youtube_manual_validate.py`;
+- tests cover safe metadata reporting, subtitle source disambiguation, parser defaults, inspect report behavior and download service-contract wiring;
+- GitHub Actions now runs these tests offline;
+- the runner itself is never invoked against live YouTube by CI.
+
+Manual/live items remain open until actually exercised through the real application/environment.
