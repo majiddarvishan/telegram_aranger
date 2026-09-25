@@ -8,8 +8,9 @@ The product supports Saved Messages plus private chats, groups, supergroups, and
 ## Current branch
 - Working branch: `feature/youtube-download`
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
-- YouTube implementation is active on this branch. YT-P1 through YT-P6 are implemented; YT-P5 manual visual review and YT-P7 manual/live validation remain open.
+- YouTube V1 automated implementation/readiness hardening is complete through `65d032829c5529a016cc3e36343d2c1e1a9fc050` with full Linux/Windows/Docker CI success. Manual YT-P5 visual review and YT-P7 live/UI/platform acceptance remain open.
 - The completed `gui` redesign is already merged into `main`.
+- YouTube automated checkpoint: `65d032829c5529a016cc3e36343d2c1e1a9fc050`.
 - Re-check GitHub branch HEAD before making future edits.
 
 ## Current capabilities
