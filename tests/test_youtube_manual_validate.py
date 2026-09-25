@@ -608,6 +608,56 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertNotIn("private-profile", str(report))
         self.assertNotIn("/home/user", str(report))
 
+    def test_run_inspect_allows_needs_auth_with_browser_session(self):
+        args = SimpleNamespace(
+            url="https://youtu.be/BaW_jenozKc",
+            mode="inspect",
+            quality="best",
+            save_directory=None,
+            create_directory=False,
+            allowed_root=[],
+            subtitle_language=None,
+            subtitle_source=None,
+            acknowledge=False,
+            expect_collision=False,
+            report_file=None,
+            browser_session="chrome",
+            browser_profile=None,
+            cookies_file=None,
+        )
+        metadata = {
+            "video_id": "BaW_jenozKc",
+            "title": "Signed-in Test Video",
+            "availability": "needs_auth",
+            "age_limit": 18,
+            "has_drm": False,
+            "formats": [{"format_id": "18"}],
+            "subtitles": [],
+        }
+        with (
+            patch(
+                "scripts.youtube_manual_validate.inspect_video",
+                return_value=metadata,
+            ),
+            patch(
+                "scripts.youtube_manual_validate.detect_ffmpeg",
+                return_value=FFmpegCapability("/ffmpeg", "/ffprobe"),
+            ),
+        ):
+            report, code = run(args)
+
+        self.assertEqual(code, 0)
+        self.assertEqual(report["status"], "passed")
+        self.assertFalse(report["policy"]["blocked"])
+        self.assertFalse(report["policy"]["can_download"])
+        self.assertIn(
+            "signed_in_access",
+            {
+                warning["code"]
+                for warning in report["policy"]["warnings"]
+            },
+        )
+
     def test_run_inspect_passes_auth_without_reporting_cookie_contents(self):
         with tempfile.TemporaryDirectory() as tmp:
             cookie_path = Path(tmp) / "cookies.txt"
