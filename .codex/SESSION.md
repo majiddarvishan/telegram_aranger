@@ -1612,3 +1612,25 @@ Additional self-checks:
 - subtitle extension must match the result's reported actual subtitle format.
 
 Manual/live YT-P7 items remain open.
+
+
+## 2026-09-26 — Subtitle/collision false-positive hardening
+
+Manual report checks were tightened so a requested subtitle cannot silently disappear and still produce a passing validation report.
+
+Changes:
+- subtitle presence must match the request;
+- Manual vs Auto-generated source must match;
+- `DownloadResult` now includes `subtitle_language`;
+- selected subtitle language must match the result;
+- subtitle extension must match the actual reported subtitle format;
+- title-based output naming is self-checked;
+- media extension must match Video+Audio (.mp4) or Audio-only (.mp3).
+
+Collision validation:
+- added `--expect-collision`;
+- when enabled, a normal unsuffixed output fails validation;
+- a title-based numeric suffix such as `(2)` or higher is required and recorded as `collision_number`;
+- the flag does not manufacture a collision; the tester must retain the first output group and perform the second live run.
+
+Manual/live acceptance remains open until these checks are exercised against real YouTube output.
