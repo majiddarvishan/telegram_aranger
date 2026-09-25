@@ -1069,3 +1069,24 @@ Regression coverage:
 - empty batch handling;
 - one-shot auto-latest fallback wiring;
 - account switch clears the fallback marker.
+
+
+## 2026-09-25 — Voice playback and Web Account card polish
+
+User supplied a screenshot highlighting two remaining UI/media issues:
+1. the Sign out area inside the Web Account card had an unnecessary separator and awkward vertical spacing;
+2. Telegram voice messages rendered an informational notice saying preview was not implemented.
+
+Implemented:
+- Sign out stays inside the existing Web Account bordered container;
+- removed the internal divider above Sign out;
+- changed Sign out to a compact right-aligned ghost action instead of a full-width control;
+- added lazy inline playback for both `voice` and regular `audio` media;
+- voice/audio use the existing `_prepare_media(...)` path, byte-level progress, cache and preview-size safeguards;
+- after preparation, media renders with `st.audio(...)` and the Telegram MIME type (voice falls back to `audio/ogg`);
+- media listing still does not download voice/audio automatically.
+
+Regression coverage:
+- UI smoke test requires `Play voice`, `Play audio` and `st.audio`;
+- UI smoke test guards compact Sign out with `use_container_width=False`;
+- theme test guards right-aligned compact Sign out styling and prevents reintroducing the divider.
