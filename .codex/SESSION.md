@@ -1780,3 +1780,15 @@ Rules:
 - a mismatched backend output is rejected before final-file acceptance and temporary output is cleaned.
 
 This prevents stale/mismatched metadata from being used for policy, title/filename, subtitle choice, or result identity.
+
+
+## 2026-09-26 — Always-visible YouTube rights/service notice
+
+Audit found that the general rights/service notice was previously rendered only after a successful Inspect, despite the V1 requirement that the notice always be visible.
+
+Changed:
+- `GENERAL_RIGHTS_NOTICE` is rendered immediately when the YouTube workspace opens, before the Inspect action;
+- post-Inspect restriction rendering now adds only video-specific warnings/block messages and does not duplicate the general notice;
+- acknowledgement still appears only after metadata/restriction evaluation.
+
+Regression coverage verifies the notice appears before the Inspect control in `render_youtube()`.
