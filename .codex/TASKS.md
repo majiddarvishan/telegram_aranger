@@ -395,6 +395,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Force release evidence readiness false when any supplied validation report is unreadable/invalid.
 - [x] Truncate sanitized YouTube titles by UTF-16 code units so supplementary Unicode remains within a conservative Windows filename-component budget.
 - [x] Re-check Windows reserved device names after truncation.
+- [x] Bound sanitized YouTube titles by both UTF-16 units and UTF-8 bytes so long Unicode names stay valid on Windows and common Linux filesystems.
 
 - [ ] Public test video.
 - [ ] Video + audio.
