@@ -396,6 +396,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Truncate sanitized YouTube titles by UTF-16 code units so supplementary Unicode remains within a conservative Windows filename-component budget.
 - [x] Re-check Windows reserved device names after truncation.
 - [x] Bound sanitized YouTube titles by both UTF-16 units and UTF-8 bytes so long Unicode names stay valid on Windows and common Linux filesystems.
+- [x] Keep `full_release_ready=false` in validation summaries until real Streamlit/manual acceptance is completed; runner evidence alone cannot release the feature.
 
 - [ ] Public test video.
 - [ ] Video + audio.
