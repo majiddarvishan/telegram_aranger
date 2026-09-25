@@ -432,3 +432,16 @@ This strips incidental share/tracking/playlist query parameters and URL fragment
 V1 also rejects YouTube URLs containing embedded username/password userinfo or an explicit TCP port.
 
 The original user URL continues to stay out of validation reports; only the normalized video ID is retained.
+
+
+### Release-evidence fail-closed rules
+
+The validation summary distinguishes native Windows evidence from container evidence:
+- `windows_live_download` requires `platform=Windows` **and** `docker=false`;
+- Docker evidence is tracked separately with `docker=true`.
+
+If any supplied validation report cannot be read/parsed, the summary sets:
+- `report_set_readable=false`;
+- `release_runner_evidence_ready=false`.
+
+A non-zero CLI exit code alone is not the only signal; the JSON readiness field is also forced false.
