@@ -92,6 +92,9 @@ def _request_summary(args) -> dict[str, Any]:
         "subtitle_language": args.subtitle_language,
         "subtitle_source": args.subtitle_source,
         "acknowledged": bool(args.acknowledge),
+        "expect_collision": bool(
+            getattr(args, "expect_collision", False)
+        ),
     }
 
 
@@ -145,6 +148,10 @@ def _result_checks(
     result,
     save_directory: str,
     progress_events: list[dict[str, Any]],
+    *,
+    subtitle_expected: bool = False,
+    expected_subtitle_source: str | None = None,
+    expect_collision: bool = False,
 ) -> dict[str, Any]:
     root = Path(save_directory).expanduser().resolve(strict=True)
     media = Path(result.media_path).resolve(strict=False)
@@ -155,17 +162,29 @@ def _result_checks(
     )
 
     media_exists = media.is_file()
-    subtitle_exists = subtitle.is_file() if subtitle is not None else None
+    subtitle_exists = (
+        subtitle.is_file()
+        if subtitle is not None
+        else (False if subtitle_expected else None)
+    )
     media_contained = media.parent == root or root in media.parents
     subtitle_contained = (
         subtitle.parent == root or root in subtitle.parents
         if subtitle is not None
-        else None
+        else (False if subtitle_expected else None)
     )
     matched_basename = (
         media.stem == subtitle.stem
         if subtitle is not None
-        else None
+        else (False if subtitle_expected else None)
+    )
+    subtitle_presence_matches_request = (
+        (subtitle is not None) == subtitle_expected
+    )
+    subtitle_source_matches_request = (
+        result.subtitle_source == expected_subtitle_source
+        if subtitle_expected
+        else result.subtitle_source is None
     )
     completed_progress = any(
         event.get("phase") == "completed"
@@ -175,13 +194,20 @@ def _result_checks(
 
     expected_title_base = sanitize_youtube_title(result.title)
     stem = media.stem
+    collision_number = None
+    collision_prefix = expected_title_base + " ("
+    if stem.startswith(collision_prefix) and stem.endswith(")"):
+        raw_number = stem[len(collision_prefix) : -1]
+        if raw_number.isdigit() and int(raw_number) >= 2:
+            collision_number = int(raw_number)
+
     title_based_name = (
-        stem == expected_title_base
-        or (
-            stem.startswith(expected_title_base + " (")
-            and stem.endswith(")")
-            and stem[len(expected_title_base) + 2 : -1].isdigit()
-        )
+        stem == expected_title_base or collision_number is not None
+    )
+    collision_expectation_met = (
+        collision_number is not None
+        if expect_collision
+        else True
     )
     expected_media_suffix = ".mp3" if result.mode == "audio_only" else ".mp4"
     media_extension_matches_mode = media.suffix.lower() == expected_media_suffix
@@ -189,7 +215,7 @@ def _result_checks(
         subtitle.suffix.lower()
         == f".{str(result.subtitle_format).lower().lstrip('.')}"
         if subtitle is not None and result.subtitle_format
-        else subtitle is None
+        else not subtitle_expected
     )
 
     boolean_checks = [
@@ -197,10 +223,13 @@ def _result_checks(
         media_contained,
         completed_progress,
         title_based_name,
+        collision_expectation_met,
         media_extension_matches_mode,
+        subtitle_presence_matches_request,
+        subtitle_source_matches_request,
         subtitle_extension_matches_report,
     ]
-    if subtitle is not None:
+    if subtitle_expected:
         boolean_checks.extend(
             [
                 bool(subtitle_exists),
@@ -217,7 +246,11 @@ def _result_checks(
         "media_subtitle_basename_match": matched_basename,
         "completed_progress_observed": completed_progress,
         "title_based_output_name": title_based_name,
+        "collision_number": collision_number,
+        "collision_expectation_met": collision_expectation_met,
         "media_extension_matches_mode": media_extension_matches_mode,
+        "subtitle_presence_matches_request": subtitle_presence_matches_request,
+        "subtitle_source_matches_request": subtitle_source_matches_request,
         "subtitle_extension_matches_report": subtitle_extension_matches_report,
         "all_passed": all(boolean_checks),
     }
@@ -328,6 +361,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--acknowledge",
         action="store_true",
         help="Required for download modes; acknowledges the rights/service notice.",
+    )
+    parser.add_argument(
+        "--expect-collision",
+        action="store_true",
+        help=(
+            "For an intentional second-run collision test, require the final "
+            "title-based output to use a numeric suffix such as (2)."
+        ),
     )
     parser.add_argument(
         "--report-file",
@@ -458,6 +499,13 @@ def run(args) -> tuple[dict[str, Any], int]:
             result,
             args.save_directory,
             progress_events,
+            subtitle_expected=subtitle is not None,
+            expected_subtitle_source=(
+                subtitle.source if subtitle is not None else None
+            ),
+            expect_collision=bool(
+                getattr(args, "expect_collision", False)
+            ),
         )
         report["status"] = (
             "passed"
