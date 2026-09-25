@@ -4,8 +4,12 @@ All notable Telegram Harbor changes are recorded here.
 
 ## Unreleased
 
-- Add the Telegram Harbor GUI redesign foundation with centralized theme tokens, compact sidebar/navigation, content-first message cards, tag chips, refined media actions, branded auth/empty states, responsive polish, and verified Light/Dark desktop presentation.
+## 1.1.0 - 2026-09-25
+
+- Redesign the Telegram Harbor interface with centralized theme tokens, compact sidebar/navigation, content-first message cards, tag chips, refined media actions, branded auth/empty states, and responsive layouts.
+- Verify the redesigned interface in Light, Dark, wide desktop, and narrow desktop layouts.
 - Render message text with direction-aware RTL/LTR handling and compact message footers.
+- Add consistent hover/focus/active states, reduced-motion support, clearer destructive-action microcopy, and compact-workspace wrapping.
 - Distinguish Telegram fetch failures from legitimate empty-result states.
 - Persist Pyrogram peer metadata (`access_hash` + peer type) in the SQLite dialog cache and hydrate it into in-memory Pyrogram sessions after restart.
 - Upgrade SQLite schema to version 4 for persisted peer metadata.
