@@ -366,3 +366,16 @@ python scripts/youtube_validation_summary.py validation-reports/*.json
 Use `--require-core` when you want a non-zero exit code until the core runner scenarios are all represented by passing reports.
 
 This summary is evidence aggregation only; it does not replace the visual Streamlit review or final release decision.
+
+
+### YouTube pre-release evidence gate
+
+After all runner-based live cases have been collected from the same source revision:
+
+```bash
+python scripts/youtube_validation_summary.py \
+  --require-release-ready \
+  validation-reports/*.json
+```
+
+A zero exit code means the runner/platform/policy evidence is complete and traceable to one source commit. It does **not** complete the separate Light/Dark/narrow visual review, real Streamlit warning/error presentation review, or final merge/release decision.
