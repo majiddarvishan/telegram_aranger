@@ -868,3 +868,50 @@ Fix:
 - added theme regression coverage so the safe-area behavior is not accidentally removed during future whitespace tuning.
 
 This is visual-only; no Telegram/message/cache behavior changed.
+
+
+## 2026-09-25 — GUI-P6 final polish implementation
+
+Started and implemented the final visual-polish phase on `gui`.
+
+Interaction polish:
+- buttons use shared fast motion tokens and provide subtle active press feedback;
+- disabled buttons have a clearer visual state;
+- inputs/selects gain accent focus treatment;
+- message cards gain a subtle hover border/shadow without moving layout;
+- tag chips and expanders gain restrained hover treatment;
+- links get consistent underline offset and hover response;
+- reduced-motion mode disables the newly added transitions.
+
+Selected/active states:
+- the active message workspace gets a subtle accent rail on the header panel;
+- Chat selector and Telegram-account selector receive a restrained accent inset;
+- Load more is visually stronger than Refresh when available.
+
+Icon consistency:
+- removed application-generated emoji prefixes from chat labels;
+- chat labels now use clean text such as `Operations · @ops · Group`;
+- user-provided Telegram title content is left untouched;
+- the anchor remains the single intentional Telegram Harbor brand mark.
+
+Microcopy:
+- loading strings standardized to typographic ellipsis;
+- connected/disconnected Telegram badge shortened to `Connected` / `Disconnected`;
+- date navigation help uses consistent sentence case;
+- destructive message confirmation now explicitly says the action cannot be undone;
+- permanent delete action renamed to `Delete message`;
+- account action copy uses `Log out` consistently.
+
+Responsive refinement:
+- added a conservative <=700px breakpoint for main padding, card spacing, action-summary density and message-footer text size;
+- intentionally did not override Streamlit's native column stacking to avoid fragile DOM-dependent responsive behavior.
+
+Regression coverage:
+- chat-label formatting has a test ensuring no application-added decorative emoji return;
+- destructive microcopy is guarded;
+- motion tokens, hover/focus/active selectors, active-workspace accent and <=700px breakpoint are covered by theme tests.
+
+Manual status:
+- desktop Light and Dark modes are already reviewed;
+- the top-safe-area/header edge is fixed and guarded;
+- only a narrow-viewport screenshot review remains before treating the visual redesign as fully closed.
