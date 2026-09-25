@@ -1,6 +1,6 @@
 # Telegram Harbor
 
-**Latest release:** `v1.0.4`
+**Latest release:** `v1.1.0`
 
 **Telegram Harbor** is a self-hosted, multi-user Telegram message and media manager built with Streamlit and Pyrogram.
 
@@ -16,8 +16,9 @@ It provides one central place to connect multiple Telegram accounts, browse priv
 - Encrypted Telegram session strings using Fernet.
 - Telegram logout and non-destructive disconnect.
 - Chat selector for private chats, groups, supergroups, and channels.
+- Responsive Light/Dark Telegram Harbor interface with content-first message cards.
 - Date-range message filtering; defaults to the latest 7 calendar days.
-- Previous/Next Day navigation at the bottom of the page.
+- Compact Previous/Next day navigation in the message filter header.
 - Search and per-message tags.
 - Lazy photo preview for Telegram photo messages.
 - Lazy inline playback for video/video-note/animation media.
@@ -43,6 +44,7 @@ telegram-harbor/
 │   ├── auth_sessions.py
 │   ├── database.py
 │   ├── login_attempts.py
+│   ├── dialogs.py
 │   ├── tags.py
 │   ├── telegram_accounts.py
 │   └── users.py
@@ -53,7 +55,8 @@ telegram-harbor/
 ├── ui/
 │   ├── auth.py
 │   ├── main.py
-│   └── sidebar.py
+│   ├── sidebar.py
+│   └── theme.py
 ├── utils/
 │   ├── date_range.py
 │   ├── logging.py
@@ -193,6 +196,8 @@ For real Telegram/browser acceptance—photo preview, video playback, browser do
 Telegram Harbor caches the latest Telegram chat/dialog list in SQLite per Telegram account. Normal application startup reads that cache instead of calling Telegram `messages.GetDialogs` repeatedly.
 
 - The first uncached load fetches at most `TELEGRAM_DIALOG_LIMIT` dialogs (default: 100).
+- Dialog cache rows persist Pyrogram peer type/access-hash metadata so channel/supergroup peers can be restored after process restart.
+- Existing pre-v4 dialog caches are refreshed once to populate peer metadata.
 - **Refresh Chats** explicitly refreshes the cache from Telegram.
 - If an explicit refresh fails and cached dialogs exist, the cached list remains usable.
 - Concurrent Streamlit sessions share a process-level refresh lock so only one uncached dialog refresh is sent at a time.
