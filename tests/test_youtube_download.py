@@ -61,8 +61,16 @@ def metadata(**overrides):
 
 
 class FakeDownloadBackend:
-    def __init__(self, *, fail=None):
+    def __init__(
+        self,
+        *,
+        fail=None,
+        empty_media=False,
+        empty_subtitle=False,
+    ):
         self.fail = fail
+        self.empty_media = empty_media
+        self.empty_subtitle = empty_subtitle
         self.options = None
         self.url = None
 
@@ -77,7 +85,7 @@ class FakeDownloadBackend:
         basename = template.removesuffix(".%(ext)s")
         media_ext = options["final_ext"]
         media = temp / f"{basename}.{media_ext}"
-        media.write_bytes(b"media")
+        media.write_bytes(b"" if self.empty_media else b"media")
 
         requested_subtitles = {}
         langs = options.get("subtitleslangs") or []
@@ -85,7 +93,10 @@ class FakeDownloadBackend:
             lang = langs[0]
             sub_ext = options["subtitlesformat"].split("/")[0]
             subtitle = temp / f"{basename}.{lang}.{sub_ext}"
-            subtitle.write_text("subtitle", encoding="utf-8")
+            subtitle.write_text(
+                "" if self.empty_subtitle else "subtitle",
+                encoding="utf-8",
+            )
             requested_subtitles[lang] = {
                 "filepath": str(subtitle),
                 "ext": sub_ext,
@@ -416,6 +427,46 @@ class DownloadExecutionTests(unittest.TestCase):
                     ffmpeg=FFmpegCapability(None, None),
                 )
             self.assertEqual(caught.exception.code, "ffmpeg_unavailable")
+
+    def test_empty_media_output_is_rejected_and_cleaned(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with self.assertRaises(YouTubeServiceError) as caught:
+                download_video(
+                    DownloadRequest(
+                        url="https://youtu.be/BaW_jenozKc",
+                        save_directory=tmp,
+                        acknowledged=True,
+                    ),
+                    metadata(),
+                    backend=FakeDownloadBackend(empty_media=True),
+                    ffmpeg=FFMPEG,
+                )
+
+            self.assertEqual(caught.exception.code, "output_empty")
+            self.assertEqual(list(root.iterdir()), [])
+
+    def test_empty_subtitle_output_is_rejected_and_cleaned(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with self.assertRaises(YouTubeServiceError) as caught:
+                download_video(
+                    DownloadRequest(
+                        url="https://youtu.be/BaW_jenozKc",
+                        save_directory=tmp,
+                        subtitle=SubtitleSelection("en", "manual"),
+                        acknowledged=True,
+                    ),
+                    metadata(),
+                    backend=FakeDownloadBackend(empty_subtitle=True),
+                    ffmpeg=FFMPEG,
+                )
+
+            self.assertEqual(
+                caught.exception.code,
+                "subtitle_output_empty",
+            )
+            self.assertEqual(list(root.iterdir()), [])
 
     def test_failed_download_leaves_no_final_or_temp_output(self):
         with tempfile.TemporaryDirectory() as tmp:
