@@ -639,17 +639,17 @@ a[href]:hover {{
     box-shadow: 0 0 0 1px var(--th-accent);
 }}
 
-.st-key-youtube-thumbnail {
+.st-key-youtube-thumbnail {{
     max-width: 720px;
-}
+}}
 
-.st-key-youtube-thumbnail img {
+.st-key-youtube-thumbnail img {{
     border-radius: var(--th-radius-panel);
-}
+}}
 
-.st-key-youtube-metadata-metrics [data-testid="stMetric"] {
+.st-key-youtube-metadata-metrics [data-testid="stMetric"] {{
     min-height: 88px;
-}
+}}
 
 .st-key-sidebar-add-first-account button,
 .st-key-sidebar-add-account-connected button,
@@ -664,6 +664,8 @@ a[href]:hover {{
 {MESSAGE_HEADER_CSS}
 
 @media (max-width: 1100px) {{
+    .st-key-youtube-metadata-metrics [data-testid="stHorizontalBlock"],
+    .st-key-youtube-output-controls [data-testid="stHorizontalBlock"],
     .st-key-message-filters [data-testid="stHorizontalBlock"],
     .st-key-message-date-nav [data-testid="stHorizontalBlock"],
     .st-key-message-actions [data-testid="stHorizontalBlock"],
@@ -674,6 +676,22 @@ a[href]:hover {{
     [class*="st-key-media-download-actions-"] [data-testid="stHorizontalBlock"] {{
         flex-wrap: wrap;
         gap: var(--th-space-2);
+    }}
+
+    .st-key-youtube-metadata-metrics
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"] {{
+        flex: 1 1 calc(50% - var(--th-space-2)) !important;
+        width: auto !important;
+        min-width: 220px !important;
+    }}
+
+    .st-key-youtube-output-controls
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"] {{
+        flex: 1 1 280px !important;
+        width: auto !important;
+        min-width: 240px !important;
     }}
 
     .st-key-message-filters
@@ -826,6 +844,21 @@ a[href]:hover {{
 }}
 
 @media (max-width: 700px) {{
+    .st-key-youtube-metadata-metrics
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"],
+    .st-key-youtube-output-controls
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"] {{
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        min-width: 100% !important;
+    }}
+
+    .st-key-youtube-thumbnail {{
+        max-width: 100%;
+    }}
+
     [data-testid="stAppViewContainer"] .block-container,
     [data-testid="stMainBlockContainer"] {{
         padding-left: var(--th-space-3);
