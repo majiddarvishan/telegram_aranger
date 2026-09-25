@@ -237,6 +237,21 @@ class UiMessageSmokeTests(unittest.TestCase):
         self.assertIn("message-footer-edit-actions-", footer_source)
         self.assertIn("message-footer-delete-actions-", footer_source)
 
+    def test_voice_and_audio_use_inline_audio_player(self):
+        import inspect
+        from ui.main import _render_media
+
+        source = inspect.getsource(_render_media)
+
+        self.assertIn('media_type in ("voice", "audio")', source)
+        self.assertIn("Play voice", source)
+        self.assertIn("Play audio", source)
+        self.assertIn("st.audio", source)
+        self.assertNotIn(
+            "Voice media is detected. Preview is not implemented yet.",
+            source,
+        )
+
     def test_media_actions_use_compact_hierarchy(self):
         import inspect
         from ui.main import _render_media
@@ -416,3 +431,15 @@ class UiAccountSelectionSmokeTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+
+class SidebarWebAccountPolishTests(unittest.TestCase):
+    def test_web_account_sign_out_is_compact(self):
+        import inspect
+        from ui.sidebar import _render_web_account
+
+        source = inspect.getsource(_render_web_account)
+
+        self.assertIn('key="sidebar-web-logout"', source)
+        self.assertIn("use_container_width=False", source)
