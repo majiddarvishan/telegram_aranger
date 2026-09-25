@@ -89,9 +89,14 @@ class YouTubeUiFormattingTests(unittest.TestCase):
 
 class YouTubeUiArchitectureTests(unittest.TestCase):
     def test_app_routes_to_independent_youtube_workspace(self):
-        source = Path("app.py").read_text(encoding="utf-8")
-        self.assertIn('("Telegram Messages", "YouTube Download")', source)
-        self.assertIn("render_youtube(settings)", source)
+        app_source = Path("app.py").read_text(encoding="utf-8")
+        sidebar_source = Path("ui/sidebar.py").read_text(encoding="utf-8")
+        self.assertIn("workspace = render_sidebar(settings)", app_source)
+        self.assertIn("render_youtube(settings)", app_source)
+        self.assertIn(
+            '("Telegram Messages", "YouTube Download")',
+            sidebar_source,
+        )
 
     def test_ui_keeps_downloader_details_behind_services(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
