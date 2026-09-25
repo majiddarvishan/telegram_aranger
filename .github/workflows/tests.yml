@@ -207,3 +207,9 @@ jobs:
 
       - name: Run YouTube download path tests
         run: python -m unittest discover -s tests -p "test_download_paths.py" -v
+
+      - name: Run YouTube download engine tests on Windows
+        run: python -m unittest discover -s tests -p "test_youtube_download.py" -v
+
+      - name: Run YouTube manual-runner offline tests on Windows
+        run: python -m unittest discover -s tests -p "test_youtube_manual_validate.py" -v
