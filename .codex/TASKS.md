@@ -201,7 +201,8 @@ Planning source:
 - [x] Light-mode desktop contrast validation.
 - [x] Dark-mode screenshot review completed and adaptive-surface issue fixed in code.
 - [x] Re-check Dark mode after pulling the adaptive-surface fix; verified visually.
-- [ ] Manual screenshot validation at multiple viewport widths.
+- [x] Initial narrow screenshot validation performed; control truncation found with Sidebar open.
+- [ ] Re-validate narrow viewport after compact-workspace wrapping changes.
 
 ### GUI-P6 — Polish
 - [x] Consistent application icon treatment; decorative chat-type emoji removed while the anchor remains a brand mark.
@@ -209,7 +210,8 @@ Planning source:
 - [x] Active/selected state polish for workspace and selectors.
 - [x] Microcopy cleanup for loading, navigation and destructive actions.
 - [x] Compact <=700px spacing refinement.
-- [ ] Final narrow-viewport screenshot review.
+- [x] Initial narrow-viewport screenshot reviewed.
+- [ ] Final narrow-viewport re-review after responsive wrapping fix.
 
 ### GUI guardrails
 - [ ] Do not change Telegram runtime/service behavior as part of visual-only phases.
