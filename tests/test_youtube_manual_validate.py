@@ -411,7 +411,11 @@ class ManualValidationHelperTests(unittest.TestCase):
             )
 
             self.assertTrue(checks["media_exists"])
+            self.assertGreater(checks["media_size_bytes"], 0)
+            self.assertTrue(checks["media_nonempty"])
             self.assertTrue(checks["subtitle_exists"])
+            self.assertGreater(checks["subtitle_size_bytes"], 0)
+            self.assertTrue(checks["subtitle_nonempty"])
             self.assertTrue(checks["media_within_save_directory"])
             self.assertTrue(checks["subtitle_within_save_directory"])
             self.assertTrue(checks["media_subtitle_basename_match"])
@@ -439,6 +443,66 @@ class ManualValidationHelperTests(unittest.TestCase):
                 [{"phase": "completed", "status": "finished"}],
             )
             self.assertFalse(checks["media_subtitle_basename_match"])
+            self.assertFalse(checks["all_passed"])
+
+    def test_result_checks_reject_empty_media_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            media = root / "My Video.mp4"
+            media.write_bytes(b"")
+            result = DownloadResult(
+                video_id="BaW_jenozKc",
+                title="My Video",
+                mode="video_audio",
+                quality="best",
+                media_path=str(media),
+                subtitle_path=None,
+                subtitle_format=None,
+                subtitle_source=None,
+            )
+
+            checks = _result_checks(
+                result,
+                tmp,
+                [{"phase": "completed", "status": "finished"}],
+            )
+
+            self.assertTrue(checks["media_exists"])
+            self.assertEqual(checks["media_size_bytes"], 0)
+            self.assertFalse(checks["media_nonempty"])
+            self.assertFalse(checks["all_passed"])
+
+    def test_result_checks_reject_empty_requested_subtitle(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            media = root / "My Video.mp4"
+            subtitle = root / "My Video.srt"
+            media.write_bytes(b"media")
+            subtitle.write_bytes(b"")
+            result = DownloadResult(
+                video_id="BaW_jenozKc",
+                title="My Video",
+                mode="video_audio",
+                quality="best",
+                media_path=str(media),
+                subtitle_path=str(subtitle),
+                subtitle_format="srt",
+                subtitle_source="manual",
+                subtitle_language="en",
+            )
+
+            checks = _result_checks(
+                result,
+                tmp,
+                [{"phase": "completed", "status": "finished"}],
+                subtitle_expected=True,
+                expected_subtitle_source="manual",
+                expected_subtitle_language="en",
+            )
+
+            self.assertTrue(checks["subtitle_exists"])
+            self.assertEqual(checks["subtitle_size_bytes"], 0)
+            self.assertFalse(checks["subtitle_nonempty"])
             self.assertFalse(checks["all_passed"])
 
     def test_result_checks_fail_when_requested_subtitle_is_missing(self):
