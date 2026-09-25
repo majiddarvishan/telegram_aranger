@@ -235,6 +235,9 @@ class ManualValidationHelperTests(unittest.TestCase):
             self.assertTrue(checks["subtitle_within_save_directory"])
             self.assertTrue(checks["media_subtitle_basename_match"])
             self.assertTrue(checks["completed_progress_observed"])
+            self.assertTrue(checks["title_based_output_name"])
+            self.assertTrue(checks["media_extension_matches_mode"])
+            self.assertTrue(checks["subtitle_extension_matches_report"])
             self.assertTrue(checks["all_passed"])
 
             mismatch = root / "Other.srt"
@@ -256,6 +259,58 @@ class ManualValidationHelperTests(unittest.TestCase):
             )
             self.assertFalse(checks["media_subtitle_basename_match"])
             self.assertFalse(checks["all_passed"])
+
+    def test_result_checks_reject_non_title_based_or_wrong_extension_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            media = root / "BaW_jenozKc.webm"
+            media.write_bytes(b"media")
+            result = DownloadResult(
+                video_id="BaW_jenozKc",
+                title="Human Readable Title",
+                mode="video_audio",
+                quality="best",
+                media_path=str(media),
+                subtitle_path=None,
+                subtitle_format=None,
+                subtitle_source=None,
+            )
+
+            checks = _result_checks(
+                result,
+                tmp,
+                [{"phase": "completed", "status": "finished"}],
+            )
+
+            self.assertFalse(checks["title_based_output_name"])
+            self.assertFalse(checks["media_extension_matches_mode"])
+            self.assertFalse(checks["all_passed"])
+
+    def test_result_checks_accept_collision_suffix_for_title_based_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            media = root / "Human Readable Title (2).mp4"
+            media.write_bytes(b"media")
+            result = DownloadResult(
+                video_id="BaW_jenozKc",
+                title="Human Readable Title",
+                mode="video_audio",
+                quality="best",
+                media_path=str(media),
+                subtitle_path=None,
+                subtitle_format=None,
+                subtitle_source=None,
+            )
+
+            checks = _result_checks(
+                result,
+                tmp,
+                [{"phase": "completed", "status": "finished"}],
+            )
+
+            self.assertTrue(checks["title_based_output_name"])
+            self.assertTrue(checks["media_extension_matches_mode"])
+            self.assertTrue(checks["all_passed"])
 
     def test_run_download_uses_service_contract_and_reports_output(self):
         with tempfile.TemporaryDirectory() as tmp:
