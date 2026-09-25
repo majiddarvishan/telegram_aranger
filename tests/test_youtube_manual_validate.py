@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from scripts.youtube_manual_validate import (
+    _result_checks,
     _safe_metadata_summary,
     _subtitle_selection,
     build_parser,
@@ -156,6 +157,58 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertNotIn("secret-value", str(report))
         self.assertNotIn("signed_url", str(report))
 
+    def test_result_checks_require_matched_subtitle_basename(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            media = root / "My Video.mp4"
+            subtitle = root / "My Video.srt"
+            media.write_bytes(b"media")
+            subtitle.write_text("subtitle", encoding="utf-8")
+
+            result = DownloadResult(
+                video_id="BaW_jenozKc",
+                title="My Video",
+                mode="video_audio",
+                quality="best",
+                media_path=str(media),
+                subtitle_path=str(subtitle),
+                subtitle_format="srt",
+                subtitle_source="manual",
+            )
+            checks = _result_checks(
+                result,
+                tmp,
+                [{"phase": "completed", "status": "finished"}],
+            )
+
+            self.assertTrue(checks["media_exists"])
+            self.assertTrue(checks["subtitle_exists"])
+            self.assertTrue(checks["media_within_save_directory"])
+            self.assertTrue(checks["subtitle_within_save_directory"])
+            self.assertTrue(checks["media_subtitle_basename_match"])
+            self.assertTrue(checks["completed_progress_observed"])
+            self.assertTrue(checks["all_passed"])
+
+            mismatch = root / "Other.srt"
+            subtitle.replace(mismatch)
+            mismatched_result = DownloadResult(
+                video_id=result.video_id,
+                title=result.title,
+                mode=result.mode,
+                quality=result.quality,
+                media_path=result.media_path,
+                subtitle_path=str(mismatch),
+                subtitle_format="srt",
+                subtitle_source="manual",
+            )
+            checks = _result_checks(
+                mismatched_result,
+                tmp,
+                [{"phase": "completed", "status": "finished"}],
+            )
+            self.assertFalse(checks["media_subtitle_basename_match"])
+            self.assertFalse(checks["all_passed"])
+
     def test_run_download_uses_service_contract_and_reports_output(self):
         with tempfile.TemporaryDirectory() as tmp:
             args = SimpleNamespace(
@@ -180,12 +233,14 @@ class ManualValidationHelperTests(unittest.TestCase):
                 "formats": [{"format_id": "18"}],
                 "subtitles": [],
             }
+            media_path = Path(tmp) / "Test Video.mp4"
+            media_path.write_bytes(b"media")
             result = DownloadResult(
                 video_id="BaW_jenozKc",
                 title="Test Video",
                 mode="video_audio",
                 quality="max_720p",
-                media_path=str(Path(tmp) / "Test Video.mp4"),
+                media_path=str(media_path),
                 subtitle_path=None,
                 subtitle_format=None,
                 subtitle_source=None,
@@ -206,8 +261,10 @@ class ManualValidationHelperTests(unittest.TestCase):
             ):
                 report, code = run(args)
 
-            self.assertEqual(code, 0)
+            self.assertEqual(code, 4)
             self.assertEqual(report["result"]["media_path"], result.media_path)
+            self.assertFalse(report["checks"]["completed_progress_observed"])
+            self.assertFalse(report["checks"]["all_passed"])
             request = download_mock.call_args.args[0]
             self.assertTrue(request.acknowledged)
             self.assertEqual(request.mode, "video_audio")
