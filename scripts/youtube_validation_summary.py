@@ -19,6 +19,7 @@ YOUTUBE_FAILURE_CODES = {
     "login_required",
     "bot_verification_required",
     "youtube_auth_invalid",
+    "youtube_browser_session_unavailable",
     "geo_restricted",
     "drm_protected",
     "restricted_availability",
