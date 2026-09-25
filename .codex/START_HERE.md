@@ -3,9 +3,10 @@
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
 - Current working branch: `feature/youtube-download`
-- Current phase status: YouTube V1 automated implementation/readiness hardening is complete through checkpoint `65d032829c5529a016cc3e36343d2c1e1a9fc050` with full Linux/Windows/Docker CI success. Remaining work is manual YT-P5 Light/Dark/narrow visual review, YT-P7 real YouTube/Windows/Docker/UI acceptance, and final merge/release review.
+- Current phase status: YouTube V1 implementation and automated readiness hardening are substantially complete. The latest confirmed full-green checkpoint during this handoff is `3b3ebf4b0cebbb8c842da8ba88c41c65c5c6350f`. Newer hardening exists after that checkpoint and branch HEAD must always be re-checked before edits. Remaining product acceptance is manual YT-P5 Light/Dark/narrow review, YT-P7 real YouTube/Windows/Docker/UI validation, and final merge/release review.
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
-- Automated YouTube checkpoint: `65d032829c5529a016cc3e36343d2c1e1a9fc050` (full Linux/Windows/Docker GitHub Actions success).
+- Latest confirmed full-green YouTube checkpoint in this handoff: `3b3ebf4b0cebbb8c842da8ba88c41c65c5c6350f`.
+- Handoff HEAD after additional hardening: `8b1e39a4d23e9d2a666843100a4cfd9309c35ee1` (re-check GitHub because the branch may advance again).
 - The completed `gui` branch is already merged into `main`.
 
 ## What the project is
