@@ -149,6 +149,31 @@ def _render_metadata(metadata: Mapping[str, Any]) -> None:
             if rows:
                 st.dataframe(rows, use_container_width=True, hide_index=True)
 
+    tracks = metadata.get("subtitles")
+    if isinstance(tracks, list) and tracks:
+        with st.expander("Subtitle / caption tracks", expanded=False):
+            st.dataframe(
+                [
+                    {
+                        "Language": track.get("language") or "",
+                        "Name": track.get("name") or "",
+                        "Type": (
+                            "Manual"
+                            if track.get("source") == "manual"
+                            else "Auto-generated"
+                        ),
+                        "Formats": ", ".join(track.get("formats") or []),
+                        "Preferred": (
+                            str(track.get("preferred_format") or "").upper()
+                        ),
+                    }
+                    for track in tracks
+                    if isinstance(track, Mapping)
+                ],
+                use_container_width=True,
+                hide_index=True,
+            )
+
 
 def _render_restriction_state(metadata: Mapping[str, Any], acknowledged: bool):
     policy = evaluate_download_policy(metadata, acknowledged=acknowledged)
@@ -350,6 +375,8 @@ def render_youtube(settings) -> None:
     tracks = metadata.get("subtitles")
     if not isinstance(tracks, list):
         tracks = []
+    if not tracks and st.session_state.get("youtube_subtitles_enabled"):
+        st.session_state.youtube_subtitles_enabled = False
 
     subtitles_enabled = st.checkbox(
         "Download one subtitle / caption track",
