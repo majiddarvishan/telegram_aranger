@@ -145,7 +145,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build image
-        run: docker build -t telegram-harbor:test .
+        run: |
+          docker build \
+            --build-arg TELEGRAM_HARBOR_BUILD_SHA="$GITHUB_SHA" \
+            -t telegram-harbor:test .
+
+      - name: Verify source commit in image
+        run: |
+          docker run --rm --entrypoint python telegram-harbor:test -c "import os; assert os.environ.get('TELEGRAM_HARBOR_BUILD_SHA') == '$GITHUB_SHA'"
 
       - name: Verify FFmpeg in image
         run: |
