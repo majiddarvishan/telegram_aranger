@@ -26,7 +26,10 @@ _BLOCKED_AVAILABILITY = {
     ),
     "needs_auth": (
         "login_required",
-        "This video requires authentication and is outside Telegram Harbor V1.",
+        (
+            "YouTube requires a signed-in session for this video. "
+            "Enable Browser session or cookies.txt fallback and Inspect again."
+        ),
     ),
     "unavailable": (
         "video_unavailable",
