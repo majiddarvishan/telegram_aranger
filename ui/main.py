@@ -457,7 +457,7 @@ def _render_message_header(settings, options, current_chat_id, today):
         with previous_col:
             if st.button(
                 "‹",
-                help="Previous Day",
+                help="Previous day",
                 use_container_width=True,
                 key="previous_day",
             ):
@@ -470,7 +470,7 @@ def _render_message_header(settings, options, current_chat_id, today):
         with next_col:
             if st.button(
                 "›",
-                help="Next Day",
+                help="Next day",
                 use_container_width=True,
                 key="next_day",
                 disabled=end_date >= today,
@@ -751,14 +751,14 @@ def _render_message_footer(
         if not pending_delete:
             return
 
-        st.warning("Delete this Telegram message permanently?")
+        st.warning("Delete this message from Telegram? This cannot be undone.")
         confirm_col, cancel_col, spacer_col = st.columns(
             [1.15, 0.9, 5.95]
         )
 
         with confirm_col:
             confirm_delete = st.button(
-                "Delete permanently",
+                "Delete message",
                 key=(
                     f"confirm-delete-message-"
                     f"{account_id}-{chat_id}-{message_id}"
