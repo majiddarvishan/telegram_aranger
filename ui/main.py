@@ -180,21 +180,24 @@ def _render_media(settings, account_id: int, message: dict) -> None:
         prepared = _get_prepared_media(preview_key)
 
         if prepared is None:
-            preview_col, spacer_col = st.columns([1.3, 6.7])
-            with preview_col:
-                if st.button(
-                    "Preview photo",
-                    key=f"media-photo-{account_id}-{chat_id}-{message_id}",
-                    use_container_width=True,
-                ):
-                    prepared = _prepare_media(
-                        settings,
-                        account_id,
-                        chat_id,
-                        message_id,
-                        "preview",
-                        settings.media_preview_max_mb,
-                    )
+            with st.container(
+                key=f"media-actions-{account_id}-{message_id}",
+            ):
+                preview_col, spacer_col = st.columns([1.3, 6.7])
+                with preview_col:
+                    if st.button(
+                        "Preview photo",
+                        key=f"media-photo-{account_id}-{chat_id}-{message_id}",
+                        use_container_width=True,
+                    ):
+                        prepared = _prepare_media(
+                            settings,
+                            account_id,
+                            chat_id,
+                            message_id,
+                            "preview",
+                            settings.media_preview_max_mb,
+                        )
 
         if prepared:
             st.image(prepared["path"])
@@ -222,47 +225,50 @@ def _render_media(settings, account_id: int, message: dict) -> None:
         )
 
         if prepared is None:
-            if media_type == "video" and download_ready is None:
-                play_col, prepare_col, spacer_col = st.columns(
-                    [1.2, 1.7, 5.1]
-                )
-            else:
-                play_col, spacer_col = st.columns([1.2, 6.8])
-                prepare_col = None
-
-            with play_col:
-                if st.button(
-                    "Play video",
-                    key=f"media-play-{account_id}-{chat_id}-{message_id}",
-                    use_container_width=True,
-                ):
-                    prepared = _prepare_media(
-                        settings,
-                        account_id,
-                        chat_id,
-                        message_id,
-                        "preview",
-                        settings.media_preview_max_mb,
+            with st.container(
+                key=f"media-actions-{account_id}-{message_id}",
+            ):
+                if media_type == "video" and download_ready is None:
+                    play_col, prepare_col, spacer_col = st.columns(
+                        [1.2, 1.7, 5.1]
                     )
+                else:
+                    play_col, spacer_col = st.columns([1.2, 6.8])
+                    prepare_col = None
 
-            if prepare_col is not None:
-                with prepare_col:
+                with play_col:
                     if st.button(
-                        "Prepare download",
-                        key=(
-                            f"media-prepare-download-"
-                            f"{account_id}-{chat_id}-{message_id}"
-                        ),
+                        "Play video",
+                        key=f"media-play-{account_id}-{chat_id}-{message_id}",
                         use_container_width=True,
                     ):
-                        download_ready = _prepare_media(
+                        prepared = _prepare_media(
                             settings,
                             account_id,
                             chat_id,
                             message_id,
-                            "download",
-                            settings.media_download_max_mb,
+                            "preview",
+                            settings.media_preview_max_mb,
                         )
+
+                if prepare_col is not None:
+                    with prepare_col:
+                        if st.button(
+                            "Prepare download",
+                            key=(
+                                f"media-prepare-download-"
+                                f"{account_id}-{chat_id}-{message_id}"
+                            ),
+                            use_container_width=True,
+                        ):
+                            download_ready = _prepare_media(
+                                settings,
+                                account_id,
+                                chat_id,
+                                message_id,
+                                "download",
+                                settings.media_download_max_mb,
+                            )
 
         if prepared:
             st.video(prepared["path"])
@@ -271,59 +277,62 @@ def _render_media(settings, account_id: int, message: dict) -> None:
             download_ready = download_ready or prepared
             if download_ready:
                 path = Path(download_ready["path"])
-                download_col, redownload_col, spacer_col = st.columns(
-                    [1.25, 1.25, 5.5]
-                )
+                with st.container(
+                    key=f"media-download-actions-{account_id}-{message_id}",
+                ):
+                    download_col, redownload_col, spacer_col = st.columns(
+                        [1.25, 1.25, 5.5]
+                    )
 
-                with download_col:
-                    try:
-                        with path.open("rb") as file_handle:
-                            st.download_button(
-                                "Download",
-                                data=file_handle,
-                                file_name=download_ready["file_name"],
-                                mime=download_ready["mime_type"],
-                                key=(
-                                    f"media-download-"
-                                    f"{account_id}-{chat_id}-{message_id}"
-                                ),
-                                use_container_width=True,
+                    with download_col:
+                        try:
+                            with path.open("rb") as file_handle:
+                                st.download_button(
+                                    "Download",
+                                    data=file_handle,
+                                    file_name=download_ready["file_name"],
+                                    mime=download_ready["mime_type"],
+                                    key=(
+                                        f"media-download-"
+                                        f"{account_id}-{chat_id}-{message_id}"
+                                    ),
+                                    use_container_width=True,
+                                )
+                        except OSError as exc:
+                            st.error(f"Failed to open cached video: {exc}")
+
+                    with redownload_col:
+                        if st.button(
+                            "Redownload",
+                            key=(
+                                f"media-redownload-"
+                                f"{account_id}-{chat_id}-{message_id}"
+                            ),
+                            help=(
+                                "Discard the cached copy and download "
+                                "the video again from Telegram."
+                            ),
+                            use_container_width=True,
+                        ):
+                            st.session_state.media_files.pop(
+                                download_key,
+                                None,
                             )
-                    except OSError as exc:
-                        st.error(f"Failed to open cached video: {exc}")
-
-                with redownload_col:
-                    if st.button(
-                        "Redownload",
-                        key=(
-                            f"media-redownload-"
-                            f"{account_id}-{chat_id}-{message_id}"
-                        ),
-                        help=(
-                            "Discard the cached copy and download "
-                            "the video again from Telegram."
-                        ),
-                        use_container_width=True,
-                    ):
-                        st.session_state.media_files.pop(
-                            download_key,
-                            None,
-                        )
-                        st.session_state.media_files.pop(
-                            play_key,
-                            None,
-                        )
-                        fresh = _prepare_media(
-                            settings,
-                            account_id,
-                            chat_id,
-                            message_id,
-                            "download",
-                            settings.media_download_max_mb,
-                            force_download=True,
-                        )
-                        if fresh:
-                            st.rerun()
+                            st.session_state.media_files.pop(
+                                play_key,
+                                None,
+                            )
+                            fresh = _prepare_media(
+                                settings,
+                                account_id,
+                                chat_id,
+                                message_id,
+                                "download",
+                                settings.media_download_max_mb,
+                                force_download=True,
+                            )
+                            if fresh:
+                                st.rerun()
         return
 
     st.info(
@@ -679,108 +688,117 @@ def _render_message_footer(
                 key=input_key,
                 help="Separate tags with commas.",
             )
-            save_col, cancel_col, spacer_col = st.columns(
-                [0.9, 0.9, 6.2]
-            )
+            with st.container(
+                key=f"message-footer-edit-actions-{account_id}-{message_id}",
+            ):
+                save_col, cancel_col, spacer_col = st.columns(
+                    [0.9, 0.9, 6.2]
+                )
 
-            with save_col:
-                if st.button(
-                    "Save",
-                    key=(
-                        f"save-tags-"
-                        f"{account_id}-{chat_id}-{message_id}"
-                    ),
-                    use_container_width=True,
-                ):
-                    save_tags(
-                        settings.db_file,
-                        account_id,
-                        chat_id,
-                        message_id,
-                        value.split(","),
-                    )
-                    st.session_state.editing_tag_message = None
-                    st.session_state.pop(input_key, None)
-                    st.rerun()
+                with save_col:
+                    if st.button(
+                        "Save",
+                        key=(
+                            f"save-tags-"
+                            f"{account_id}-{chat_id}-{message_id}"
+                        ),
+                        use_container_width=True,
+                    ):
+                        save_tags(
+                            settings.db_file,
+                            account_id,
+                            chat_id,
+                            message_id,
+                            value.split(","),
+                        )
+                        st.session_state.editing_tag_message = None
+                        st.session_state.pop(input_key, None)
+                        st.rerun()
 
-            with cancel_col:
-                if st.button(
-                    "Cancel",
-                    key=(
-                        f"cancel-tags-"
-                        f"{account_id}-{chat_id}-{message_id}"
-                    ),
-                    use_container_width=True,
-                ):
-                    st.session_state.editing_tag_message = None
-                    st.session_state.pop(input_key, None)
-                    st.rerun()
+                with cancel_col:
+                    if st.button(
+                        "Cancel",
+                        key=(
+                            f"cancel-tags-"
+                            f"{account_id}-{chat_id}-{message_id}"
+                        ),
+                        use_container_width=True,
+                    ):
+                        st.session_state.editing_tag_message = None
+                        st.session_state.pop(input_key, None)
+                        st.rerun()
             return
 
-        tag_col, edit_col, delete_col = st.columns(
-            [6.0, 1.0, 1.0]
-        )
+        with st.container(
+            key=f"message-footer-actions-{account_id}-{message_id}",
+        ):
+            tag_col, edit_col, delete_col = st.columns(
+                [6.0, 1.0, 1.0]
+            )
 
-        with tag_col:
-            if current_tags:
-                st.markdown(
-                    tag_chips_html(current_tags),
-                    unsafe_allow_html=True,
-                )
+            with tag_col:
+                if current_tags:
+                    st.markdown(
+                        tag_chips_html(current_tags),
+                        unsafe_allow_html=True,
+                    )
 
-        with edit_col:
-            if st.button(
-                "Edit tags",
-                key=f"edit-tags-{account_id}-{chat_id}-{message_id}",
-                help="Edit tags for this message.",
-                use_container_width=True,
-            ):
-                st.session_state.editing_tag_message = editor_state_key
-                st.session_state[input_key] = ", ".join(current_tags)
-                st.rerun()
+            with edit_col:
+                if st.button(
+                    "Edit tags",
+                    key=f"edit-tags-{account_id}-{chat_id}-{message_id}",
+                    help="Edit tags for this message.",
+                    use_container_width=True,
+                ):
+                    st.session_state.editing_tag_message = editor_state_key
+                    st.session_state[input_key] = ", ".join(current_tags)
+                    st.rerun()
 
-        with delete_col:
-            if not pending_delete and st.button(
-                "Delete",
-                key=(
-                    f"delete-message-"
-                    f"{account_id}-{chat_id}-{message_id}"
-                ),
-                help="Delete this message from Telegram.",
-                use_container_width=True,
-            ):
-                st.session_state.pending_delete_message = (
-                    delete_state_key
-                )
-                st.rerun()
+            with delete_col:
+                if not pending_delete and st.button(
+                    "Delete",
+                    key=(
+                        f"delete-message-"
+                        f"{account_id}-{chat_id}-{message_id}"
+                    ),
+                    help="Delete this message from Telegram.",
+                    use_container_width=True,
+                ):
+                    st.session_state.pending_delete_message = (
+                        delete_state_key
+                    )
+                    st.rerun()
 
         if not pending_delete:
             return
 
         st.warning("Delete this message from Telegram? This cannot be undone.")
-        confirm_col, cancel_col, spacer_col = st.columns(
-            [1.15, 0.9, 5.95]
-        )
-
-        with confirm_col:
-            confirm_delete = st.button(
-                "Delete message",
-                key=(
-                    f"confirm-delete-message-"
-                    f"{account_id}-{chat_id}-{message_id}"
-                ),
-                use_container_width=True,
+        with st.container(
+            key=f"message-footer-delete-actions-{account_id}-{message_id}",
+        ):
+            confirm_col, cancel_col, spacer_col = st.columns(
+                [1.15, 0.9, 5.95]
             )
 
-        with cancel_col:
-            cancel_delete = st.button(
-                "Cancel",
-                key=(
-                    f"cancel-delete-message-"
-                    f"{account_id}-{chat_id}-{message_id}"
-                ),
-                use_container_width=True,
-            )
+            with confirm_col:
+                confirm_delete = st.button(
+                    "Delete message",
+                    key=(
+                        f"confirm-delete-message-"
+                        f"{account_id}-{chat_id}-{message_id}"
+                    ),
+                    use_container_width=True,
+                )
+
+            with cancel_col:
+                cancel_delete = st.button(
+                    "Cancel",
+                    key=(
+                        f"cancel-delete-message-"
+                        f"{account_id}-{chat_id}-{message_id}"
+                    ),
+                    use_container_width=True,
+                )
 
         if cancel_delete:
             st.session_state.pending_delete_message = None
