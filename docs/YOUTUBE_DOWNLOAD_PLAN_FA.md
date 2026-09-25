@@ -5,7 +5,7 @@
 - Branch: `feature/youtube-download`
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`
 - برنامه‌ریزی کامل شده و implementation با تأیید صریح کاربر شروع شده است.
-- YT-P1 و YT-P2 تکمیل شده‌اند و YT-P3 (Warning / acknowledgement) مرحله بعدی است.
+- YT-P1 تا YT-P3 تکمیل شده‌اند و YT-P4 (Download engine) مرحله بعدی است.
 
 ---
 
@@ -578,12 +578,12 @@ CI نباید به YouTube live network وابسته باشد.
 
 ## YT-P3 — Warning / acknowledgement
 
-- [ ] General copyright/service notice.
-- [ ] restriction-signal classification.
-- [ ] explicit acknowledgement.
-- [ ] warning remains non-blocking for ordinarily accessible public content.
-- [ ] protected/access-controlled content is not bypassed.
-- [ ] regression tests.
+- [x] General copyright/service notice.
+- [x] restriction-signal classification.
+- [x] explicit acknowledgement.
+- [x] warning remains non-blocking for ordinarily accessible public content.
+- [x] protected/access-controlled content is not bypassed.
+- [x] regression tests.
 
 ## YT-P4 — Download engine
 

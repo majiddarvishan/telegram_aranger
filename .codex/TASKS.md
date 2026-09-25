@@ -303,12 +303,12 @@ Planning source:
 - [x] Test Windows and Linux path handling.
 
 ### YT-P3 — Warning / acknowledgement
-- [ ] Always show concise rights/service notice.
-- [ ] Surface stronger warning signals from metadata/downloader state.
-- [ ] Require explicit acknowledgement before download.
-- [ ] Do not block normally accessible public content solely because a warning exists.
-- [ ] Do not bypass technical access controls.
-- [ ] Add warning-state tests.
+- [x] Always show concise rights/service notice.
+- [x] Surface stronger warning signals from metadata/downloader state.
+- [x] Require explicit acknowledgement before download.
+- [x] Do not block normally accessible public content solely because a warning exists.
+- [x] Do not bypass technical access controls.
+- [x] Add warning-state tests.
 
 ### YT-P4 — Download engine
 - [ ] Video + audio mode.

@@ -1253,3 +1253,25 @@ Testing / CI:
 
 Next:
 - YT-P3 — Warning / acknowledgement.
+
+## 2026-09-25 — YT-P3 warning and acknowledgement policy
+
+Completed:
+- added `services/youtube_policy.py` as a UI-independent policy layer;
+- the concise rights/service notice is always present and explicitly avoids claiming a legal copyright determination;
+- every download requires explicit user acknowledgement before the policy can allow execution;
+- age restriction, live/upcoming/recent-live state, missing reported formats and unusual availability states are normalized as stronger product warnings;
+- warnings by themselves remain non-blocking for normally accessible content after acknowledgement;
+- metadata states for private, paid/premium, subscriber/member-only, authentication-required and unavailable content are blocking;
+- DRM metadata is blocking even after acknowledgement;
+- normalized downloader errors are also converted into blocked policy state, so UI/download code does not invent bypass decisions;
+- no cookie import, authentication bypass, DRM bypass, geo bypass or Telegram proxy reuse was added.
+
+Testing:
+- added `tests/test_youtube_policy.py`;
+- isolated local run passed 8 policy tests;
+- service metadata now preserves `has_drm` for policy evaluation;
+- CI includes the policy tests and remains network-independent.
+
+Next:
+- YT-P4 — Download engine.

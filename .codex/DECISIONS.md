@@ -145,7 +145,7 @@ On a local installation this is a path on the local machine. On a remotely hoste
 Hosted/multi-user deployments should support configured allowed roots so Web users cannot write to arbitrary server paths.
 
 ## D-027 — Rights/service warning is informational, not a legal determination
-Status: planned
+Status: implemented in policy layer on `feature/youtube-download`
 
 Telegram Harbor cannot reliably determine copyright ownership from YouTube metadata. V1 therefore:
 - always presents a concise rights/service notice;
@@ -154,7 +154,7 @@ Telegram Harbor cannot reliably determine copyright ownership from YouTube metad
 - does not block ordinarily accessible public content solely because a warning is shown.
 
 ## D-028 — No technical access-control bypass
-Status: planned
+Status: enforced by policy/service behavior on `feature/youtube-download`
 
 V1 must not introduce mechanisms that bypass DRM, paywalls, private/member-only access controls, login protection, or comparable technical restrictions.
 

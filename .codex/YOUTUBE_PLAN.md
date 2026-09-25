@@ -3,7 +3,7 @@
 Branch: `feature/youtube-download`
 Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`
 
-Status: implementation active. YT-P1 and YT-P2 are complete; YT-P3 warning/acknowledgement is next.
+Status: implementation active. YT-P1 through YT-P3 are complete; YT-P4 download engine is next.
 
 Primary Persian design document:
 `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
@@ -124,12 +124,12 @@ Names may change during implementation if the existing project structure suggest
 - [x] Cover Windows/Linux path cases.
 
 ### YT-P3 — Warning and acknowledgement
-- [ ] General rights/service notice.
-- [ ] Restriction signal model.
-- [ ] Explicit acknowledgement state.
-- [ ] Keep warning non-blocking for normally accessible public content.
-- [ ] Do not bypass access controls.
-- [ ] Tests for warning states.
+- [x] General rights/service notice.
+- [x] Restriction signal model.
+- [x] Explicit acknowledgement state.
+- [x] Keep warning non-blocking for normally accessible public content.
+- [x] Do not bypass access controls.
+- [x] Tests for warning states.
 
 ### YT-P4 — Download engine
 - [ ] Video + audio.
@@ -203,7 +203,7 @@ When continuing this feature in another ChatGPT conversation:
 
 - Branch is `feature/youtube-download`.
 - Implementation is active on this branch after explicit user approval.
-- YT-P1 and YT-P2 are complete; continue from YT-P3 unless the user changes priority.
+- YT-P1 through YT-P3 are complete; continue from YT-P4 unless the user changes priority.
 - Read this file and `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md` before proposing changes.
 - Preserve existing Telegram Harbor behavior and architecture.
 - Continue implementation phase-by-phase from the next incomplete YouTube phase.

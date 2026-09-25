@@ -236,6 +236,7 @@ def normalize_metadata(raw: Mapping[str, Any]) -> dict[str, Any]:
         "is_live": bool(raw.get("is_live")),
         "was_live": bool(raw.get("was_live")),
         "live_status": _text(raw.get("live_status")),
+        "has_drm": bool(raw.get("has_drm")),
         "estimated_size_bytes": (
             _integer(raw.get("filesize"))
             or _integer(raw.get("filesize_approx"))

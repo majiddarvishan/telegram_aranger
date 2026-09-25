@@ -51,6 +51,9 @@ jobs:
       - name: YouTube download path tests
         run: python -m unittest discover -s tests -p "test_download_paths.py" -v
 
+      - name: YouTube warning policy tests
+        run: python -m unittest discover -s tests -p "test_youtube_policy.py" -v
+
       - name: Import Telegram service
         run: python -c "import services.telegram_service"
 

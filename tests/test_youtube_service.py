@@ -144,6 +144,7 @@ class YouTubeMetadataNormalizationTests(unittest.TestCase):
         self.assertEqual(result["duration_seconds"], 42)
         self.assertEqual(result["availability"], "public")
         self.assertEqual(result["age_limit"], 18)
+        self.assertFalse(result["has_drm"])
         self.assertEqual(len(result["formats"]), 3)
         self.assertEqual(len(result["subtitles"]), 3)
 
