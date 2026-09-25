@@ -1,6 +1,6 @@
 # GUI Redesign Plan
 
-Branch: `gui`
+Branch: `main` (GUI work completed on `gui`, then fast-forward merged)
 Baseline: `main@2bd6fbd18ac6ab03a38ee5ffc586c2d76c8ccc49`
 
 This branch is dedicated to visual/UI work. Functional Telegram behavior must remain unchanged unless explicitly approved.
@@ -132,4 +132,12 @@ Full Persian design audit:
 - [x] Upgrade SQLite schema to v4 and refresh legacy pre-peer-metadata dialog snapshots once.
 - [x] Retain username/bounded-dialog lazy peer recovery as a fallback for stale records.
 - [x] Distinguish message-fetch failure state from a legitimate empty result.
-- [ ] Backport the persisted-peer correctness fix to main before the next release if gui is not merged wholesale.
+- [x] Persisted-peer correctness fix is now in `main` through the completed GUI merge.
+
+
+## Completion
+- GUI-P0 through GUI-P6 are complete.
+- Light, Dark, desktop and narrow-width validation passed.
+- The `gui` branch was fast-forward merged into `main`.
+- Release target: Telegram Harbor v1.1.0.
+- Release checkpoint: `4b7325b06cb92c32b56fc8a9a82388f547492ae8`.
