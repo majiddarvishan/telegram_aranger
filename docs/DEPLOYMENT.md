@@ -23,6 +23,9 @@ docker run --rm \
 The image defaults to:
 - SQLite: `/data/telegram_manager.db`
 - media cache: `/data/media`
+- YouTube allowed save root: `/data/youtube`
+
+The image also installs `ffmpeg` and `ffprobe`, which are required for YouTube video/audio merge, audio extraction and subtitle conversion.
 
 These can still be overridden with environment variables.
 
@@ -34,7 +37,7 @@ docker compose ps
 docker compose logs -f telegram-harbor
 ```
 
-The named `telegram_data` volume contains database state and downloaded media cache. Back up the database through `scripts/backup_db.py`; do not rely on copying a live WAL-mode database file.
+The named `telegram_data` volume contains database state, Telegram media cache and YouTube output saved below `/data/youtube`. Back up the database through `scripts/backup_db.py`; do not rely on copying a live WAL-mode database file.
 
 ## Health check
 
@@ -68,3 +71,45 @@ See:
 ## Multi-instance warning
 
 Do not scale the current image to multiple replicas against the same local SQLite file or local media volume. The current architecture is single-host/single-instance by design. See `docs/SCALING.md` for the redesign required before horizontal scaling.
+
+
+## YouTube save paths
+
+The YouTube Save directory is always interpreted on the machine running Telegram Harbor.
+
+- Native/local installation: it is a local filesystem path on that machine.
+- Remote/server installation: it is a server-host path, not a browser-client path.
+- Docker: the default allowed root is `/data/youtube`.
+
+For Docker, enter `/data/youtube` or a subdirectory such as `/data/youtube/user-a` in the UI. The existing `telegram_data:/data` volume keeps these files persistent.
+
+To store YouTube output on a specific host directory instead of the named volume, mount it and set the allowed root explicitly, for example:
+
+```bash
+docker run --rm \
+  --env-file .env \
+  -e YOUTUBE_DOWNLOAD_ROOTS=/downloads \
+  -p 8501:8501 \
+  -v /srv/telegram-harbor/youtube:/downloads \
+  -v telegram_data:/data \
+  telegram-harbor
+```
+
+For a shared/multi-user server, keep `YOUTUBE_DOWNLOAD_ROOTS` configured so users cannot write to arbitrary server locations. Multiple roots use the operating system path separator.
+
+The application validates and resolves the directory, verifies writability and prevents output from escaping the selected/allowed root. A missing directory is created only when the user explicitly selects the create-directory option.
+
+## Native Windows FFmpeg
+
+Install an FFmpeg build that includes both `ffmpeg.exe` and `ffprobe.exe`, add its `bin` directory to `PATH`, then verify from the same shell that will run Streamlit:
+
+```powershell
+ffmpeg -version
+ffprobe -version
+```
+
+Restart the shell and Telegram Harbor after changing `PATH`. The YouTube workspace reports FFmpeg/FFprobe capability before download.
+
+## YouTube access boundary
+
+YouTube V1 supports ordinarily accessible public content only. It does not import browser cookies, authenticate to private/member-only content, bypass DRM/paywalls/access controls or automatically perform geo-bypass. The Telegram SOCKS5 proxy is not reused automatically for YouTube.
