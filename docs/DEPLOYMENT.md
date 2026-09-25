@@ -15,6 +15,7 @@ Run with an environment file and persistent data volume:
 ```bash
 docker run --rm \
   --env-file .env \
+  -e YOUTUBE_DOWNLOAD_ROOTS=/data/youtube \
   -p 8501:8501 \
   -v telegram_data:/data \
   telegram-harbor
@@ -26,6 +27,8 @@ The image defaults to:
 - YouTube allowed save root: `/data/youtube`
 
 The image also installs `ffmpeg` and `ffprobe`, which are required for YouTube video/audio merge, audio extraction and subtitle conversion.
+
+`docker compose` defaults `YOUTUBE_DOWNLOAD_ROOTS` to `/data/youtube` even when the copied `.env` leaves that setting empty. For direct `docker run --env-file .env`, pass the explicit `-e YOUTUBE_DOWNLOAD_ROOTS=/data/youtube` shown above so an empty env-file value cannot remove the container restriction.
 
 These can still be overridden with environment variables.
 
