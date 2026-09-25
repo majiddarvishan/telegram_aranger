@@ -38,7 +38,18 @@ class FakeDialogClient:
         )
         yield SimpleNamespace(chat=chat)
 
+    async def get_me(self):
+        return SimpleNamespace(
+            id=1001,
+            username="alice_tg",
+        )
+
     async def resolve_peer(self, chat_id):
+        if chat_id == 1001:
+            return raw.types.InputPeerUser(
+                user_id=1001,
+                access_hash=555001,
+            )
         return raw.types.InputPeerChat(chat_id=abs(chat_id))
 
 
@@ -49,11 +60,15 @@ class DialogServiceTests(unittest.TestCase):
         result = asyncio.run(_dialogs(client, 100))
 
         self.assertEqual(client.requested_limit, 100)
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0]["id"], -100)
-        self.assertEqual(result[0]["title"], "Test Group")
-        self.assertEqual(result[0]["peer_type"], "group")
-        self.assertEqual(result[0]["peer_access_hash"], 0)
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0]["id"], 1001)
+        self.assertEqual(result[0]["title"], "Saved Messages")
+        self.assertEqual(result[0]["type"], "private")
+        self.assertEqual(result[0]["peer_type"], "user")
+        self.assertEqual(result[1]["id"], -100)
+        self.assertEqual(result[1]["title"], "Test Group")
+        self.assertEqual(result[1]["peer_type"], "group")
+        self.assertEqual(result[1]["peer_access_hash"], 0)
 
     def test_channel_access_hash_is_captured_for_persistence(self):
         class ChannelClient:
@@ -69,7 +84,18 @@ class DialogServiceTests(unittest.TestCase):
                 )
                 yield SimpleNamespace(chat=chat)
 
+            async def get_me(self):
+                return SimpleNamespace(
+                    id=1001,
+                    username="alice_tg",
+                )
+
             async def resolve_peer(self, chat_id):
+                if chat_id == 1001:
+                    return raw.types.InputPeerUser(
+                        user_id=1001,
+                        access_hash=555001,
+                    )
                 return raw.types.InputPeerChannel(
                     channel_id=1234567890,
                     access_hash=987654321,
@@ -77,9 +103,13 @@ class DialogServiceTests(unittest.TestCase):
 
         result = asyncio.run(_dialogs(ChannelClient(), 100))
 
-        self.assertEqual(result[0]["peer_type"], "channel")
+        channel = next(
+            item for item in result
+            if item["id"] == -1001234567890
+        )
+        self.assertEqual(channel["peer_type"], "channel")
         self.assertEqual(
-            result[0]["peer_access_hash"],
+            channel["peer_access_hash"],
             987654321,
         )
 
@@ -308,6 +338,74 @@ class DialogCacheTests(unittest.TestCase):
             self.account_id,
             fresh,
         )
+
+    def test_peer_aware_cache_without_saved_messages_is_refreshed_once(self):
+        cached = [self._group_dialog(title="Cached")]
+        saved = {
+            "id": 1001,
+            "title": "Saved Messages",
+            "type": "private",
+            "username": "alice_tg",
+            "peer_access_hash": 555001,
+            "peer_type": "user",
+        }
+        fresh = [saved, self._group_dialog(title="Fresh")]
+        settings = SimpleNamespace(
+            db_file=self.db_file,
+            telegram_dialog_limit=100,
+        )
+
+        with (
+            patch("ui.main.load_cached_dialogs", return_value=cached),
+            patch(
+                "ui.main.get_dialogs",
+                return_value=fresh,
+            ) as network_get_dialogs,
+            patch("ui.main.replace_dialogs") as cache_replace,
+        ):
+            result, warning = _load_or_refresh_dialogs(
+                settings,
+                self.account_id,
+                self_chat_id=1001,
+            )
+
+        self.assertEqual(result, fresh)
+        self.assertIsNone(warning)
+        network_get_dialogs.assert_called_once_with(100)
+        cache_replace.assert_called_once_with(
+            self.db_file,
+            self.account_id,
+            fresh,
+        )
+
+    def test_peer_aware_cache_with_saved_messages_avoids_network(self):
+        saved = {
+            "id": 1001,
+            "title": "Saved Messages",
+            "type": "private",
+            "username": "alice_tg",
+            "peer_access_hash": 555001,
+            "peer_type": "user",
+        }
+        cached = [saved, self._group_dialog(title="Cached")]
+        settings = SimpleNamespace(
+            db_file=self.db_file,
+            telegram_dialog_limit=100,
+        )
+
+        with (
+            patch("ui.main.load_cached_dialogs", return_value=cached),
+            patch("ui.main.get_dialogs") as network_get_dialogs,
+        ):
+            result, warning = _load_or_refresh_dialogs(
+                settings,
+                self.account_id,
+                self_chat_id=1001,
+            )
+
+        self.assertEqual(result, cached)
+        self.assertIsNone(warning)
+        network_get_dialogs.assert_not_called()
 
     def test_cache_miss_fetches_only_configured_dialog_limit(self):
         fresh = [self._group_dialog(title="Fresh")]
