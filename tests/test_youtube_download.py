@@ -17,7 +17,11 @@ from services.youtube_download import (
     resolve_subtitle_source,
     try_convert_subtitle_to_srt,
 )
-from services.youtube_service import FFmpegCapability, YouTubeServiceError
+from services.youtube_service import (
+    FFmpegCapability,
+    YouTubeProxyConfig,
+    YouTubeServiceError,
+)
 
 
 def metadata(**overrides):
@@ -167,6 +171,29 @@ class DownloadOptionTests(unittest.TestCase):
         self.assertNotIn("proxy", options)
         self.assertNotIn("cookiefile", options)
 
+    def test_download_options_include_validated_socks5_proxy(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            options = build_download_options(
+                temp_directory=Path(tmp),
+                basename="My Video",
+                mode="video_audio",
+                quality="best",
+                subtitle_plan=None,
+                progress_callback=None,
+                proxy=YouTubeProxyConfig(
+                    enabled=True,
+                    host="proxy.example",
+                    port=1080,
+                    username="user",
+                    password="pass",
+                ),
+            )
+
+        self.assertEqual(
+            options["proxy"],
+            "socks5://user:pass@proxy.example:1080",
+        )
+
     def test_audio_options_extract_mp3(self):
         with tempfile.TemporaryDirectory() as tmp:
             options = build_download_options(
@@ -259,6 +286,30 @@ class DownloadExecutionTests(unittest.TestCase):
             self.assertEqual(
                 backend.url,
                 "https://www.youtube.com/watch?v=BaW_jenozKc",
+            )
+
+    def test_download_request_routes_backend_through_socks5(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            backend = FakeDownloadBackend()
+            download_video(
+                DownloadRequest(
+                    url="https://youtu.be/BaW_jenozKc",
+                    save_directory=tmp,
+                    acknowledged=True,
+                    proxy=YouTubeProxyConfig(
+                        enabled=True,
+                        host="127.0.0.1",
+                        port=1080,
+                    ),
+                ),
+                metadata(),
+                backend=backend,
+                ffmpeg=FFMPEG,
+            )
+
+            self.assertEqual(
+                backend.options["proxy"],
+                "socks5://127.0.0.1:1080",
             )
 
     def test_audio_only_output_is_mp3(self):
