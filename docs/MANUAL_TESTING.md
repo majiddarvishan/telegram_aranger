@@ -336,3 +336,20 @@ Expected result:
 - no YouTube URL required and no live YouTube request performed.
 
 Invalid YouTube URLs in live modes must produce a structured JSON failure rather than a traceback.
+
+
+### YouTube collision second-run validation
+
+After one successful media + subtitle download, keep the first output pair in place and repeat the same command with:
+
+```bash
+--expect-collision
+```
+
+The JSON report must show:
+- `collision_expectation_met: true`;
+- `collision_number` >= 2;
+- matching media/subtitle basenames;
+- requested subtitle language/source matching the result.
+
+This flag is only for an intentional second-run collision test; it does not create or force a collision by itself.
