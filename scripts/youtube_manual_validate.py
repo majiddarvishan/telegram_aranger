@@ -170,10 +170,22 @@ def _result_checks(
         expected_subtitle_language = result.subtitle_language
 
     media_exists = media.is_file()
+    media_size_bytes = media.stat().st_size if media_exists else None
+    media_nonempty = bool(media_size_bytes and media_size_bytes > 0)
     subtitle_exists = (
         subtitle.is_file()
         if subtitle is not None
         else (False if subtitle_expected else None)
+    )
+    subtitle_size_bytes = (
+        subtitle.stat().st_size
+        if subtitle is not None and subtitle.is_file()
+        else None
+    )
+    subtitle_nonempty = (
+        bool(subtitle_size_bytes and subtitle_size_bytes > 0)
+        if subtitle_expected
+        else None
     )
     media_contained = media.parent == root or root in media.parents
     subtitle_contained = (
@@ -233,6 +245,7 @@ def _result_checks(
 
     boolean_checks = [
         media_exists,
+        media_nonempty,
         media_contained,
         completed_progress,
         title_based_name,
@@ -247,6 +260,7 @@ def _result_checks(
         boolean_checks.extend(
             [
                 bool(subtitle_exists),
+                bool(subtitle_nonempty),
                 bool(subtitle_contained),
                 bool(matched_basename),
             ]
@@ -254,7 +268,11 @@ def _result_checks(
 
     return {
         "media_exists": media_exists,
+        "media_size_bytes": media_size_bytes,
+        "media_nonempty": media_nonempty,
         "subtitle_exists": subtitle_exists,
+        "subtitle_size_bytes": subtitle_size_bytes,
+        "subtitle_nonempty": subtitle_nonempty,
         "media_within_save_directory": media_contained,
         "subtitle_within_save_directory": subtitle_contained,
         "media_subtitle_basename_match": matched_basename,
