@@ -209,6 +209,51 @@ def _render_media(settings, account_id: int, message: dict) -> None:
             st.image(prepared["path"])
         return
 
+    if media_type in ("voice", "audio"):
+        preview_key = _media_state_key(
+            account_id,
+            chat_id,
+            message_id,
+            "preview",
+        )
+        prepared = _get_prepared_media(preview_key)
+        action_label = "Play voice" if media_type == "voice" else "Play audio"
+
+        if prepared is None:
+            with st.container(
+                key=f"media-actions-{account_id}-{message_id}",
+            ):
+                play_col, spacer_col = st.columns([1.3, 6.7])
+                with play_col:
+                    if st.button(
+                        action_label,
+                        key=(
+                            f"media-audio-{account_id}-"
+                            f"{chat_id}-{message_id}"
+                        ),
+                        use_container_width=True,
+                    ):
+                        prepared = _prepare_media(
+                            settings,
+                            account_id,
+                            chat_id,
+                            message_id,
+                            "preview",
+                            settings.media_preview_max_mb,
+                        )
+
+        if prepared:
+            mime_type = (
+                prepared.get("mime_type")
+                or media.get("mime_type")
+                or ("audio/ogg" if media_type == "voice" else "audio/mpeg")
+            )
+            st.audio(
+                prepared["path"],
+                format=mime_type,
+            )
+        return
+
     if media_type in ("video", "video_note", "animation"):
         play_key = _media_state_key(
             account_id,
