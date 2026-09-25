@@ -304,6 +304,20 @@ class YouTubeErrorNormalizationTests(unittest.TestCase):
                 self.assertEqual(error.code, code)
                 self.assertTrue(error.access_restricted)
 
+    def test_unknown_downloader_error_does_not_expose_raw_message(self):
+        raw = (
+            "extractor failed for "
+            "https://youtube.com/watch?v=BaW_jenozKc&token=secret-value"
+        )
+        error = normalize_downloader_error(RuntimeError(raw))
+        self.assertEqual(error.code, "downloader_error")
+        self.assertEqual(
+            error.message,
+            "YouTube operation failed unexpectedly.",
+        )
+        self.assertNotIn("secret-value", error.message)
+        self.assertNotIn("youtube.com", error.message)
+
     def test_maps_unavailable_and_network_failures(self):
         unavailable = normalize_downloader_error(RuntimeError("Video unavailable"))
         network = normalize_downloader_error(
