@@ -28,6 +28,23 @@ class TitleSanitizationTests(unittest.TestCase):
     def test_truncates_long_names(self):
         value = sanitize_youtube_title("x" * 300)
         self.assertEqual(len(value), 160)
+        self.assertLessEqual(
+            len(value.encode("utf-16-le")) // 2,
+            160,
+        )
+
+    def test_truncates_supplementary_unicode_by_utf16_units(self):
+        value = sanitize_youtube_title("😀" * 100)
+        self.assertEqual(len(value), 80)
+        self.assertEqual(
+            len(value.encode("utf-16-le")) // 2,
+            160,
+        )
+
+    def test_truncation_does_not_create_windows_reserved_name(self):
+        value = sanitize_youtube_title("CONXYZ", max_length=3)
+        self.assertNotEqual(value.upper(), "CON")
+        self.assertTrue(value.startswith("_"))
 
 
 class SaveDirectoryValidationTests(unittest.TestCase):
@@ -135,6 +152,19 @@ class OutputGroupTests(unittest.TestCase):
             group = select_output_group(tmp, "Audio Track", "mp3")
             self.assertEqual(group.media_path.name, "Audio Track.mp3")
             self.assertIsNone(group.subtitle_path)
+
+    def test_long_unicode_basename_stays_within_windows_component_budget(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            group = select_output_group(
+                tmp,
+                "😀" * 200,
+                "mp4",
+                "srt",
+            )
+
+            for path in group.paths:
+                units = len(path.name.encode("utf-16-le")) // 2
+                self.assertLess(units, 255)
 
     def test_rejects_extension_path_escape(self):
         with tempfile.TemporaryDirectory() as tmp:
