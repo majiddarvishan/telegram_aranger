@@ -44,6 +44,32 @@ class ManualValidationHelperTests(unittest.TestCase):
 
         self.assertFalse(_binary_runtime_available(None))
 
+    def test_auth_from_args_builds_browser_session_without_cookie_export(self):
+        args = SimpleNamespace(
+            browser_session="chrome",
+            browser_profile="Profile 2",
+            cookies_file=None,
+        )
+        auth = _auth_from_args(args)
+
+        self.assertIsNotNone(auth)
+        self.assertEqual(auth.normalized_source(), "browser")
+        self.assertEqual(
+            auth.cookies_from_browser_spec(),
+            ("chrome", "Profile 2", None, None),
+        )
+        self.assertIsNone(auth.normalized_cookie_bytes())
+
+    def test_auth_from_args_rejects_browser_and_cookie_file_together(self):
+        args = SimpleNamespace(
+            browser_session="firefox",
+            browser_profile=None,
+            cookies_file="/tmp/cookies.txt",
+        )
+        with self.assertRaises(YouTubeServiceError) as caught:
+            _auth_from_args(args)
+        self.assertEqual(caught.exception.code, "youtube_auth_invalid")
+
     def test_auth_from_args_reads_cookie_file_without_reporting_contents(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "cookies.txt"
@@ -229,9 +255,15 @@ class ManualValidationHelperTests(unittest.TestCase):
 
     def test_parser_defaults_to_inspect(self):
         args = build_parser().parse_args(
-            ["--url", "https://youtu.be/BaW_jenozKc"]
+            [
+                "--url",
+                "https://youtu.be/BaW_jenozKc",
+                "--browser-session",
+                "chrome",
+            ]
         )
         self.assertEqual(args.mode, "inspect")
+        self.assertEqual(args.browser_session, "chrome")
         self.assertEqual(args.quality, "best")
         self.assertFalse(args.acknowledge)
 
@@ -527,6 +559,54 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(report["request"]["mode"], "inspect")
         self.assertNotIn("url", report["request"])
         self.assertNotIn(args.url, str(report))
+
+    def test_run_inspect_passes_browser_session_without_reporting_profile(self):
+        args = SimpleNamespace(
+            url="https://youtu.be/BaW_jenozKc",
+            mode="inspect",
+            quality="best",
+            save_directory=None,
+            create_directory=False,
+            allowed_root=[],
+            subtitle_language=None,
+            subtitle_source=None,
+            acknowledge=False,
+            expect_collision=False,
+            report_file=None,
+            browser_session="firefox",
+            browser_profile="/home/user/.mozilla/firefox/private-profile",
+            cookies_file=None,
+        )
+        metadata = {
+            "video_id": "BaW_jenozKc",
+            "title": "Test Video",
+            "availability": "public",
+            "age_limit": 0,
+            "has_drm": False,
+            "formats": [{"format_id": "18"}],
+            "subtitles": [],
+        }
+        with (
+            patch(
+                "scripts.youtube_manual_validate.inspect_video",
+                return_value=metadata,
+            ) as inspect_mock,
+            patch(
+                "scripts.youtube_manual_validate.detect_ffmpeg",
+                return_value=FFmpegCapability("/ffmpeg", "/ffprobe"),
+            ),
+        ):
+            report, code = run(args)
+
+        self.assertEqual(code, 0)
+        auth = inspect_mock.call_args.kwargs["auth"]
+        self.assertEqual(auth.normalized_source(), "browser")
+        self.assertEqual(auth.browser, "firefox")
+        self.assertTrue(report["request"]["auth"]["enabled"])
+        self.assertEqual(report["request"]["auth"]["source"], "browser")
+        self.assertTrue(report["request"]["auth"]["profile_configured"])
+        self.assertNotIn("private-profile", str(report))
+        self.assertNotIn("/home/user", str(report))
 
     def test_run_inspect_passes_auth_without_reporting_cookie_contents(self):
         with tempfile.TemporaryDirectory() as tmp:
