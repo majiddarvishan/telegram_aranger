@@ -1370,3 +1370,26 @@ Remaining:
 - YT-P5 still needs manual Light/Dark/responsive visual review;
 - YT-P7 manual/live validation remains intentionally open;
 - no merge to `main` has been performed.
+
+
+## 2026-09-26 — YT-P7 validation phase started
+
+Re-checked `feature/youtube-download` before validation:
+- HEAD: `27c468c5285b41fd42dd8eaa6573bdf007d74600`;
+- no merge to `main` was performed.
+
+CI evidence:
+- GitHub Actions run `36191266353` completed successfully on that exact HEAD;
+- `unittest` passed, including YouTube service/path/policy/download-engine/UI tests;
+- `windows-python314` passed, including native Windows YouTube path tests;
+- `docker-build` passed, including image build, FFmpeg check, FFprobe check, container startup and Streamlit health.
+
+Validation discipline:
+- YT-P7 is manual/live acceptance, so these automated results do not mark the live checklist complete;
+- live public-video, Video + Audio, Audio-only, manual subtitle, auto-caption, real matched filenames/collision, UI save-directory flow, native Windows real download, Docker real download, warning/error presentation and YT-P5 Light/Dark/responsive review remain open until actually exercised;
+- no live YouTube call was added to CI.
+
+Added:
+- `.codex/YOUTUBE_VALIDATION.md` with a validation matrix, evidence requirements and a strict separation between automated regression evidence and manual/live acceptance.
+
+A commonly used downloader test video ID (`BaW_jenozKc`) is recorded only as a possible manual smoke-test candidate. It must be confirmed accessible/appropriate at test time and must never be wired into CI.
