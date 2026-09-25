@@ -112,16 +112,27 @@ def _render_metadata(metadata: Mapping[str, Any]) -> None:
 
     thumbnail = metadata.get("thumbnail")
     if thumbnail:
-        st.image(str(thumbnail), width=420)
+        with st.container(key="youtube-thumbnail"):
+            st.image(str(thumbnail), use_container_width=True)
 
-    first, second, third, fourth = st.columns(4)
-    first.metric("Channel", str(metadata.get("channel") or metadata.get("uploader") or "Unknown"))
-    second.metric("Duration", _format_duration(metadata.get("duration_seconds")))
-    third.metric("Video ID", str(metadata.get("video_id") or "Unknown"))
-    fourth.metric(
-        "Estimated size",
-        _format_bytes(metadata.get("estimated_size_bytes")),
-    )
+    with st.container(key="youtube-metadata-metrics"):
+        first, second, third, fourth = st.columns(4)
+        first.metric(
+            "Channel",
+            str(metadata.get("channel") or metadata.get("uploader") or "Unknown"),
+        )
+        second.metric(
+            "Duration",
+            _format_duration(metadata.get("duration_seconds")),
+        )
+        third.metric(
+            "Video ID",
+            str(metadata.get("video_id") or "Unknown"),
+        )
+        fourth.metric(
+            "Estimated size",
+            _format_bytes(metadata.get("estimated_size_bytes")),
+        )
 
     availability = str(metadata.get("availability") or "Unknown")
     st.caption(f"Availability: {availability}")
@@ -344,33 +355,34 @@ def render_youtube(settings) -> None:
 
     _render_metadata(metadata)
 
-    mode_col, quality_col = st.columns(2)
-    with mode_col:
-        mode_label = st.radio(
-            "Output",
-            ("Video + Audio", "Audio only"),
-            key="youtube_mode",
-            horizontal=True,
-        )
+    with st.container(key="youtube-output-controls"):
+        mode_col, quality_col = st.columns(2)
+        with mode_col:
+            mode_label = st.radio(
+                "Output",
+                ("Video + Audio", "Audio only"),
+                key="youtube_mode",
+                horizontal=True,
+            )
 
-    quality_options = _quality_options(metadata)
-    quality_map = {label: key for key, label in quality_options}
-    with quality_col:
-        if mode_label == "Audio only":
-            st.selectbox(
-                "Quality",
-                ("Best available audio",),
-                disabled=True,
-                key="youtube_audio_quality_display",
-            )
-            st.session_state.youtube_quality_key = "best"
-        else:
-            selected_label = st.selectbox(
-                "Quality",
-                tuple(quality_map),
-                key="youtube_quality_label",
-            )
-            st.session_state.youtube_quality_key = quality_map[selected_label]
+        quality_options = _quality_options(metadata)
+        quality_map = {label: key for key, label in quality_options}
+        with quality_col:
+            if mode_label == "Audio only":
+                st.selectbox(
+                    "Quality",
+                    ("Best available audio",),
+                    disabled=True,
+                    key="youtube_audio_quality_display",
+                )
+                st.session_state.youtube_quality_key = "best"
+            else:
+                selected_label = st.selectbox(
+                    "Quality",
+                    tuple(quality_map),
+                    key="youtube_quality_label",
+                )
+                st.session_state.youtube_quality_key = quality_map[selected_label]
 
     tracks = metadata.get("subtitles")
     if not isinstance(tracks, list):
@@ -400,23 +412,24 @@ def render_youtube(settings) -> None:
             f"Harbor will report and keep the actual fallback format ({preferred})."
         )
 
-    st.text_input(
-        "Save directory",
-        key="youtube_save_directory",
-        placeholder=(
-            r"C:\Users\Majid\Downloads\TelegramHarbor"
-            if Path.cwd().drive
-            else "/home/majid/Downloads/telegram-harbor"
-        ),
-        help=(
-            "Absolute path on the machine running Telegram Harbor. "
-            "Remote deployments save to the server host."
-        ),
-    )
-    st.checkbox(
-        "Create the directory if it does not exist",
-        key="youtube_create_directory",
-    )
+    with st.container(key="youtube-save-controls"):
+        st.text_input(
+            "Save directory",
+            key="youtube_save_directory",
+            placeholder=(
+                r"C:\Users\Majid\Downloads\TelegramHarbor"
+                if Path.cwd().drive
+                else "/home/majid/Downloads/telegram-harbor"
+            ),
+            help=(
+                "Absolute path on the machine running Telegram Harbor. "
+                "Remote deployments save to the server host."
+            ),
+        )
+        st.checkbox(
+            "Create the directory if it does not exist",
+            key="youtube_create_directory",
+        )
 
     if settings.youtube_download_roots:
         st.caption(
