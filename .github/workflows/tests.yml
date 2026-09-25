@@ -66,6 +66,9 @@ jobs:
       - name: YouTube CI network-policy tests
         run: python -m unittest discover -s tests -p "test_youtube_ci_policy.py" -v
 
+      - name: YouTube validation-summary tests
+        run: python -m unittest discover -s tests -p "test_youtube_validation_summary.py" -v
+
       - name: Import Telegram service
         run: python -c "import services.telegram_service"
 
