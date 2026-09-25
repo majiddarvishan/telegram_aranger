@@ -26,7 +26,7 @@ Before doing anything:
 7. Read `.codex/SESSION.md`.
 8. Re-check the current Git branch HEAD before making changes.
 
-Important: implementation has been explicitly approved. YT-P1 through YT-P6 are implemented. Do not re-implement completed phases. Remaining work is YT-P5 manual Light/Dark/responsive review plus YT-P7 manual/live validation unless I change priority.
+Important: implementation has been explicitly approved. Automated YouTube V1 implementation/readiness hardening is complete through checkpoint `65d032829c5529a016cc3e36343d2c1e1a9fc050` with full Linux/Windows/Docker CI success. Do not re-implement or continue speculative hardening unless manual/live evidence exposes a defect. Remaining work is YT-P5 manual Light/Dark/narrow review, YT-P7 real YouTube/Windows/Docker/UI acceptance, and final merge/release review unless I change priority.
 
 Confirmed YouTube V1 requirements:
 
