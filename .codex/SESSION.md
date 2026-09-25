@@ -1090,3 +1090,60 @@ Regression coverage:
 - UI smoke test requires `Play voice`, `Play audio` and `st.audio`;
 - UI smoke test guards compact Sign out with `use_container_width=False`;
 - theme test guards right-aligned compact Sign out styling and prevents reintroducing the divider.
+
+
+## 2026-09-25 — YouTube download feature planning
+
+User request:
+- add YouTube download capability in a new branch;
+- do not implement code yet;
+- derive tasks first;
+- ask the user for the save location;
+- show copyright/service-restriction warnings but allow continuation for normally accessible public content.
+
+Branch:
+- created `feature/youtube-download` from `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
+
+Planning decisions:
+- V1 is a single public YouTube video workflow.
+- YouTube will be an independent workspace/tool, not embedded in Telegram message cards.
+- UI will inspect metadata before download.
+- Planned output modes:
+  - video + audio;
+  - audio only;
+  - simple quality presets.
+- Save directory is required from the user.
+- On a local installation, the path belongs to the local machine.
+- On a remote installation, the path belongs to the Telegram Harbor server; UI must say this explicitly.
+- Hosted/multi-user deployments should use configured allowed roots.
+- Downloader access will be behind a service abstraction; Streamlit UI must not call the downloader library directly.
+- FFmpeg is considered an operational dependency for merge/audio extraction where required.
+- CI must not rely on live YouTube.
+
+Rights/service warning behavior:
+- the app must not pretend it can make a definitive copyright determination from metadata;
+- always show a concise rights/service notice before download;
+- show stronger warnings when downloader/metadata reports restriction signals;
+- require acknowledgement;
+- warning itself remains non-blocking for ordinarily accessible public content;
+- no DRM/paywall/private/member-only/login-protection bypass is part of the design.
+
+Explicit V1 exclusions:
+- playlists;
+- full channels;
+- browser-cookie import;
+- private/member-only content;
+- DRM/access-control bypass;
+- automatic geo-bypass;
+- batch queues;
+- scheduling;
+- subtitles/chapters/SponsorBlock.
+
+Planning artifacts:
+- `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md` — full Persian architecture/product plan.
+- `.codex/YOUTUBE_PLAN.md` — executable phase backlog.
+- `.codex/TASKS.md` — YT-P0..YT-P7 tasks.
+- `.codex/DECISIONS.md` — D-024..D-030.
+- `.codex/PROJECT_CONTEXT.md` and `.codex/START_HERE.md` updated for the branch.
+
+No production code, dependency, Docker, Streamlit UI, or downloader implementation was added in this planning phase.
