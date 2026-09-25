@@ -159,6 +159,16 @@ jobs:
           docker run --rm --entrypoint ffmpeg telegram-harbor:test -version
           docker run --rm --entrypoint ffprobe telegram-harbor:test -version
 
+      - name: YouTube offline preflight in image
+        run: |
+          docker run --rm \
+            --entrypoint python \
+            telegram-harbor:test \
+            scripts/youtube_manual_validate.py \
+            --mode preflight \
+            --save-directory /data/youtube \
+            --allowed-root /data/youtube
+
       - name: Start container
         run: |
           KEY="$(docker run --rm --entrypoint python telegram-harbor:test -c 'from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())')"
