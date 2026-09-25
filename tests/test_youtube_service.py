@@ -48,6 +48,35 @@ class YouTubeUrlValidationTests(unittest.TestCase):
             "https://www.youtube.com/watch?v=BaW_jenozKc&list=PL123"
         )
         self.assertEqual(result["video_id"], "BaW_jenozKc")
+        self.assertEqual(
+            result["url"],
+            "https://www.youtube.com/watch?v=BaW_jenozKc",
+        )
+
+    def test_canonicalizes_supported_video_url_shapes(self):
+        cases = (
+            "https://youtu.be/BaW_jenozKc?si=tracking-value",
+            "https://youtube.com/shorts/BaW_jenozKc?feature=share",
+            "https://youtube.com/live/BaW_jenozKc#fragment",
+            "https://www.youtube-nocookie.com/embed/BaW_jenozKc",
+        )
+        expected = "https://www.youtube.com/watch?v=BaW_jenozKc"
+
+        for url in cases:
+            with self.subTest(url=url):
+                self.assertEqual(validate_youtube_url(url)["url"], expected)
+
+    def test_rejects_embedded_credentials_and_explicit_ports(self):
+        cases = (
+            "https://user:secret@youtube.com/watch?v=BaW_jenozKc",
+            "https://youtube.com:443/watch?v=BaW_jenozKc",
+            "https://youtube.com:8443/watch?v=BaW_jenozKc",
+        )
+        for url in cases:
+            with self.subTest(url=url):
+                with self.assertRaises(YouTubeServiceError) as caught:
+                    validate_youtube_url(url)
+                self.assertEqual(caught.exception.code, "invalid_url")
 
     def test_rejects_playlist_channel_and_non_youtube_urls(self):
         cases = (
@@ -196,6 +225,17 @@ class YouTubeMetadataNormalizationTests(unittest.TestCase):
         ]
         result = normalize_metadata(raw)
         self.assertEqual(result["thumbnail"], "https://img.example/large.jpg")
+
+    def test_inspection_strips_extra_url_parameters_before_backend(self):
+        backend = FakeBackend(self.raw)
+        inspect_video(
+            "https://youtu.be/BaW_jenozKc?si=tracking-value",
+            backend=backend,
+        )
+        self.assertEqual(
+            backend.urls,
+            ["https://www.youtube.com/watch?v=BaW_jenozKc"],
+        )
 
     def test_rejects_metadata_for_a_different_video_id(self):
         raw = dict(self.raw)
