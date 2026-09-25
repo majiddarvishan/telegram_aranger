@@ -353,3 +353,16 @@ The JSON report must show:
 - requested subtitle language/source matching the result.
 
 This flag is only for an intentional second-run collision test; it does not create or force a collision by itself.
+
+
+### Summarize YouTube validation evidence
+
+After running the manual scenarios:
+
+```bash
+python scripts/youtube_validation_summary.py validation-reports/*.json
+```
+
+Use `--require-core` when you want a non-zero exit code until the core runner scenarios are all represented by passing reports.
+
+This summary is evidence aggregation only; it does not replace the visual Streamlit review or final release decision.
