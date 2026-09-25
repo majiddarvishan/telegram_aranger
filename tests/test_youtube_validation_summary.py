@@ -108,7 +108,9 @@ class YouTubeValidationSummaryTests(unittest.TestCase):
         self.assertTrue(summary["coverage"]["automatic_caption"])
         self.assertTrue(summary["coverage"]["collision_second_run"])
         self.assertTrue(summary["coverage"]["save_directory_live"])
+        self.assertTrue(summary["source_commit_complete"])
         self.assertTrue(summary["single_source_commit"])
+        self.assertEqual(summary["reports_missing_source_commit"], 0)
         self.assertEqual(summary["source_commits"], ["abc123"])
 
     def test_windows_and_docker_require_successful_live_downloads(self):
@@ -188,6 +190,25 @@ class YouTubeValidationSummaryTests(unittest.TestCase):
                 "collision_second_run"
             ]
         )
+
+    def test_missing_commit_is_not_reported_as_single_source(self):
+        missing = report(mode="preflight", commit=None)
+        summary = summarize_reports([missing])
+
+        self.assertEqual(summary["source_commits"], [])
+        self.assertEqual(summary["reports_missing_source_commit"], 1)
+        self.assertFalse(summary["source_commit_complete"])
+        self.assertFalse(summary["single_source_commit"])
+
+    def test_one_known_and_one_missing_commit_is_incomplete(self):
+        known = report(mode="preflight", commit="aaa")
+        missing = report(mode="inspect", commit=None)
+        summary = summarize_reports([known, missing])
+
+        self.assertEqual(summary["source_commits"], ["aaa"])
+        self.assertEqual(summary["reports_missing_source_commit"], 1)
+        self.assertFalse(summary["source_commit_complete"])
+        self.assertFalse(summary["single_source_commit"])
 
     def test_multiple_commits_are_reported_as_mixed_evidence(self):
         summary = summarize_reports(
