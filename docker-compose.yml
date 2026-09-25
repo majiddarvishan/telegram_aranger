@@ -3,6 +3,8 @@ services:
     build: .
     env_file:
       - .env
+    environment:
+      YOUTUBE_DOWNLOAD_ROOTS: ${YOUTUBE_DOWNLOAD_ROOTS:-/data/youtube}
     ports:
       - "8501:8501"
     volumes:
