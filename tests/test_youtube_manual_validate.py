@@ -118,6 +118,44 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(report["video_id"], "BaW_jenozKc")
         self.assertNotIn(args.url, str(report))
 
+    def test_unexpected_runner_error_does_not_expose_raw_message(self):
+        args = SimpleNamespace(
+            url="https://youtu.be/BaW_jenozKc",
+            mode="inspect",
+            quality="best",
+            save_directory=None,
+            create_directory=False,
+            allowed_root=[],
+            subtitle_language=None,
+            subtitle_source=None,
+            acknowledge=False,
+            report_file=None,
+        )
+        with (
+            patch(
+                "scripts.youtube_manual_validate.inspect_video",
+                side_effect=RuntimeError(
+                    "signed_url=https://example.invalid/media?token=secret-value"
+                ),
+            ),
+            patch(
+                "scripts.youtube_manual_validate.detect_ffmpeg",
+                return_value=FFmpegCapability("/ffmpeg", "/ffprobe"),
+            ),
+        ):
+            report, code = run(args)
+
+        self.assertEqual(code, 3)
+        self.assertEqual(report["status"], "failed")
+        self.assertEqual(report["error"]["code"], "unexpected_error")
+        self.assertEqual(
+            report["error"]["message"],
+            "Unexpected validation failure.",
+        )
+        self.assertEqual(report["error"]["exception_type"], "RuntimeError")
+        self.assertNotIn("secret-value", str(report))
+        self.assertNotIn("signed_url", str(report))
+
     def test_run_download_uses_service_contract_and_reports_output(self):
         with tempfile.TemporaryDirectory() as tmp:
             args = SimpleNamespace(
