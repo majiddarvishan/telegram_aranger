@@ -381,3 +381,52 @@ python scripts/youtube_validation_summary.py \
 ```
 
 A zero exit code means the runner/platform/policy evidence is complete and traceable to one source commit. It does **not** complete the separate Light/Dark/narrow visual review, real Streamlit warning/error presentation review, or final merge/release decision.
+
+
+### YouTube SOCKS5
+
+The YouTube workspace has its own optional SOCKS5 configuration. Telegram proxy settings are not reused automatically.
+
+UI validation:
+1. Open **YouTube Download**.
+2. Expand **YouTube network / SOCKS5**.
+3. Enable **Use SOCKS5 proxy for YouTube**.
+4. Enter host/IP and port.
+5. If required, enter username/password.
+6. Run **Inspect** on a public permitted video.
+7. Run one download.
+
+Expected:
+- Inspect succeeds through the configured SOCKS5 route.
+- Download uses the same proxy settings.
+- Changing any YouTube proxy field clears the previous Inspect result and requires a new Inspect.
+- Password input is masked.
+- Proxy password is not displayed in application output, logs, or validation JSON.
+- Telegram SOCKS5 settings are unchanged.
+
+Manual-runner validation without authentication:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --proxy-host 127.0.0.1 \
+  --proxy-port 1080 \
+  --report-file validation-reports/proxy-inspect.json
+```
+
+For an authenticated SOCKS5 proxy, keep the password out of shell history/process arguments:
+
+```bash
+export YOUTUBE_SOCKS5_PASSWORD='your-proxy-password'
+
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --proxy-host 127.0.0.1 \
+  --proxy-port 1080 \
+  --proxy-user your-user \
+  --report-file validation-reports/proxy-inspect-auth.json
+```
+
+The report records only safe proxy metadata such as enabled state, host/port and whether credentials were configured. The password value is never written to the report.
