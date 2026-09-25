@@ -96,6 +96,28 @@ class YouTubePolicyTests(unittest.TestCase):
                 self.assertFalse(policy.can_download)
                 self.assertEqual(policy.block_code, expected_code)
 
+    def test_unknown_non_public_availability_fails_closed(self):
+        policy = evaluate_download_policy(
+            public_metadata(availability="needs_subscription"),
+            acknowledged=True,
+        )
+
+        self.assertTrue(policy.blocked)
+        self.assertFalse(policy.can_download)
+        self.assertEqual(
+            policy.block_code,
+            "restricted_availability",
+        )
+
+    def test_unlisted_remains_downloadable_after_acknowledgement(self):
+        policy = evaluate_download_policy(
+            public_metadata(availability="unlisted"),
+            acknowledged=True,
+        )
+
+        self.assertFalse(policy.blocked)
+        self.assertTrue(policy.can_download)
+
     def test_drm_metadata_is_blocked_even_after_acknowledgement(self):
         policy = evaluate_download_policy(
             public_metadata(has_drm=True),
