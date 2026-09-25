@@ -234,3 +234,9 @@ Planning source:
 - [x] GUI redesign validation completed in Light, Dark, desktop and narrow layouts.
 - [x] SQLite schema v4 peer persistence is included in the release.
 - [ ] Create Git tag `v1.1.0` pointing exactly to `4b7325b06cb92c32b56fc8a9a82388f547492ae8`; current GitHub connector does not expose tag-ref creation.
+
+
+## v1.1.0 follow-up UX fixes
+- [x] Keep Sign out inside the Web Account card instead of rendering it outside the card boundary.
+- [x] Ensure Saved Messages is present in the dialog cache and selected by default on Telegram account startup.
+- [x] Preserve the user's subsequently selected chat across normal reruns.
