@@ -346,6 +346,14 @@ Planning source:
 - [x] CI tests with no live YouTube dependency.
 
 ### YT-P7 — Manual validation
+
+YT-P7 automated baseline (not a substitute for manual completion):
+- [x] GitHub Actions run `36191266353` is green at `27c468c5285b41fd42dd8eaa6573bdf007d74600`.
+- [x] Offline YouTube service/path/policy/download/UI regression tests pass with no live YouTube calls.
+- [x] Windows/Python 3.14 YouTube path tests pass.
+- [x] Docker image builds, contains FFmpeg/FFprobe, starts Streamlit and passes health check.
+- [x] Create `.codex/YOUTUBE_VALIDATION.md` to track automated evidence separately from live/manual acceptance.
+
 - [ ] Public test video.
 - [ ] Video + audio.
 - [ ] Audio only.
