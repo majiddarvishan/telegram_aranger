@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from scripts.youtube_manual_validate import (
     _environment_summary,
+    _request_summary,
     _result_checks,
     _safe_metadata_summary,
     _subtitle_selection,
@@ -17,6 +18,28 @@ from services.youtube_service import FFmpegCapability, YouTubeServiceError
 
 
 class ManualValidationHelperTests(unittest.TestCase):
+    def test_request_summary_records_safe_reproducible_inputs(self):
+        args = SimpleNamespace(
+            mode="video_audio",
+            quality="max_720p",
+            save_directory="/srv/youtube/output",
+            create_directory=True,
+            allowed_root=["/srv/youtube"],
+            subtitle_language="en",
+            subtitle_source="manual",
+            acknowledge=True,
+        )
+        summary = _request_summary(args)
+
+        self.assertEqual(summary["mode"], "video_audio")
+        self.assertEqual(summary["quality"], "max_720p")
+        self.assertEqual(summary["save_directory"], "/srv/youtube/output")
+        self.assertEqual(summary["allowed_roots"], ["/srv/youtube"])
+        self.assertEqual(summary["subtitle_language"], "en")
+        self.assertEqual(summary["subtitle_source"], "manual")
+        self.assertTrue(summary["acknowledged"])
+        self.assertNotIn("url", summary)
+
     def test_environment_summary_records_build_identity_without_hostname(self):
         with patch.dict(
             "os.environ",
@@ -139,6 +162,9 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(report["video_id"], "BaW_jenozKc")
         self.assertIn("environment", report)
         self.assertIn("commit_sha", report["environment"])
+        self.assertIn("request", report)
+        self.assertEqual(report["request"]["mode"], "inspect")
+        self.assertNotIn("url", report["request"])
         self.assertNotIn(args.url, str(report))
 
     def test_unexpected_runner_error_does_not_expose_raw_message(self):
