@@ -486,6 +486,7 @@ class ManualValidationHelperTests(unittest.TestCase):
                 subtitle_path=str(subtitle),
                 subtitle_format="srt",
                 subtitle_source="automatic",
+                subtitle_language="fa",
             )
 
             checks = _result_checks(
@@ -494,10 +495,12 @@ class ManualValidationHelperTests(unittest.TestCase):
                 [{"phase": "completed", "status": "finished"}],
                 subtitle_expected=True,
                 expected_subtitle_source="manual",
+                expected_subtitle_language="en",
             )
 
             self.assertTrue(checks["subtitle_presence_matches_request"])
             self.assertFalse(checks["subtitle_source_matches_request"])
+            self.assertFalse(checks["subtitle_language_matches_request"])
             self.assertFalse(checks["all_passed"])
 
     def test_collision_expectation_requires_numeric_suffix(self):
@@ -544,6 +547,37 @@ class ManualValidationHelperTests(unittest.TestCase):
             )
             self.assertEqual(checks["collision_number"], 2)
             self.assertTrue(checks["collision_expectation_met"])
+            self.assertTrue(checks["all_passed"])
+
+    def test_result_checks_accept_matching_subtitle_language(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            media = root / "My Video.mp4"
+            subtitle = root / "My Video.srt"
+            media.write_bytes(b"media")
+            subtitle.write_text("subtitle", encoding="utf-8")
+            result = DownloadResult(
+                video_id="BaW_jenozKc",
+                title="My Video",
+                mode="video_audio",
+                quality="best",
+                media_path=str(media),
+                subtitle_path=str(subtitle),
+                subtitle_format="srt",
+                subtitle_source="manual",
+                subtitle_language="en",
+            )
+
+            checks = _result_checks(
+                result,
+                tmp,
+                [{"phase": "completed", "status": "finished"}],
+                subtitle_expected=True,
+                expected_subtitle_source="manual",
+                expected_subtitle_language="en",
+            )
+
+            self.assertTrue(checks["subtitle_language_matches_request"])
             self.assertTrue(checks["all_passed"])
 
     def test_result_checks_reject_non_title_based_or_wrong_extension_output(self):
