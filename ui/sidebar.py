@@ -97,7 +97,7 @@ def _render_web_account(settings, user: dict) -> None:
         if st.button(
             "Sign out",
             key="sidebar-web-logout",
-            use_container_width=True,
+            use_container_width=False,
         ):
             try:
                 runtime = st.session_state.get("telegram_runtime")
