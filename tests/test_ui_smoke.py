@@ -2,6 +2,9 @@ import unittest
 from datetime import datetime
 
 from ui.main import (
+    MESSAGE_ACTIONS_KEY,
+    MESSAGE_DATE_NAV_KEY,
+    MESSAGE_FILTERS_KEY,
     MESSAGE_HEADER_CSS,
     MESSAGE_HEADER_KEY,
     MESSAGE_SCROLL_KEY,
@@ -29,8 +32,22 @@ class StickyHeaderTests(unittest.TestCase):
         self.assertIn(".st-key-message-scroll-area", MESSAGE_HEADER_CSS)
 
 
+    def test_compact_workspace_regions_are_keyed_for_responsive_css(self):
+        self.assertEqual(MESSAGE_FILTERS_KEY, "message-filters")
+        self.assertEqual(MESSAGE_DATE_NAV_KEY, "message-date-nav")
+        self.assertEqual(MESSAGE_ACTIONS_KEY, "message-actions")
+
     def test_bottom_navigation_container_is_removed(self):
         self.assertNotIn(".st-key-message-navigation", MESSAGE_HEADER_CSS)
+
+    def test_message_actions_use_responsive_container(self):
+        import inspect
+        from ui.main import _render_message_actions
+
+        source = inspect.getsource(_render_message_actions)
+
+        self.assertIn("MESSAGE_ACTIONS_KEY", source)
+        self.assertIn("st.container", source)
 
     def test_load_more_control_is_not_rendered_inside_scroll_panel(self):
         import inspect
@@ -131,6 +148,19 @@ class UiMessageSmokeTests(unittest.TestCase):
         self.assertIn("st.text_input", footer_source)
         self.assertIn("message_body_html", card_source)
         self.assertNotIn("Tags (comma-separated)", card_source)
+
+    def test_footer_and_media_actions_have_responsive_keys(self):
+        import inspect
+        from ui.main import _render_media, _render_message_footer
+
+        media_source = inspect.getsource(_render_media)
+        footer_source = inspect.getsource(_render_message_footer)
+
+        self.assertIn("media-actions-", media_source)
+        self.assertIn("media-download-actions-", media_source)
+        self.assertIn("message-footer-actions-", footer_source)
+        self.assertIn("message-footer-edit-actions-", footer_source)
+        self.assertIn("message-footer-delete-actions-", footer_source)
 
     def test_media_actions_use_compact_hierarchy(self):
         import inspect
