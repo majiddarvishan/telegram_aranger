@@ -116,14 +116,16 @@ class YtDlpBackend:
                 "YouTube downloader dependency is not installed.",
             ) from exc
 
-        options = {
-            "quiet": True,
-            "no_warnings": True,
-            "skip_download": True,
-            "noplaylist": True,
-            "logger": _QuietLogger(),
-        }
-        options.update(self.extra_options)
+        options = dict(self.extra_options)
+        options.update(
+            {
+                "quiet": True,
+                "no_warnings": True,
+                "skip_download": True,
+                "noplaylist": True,
+                "logger": _QuietLogger(),
+            }
+        )
 
         try:
             with yt_dlp.YoutubeDL(options) as downloader:
