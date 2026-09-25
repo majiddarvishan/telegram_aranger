@@ -171,6 +171,17 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn('"youtube_auth_source": "Browser session"', state_source)
         self.assertIn('"youtube_auth_browser": "Auto"', state_source)
 
+    def test_ui_policy_receives_authenticated_session_state(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+        self.assertGreaterEqual(
+            source.count("authenticated_session=bool("),
+            2,
+        )
+        self.assertIn(
+            'st.session_state.get("youtube_use_auth", False)',
+            source,
+        )
+
     def test_auth_changes_invalidate_previous_inspection(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         auth_start = source.index("def _render_youtube_auth_settings()")
