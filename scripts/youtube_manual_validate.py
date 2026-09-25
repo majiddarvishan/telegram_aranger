@@ -3,7 +3,10 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone
 import json
+import os
 from pathlib import Path
+import platform
+import subprocess
 import sys
 from typing import Any
 
@@ -33,6 +36,45 @@ from utils.download_paths import (  # noqa: E402
 MODES = ("inspect", "video_audio", "audio_only")
 QUALITIES = ("best", "max_1080p", "max_720p", "max_480p")
 SUBTITLE_SOURCES = ("manual", "automatic")
+
+
+def _detect_commit_sha() -> str | None:
+    configured = os.getenv("TELEGRAM_HARBOR_BUILD_SHA", "").strip()
+    if configured and configured.lower() not in {"unknown", "local"}:
+        return configured
+
+    try:
+        completed = subprocess.run(
+            ["git", "rev-parse", "--verify", "HEAD"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return configured or None
+
+    value = completed.stdout.strip()
+    return value or configured or None
+
+
+def _environment_summary() -> dict[str, Any]:
+    version_path = ROOT / "VERSION"
+    try:
+        app_version = version_path.read_text(encoding="utf-8").strip()
+    except OSError:
+        app_version = None
+
+    return {
+        "platform": platform.system() or None,
+        "platform_release": platform.release() or None,
+        "machine": platform.machine() or None,
+        "python_version": platform.python_version(),
+        "docker": Path("/.dockerenv").exists(),
+        "app_version": app_version,
+        "commit_sha": _detect_commit_sha(),
+    }
 
 
 def _safe_metadata_summary(metadata: dict[str, Any]) -> dict[str, Any]:
@@ -262,6 +304,7 @@ def run(args) -> tuple[dict[str, Any], int]:
         "mode": args.mode,
         "quality": args.quality,
         "video_id": validated["video_id"],
+        "environment": _environment_summary(),
         "ffmpeg": ffmpeg.as_dict(),
         "status": "started",
     }
