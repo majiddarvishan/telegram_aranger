@@ -1960,3 +1960,19 @@ Now:
 Regression coverage verifies:
 - stale environment SHA cannot override native Git HEAD;
 - Docker/no-Git fallback still uses the embedded build SHA.
+
+
+## 2026-09-26 — Source-identity test correction and full-green checkpoint
+
+The production validation identity rule remains:
+- native/source-tree runs use the actual Git HEAD as authoritative evidence;
+- `TELEGRAM_HARBOR_BUILD_SHA` is fallback only when Git metadata is unavailable, such as inside the Docker image.
+
+A legacy unit test still assumed the environment build SHA should override Git HEAD. That test was isolated from repository state by mocking `_detect_commit_sha()` directly; production behavior was not reverted.
+
+GitHub Actions run `36197766755` on commit `9bb8695f61e246cc96340f378413add67d298b50` completed successfully:
+- Linux `unittest`: success;
+- Windows/Python 3.14: success, including YouTube path, download-engine, manual-runner and validation-summary tests;
+- Docker build/preflight/health: success.
+
+This commit is the latest confirmed full-green automated YouTube checkpoint recorded in the handoff. Manual/live YT-P5/YT-P7 acceptance remains open.
