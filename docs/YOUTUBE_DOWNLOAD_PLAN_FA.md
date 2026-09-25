@@ -16,6 +16,8 @@
 - دریافت URL از کاربر؛
 - نمایش اطلاعات محتوا قبل از دانلود؛
 - انتخاب نوع خروجی؛
+- دانلود اختیاری زیرنویس؛
+- انتخاب زبان زیرنویس با تفکیک زیرنویس دستی و auto-generated caption؛
 - گرفتن محل ذخیره از کاربر؛
 - نمایش progress؛
 - warning برای حقوق نشر / محدودیت‌های سرویس؛
@@ -104,6 +106,10 @@
 - availability/restriction indicators در حد اطلاعاتی که downloader ارائه می‌دهد
 - formatهای قابل استفاده
 - estimated size در صورت موجود بودن
+- subtitle trackهای موجود
+- زبان هر subtitle
+- manual subtitle یا auto-generated caption بودن هر track
+- فرمت‌های subtitle قابل دریافت
 
 هیچ فایل media در مرحله Inspect دانلود نشود.
 
@@ -133,6 +139,51 @@
 نمایش شود.
 
 برای محتوای عمومی که downloader بدون bypass قادر به دریافت است، کاربر با تأیید Warning می‌تواند ادامه دهد.
+
+---
+
+
+# زیرنویس
+
+## Scope نسخه اول
+
+زیرنویس در V1 جزو قابلیت‌های اصلی است، اما برای حفظ naming ساده و قابل پیش‌بینی، در هر download job فقط **یک subtitle track** انتخاب می‌شود.
+
+کاربر بتواند:
+
+- دانلود زیرنویس را فعال/غیرفعال کند؛
+- یک زبان را انتخاب کند؛
+- ببیند track انتخابی **Manual subtitle** است یا **Auto-generated caption**؛
+- در صورت وجود هر دو، نوع مورد نظر را انتخاب کند.
+
+## فرمت
+
+فرمت هدف پیش‌فرض:
+
+`SRT`
+
+اگر تبدیل به SRT با ابزارهای موجود ممکن نباشد:
+
+- برنامه باید فرمت fallback را واضح به کاربر اعلام کند؛
+- `VTT` یا فرمت اصلی downloader قابل قبول است؛
+- نباید بدون اطلاع کاربر extension اشتباه به فایل داده شود.
+
+## Naming زیرنویس
+
+اگر خروجی ویدئو:
+
+`My Video.mp4`
+
+باشد، زیرنویس انتخابی باید با همان basename ذخیره شود:
+
+`My Video.srt`
+
+در audio-only نیز همین قاعده برقرار است:
+
+`My Video.mp3`
+`My Video.srt`
+
+در V1 چند زبان subtitle هم‌زمان intentionally پشتیبانی نمی‌شود، چون requirement فعلی این است که فایل subtitle دقیقاً basename یکسان با فایل media داشته باشد.
 
 ---
 
@@ -262,26 +313,38 @@ Raw yt-dlp log نباید مستقیم داخل UI dump شود.
 
 نام فایل باید sanitize شود.
 
-پیشنهاد template داخلی:
+قاعده نهایی V1:
 
-`<title> [<video_id>].<ext>`
+`<sanitized-video-title>.<ext>`
 
-مزایا:
+مثال:
 
-- collision کمتر؛
-- title خوانا؛
-- traceability.
+`My Video.mp4`
+
+اگر subtitle انتخاب شده باشد:
+
+`My Video.srt`
+
+بنابراین Video ID در نام فایل پیش‌فرض قرار نمی‌گیرد.
+
+عنوان ویدئو باید برای Windows/Linux sanitize شود، اما تا حد امکان همان عنوان قابل‌خواندن YouTube حفظ شود.
 
 ## Collision
 
 نسخه اول:
 
-اگر فایل وجود داشت:
+اگر هرکدام از فایل‌های خروجی وجود داشتند:
 
-- overwrite خودکار نکن؛
-- suffix عددی اضافه کن یا از user confirmation استفاده کن.
+- overwrite خودکار انجام نشود؛
+- یک suffix عددی برای **کل output group** انتخاب شود؛
+- همان suffix روی media و subtitle هر دو اعمال شود.
 
-ترجیح: suffix امن و خودکار.
+مثال:
+
+`My Video (2).mp4`
+`My Video (2).srt`
+
+به این ترتیب basename ویدئو و زیرنویس همیشه با هم یکسان می‌مانند.
 
 ---
 
@@ -433,6 +496,11 @@ UI برای این خطاها پیام مشخص داشته باشد:
 - filename sanitization
 - collision handling
 - format selection
+- subtitle track normalization
+- manual-vs-auto caption classification
+- subtitle format/fallback selection
+- matched media/subtitle filename generation
+- grouped collision handling
 - progress-event normalization
 - downloader error mapping
 - no-bypass policy behavior
@@ -443,6 +511,9 @@ UI برای این خطاها پیام مشخص داشته باشد:
 - warning acknowledgement
 - path required
 - quality selection
+- subtitle enable/disable
+- subtitle language selection
+- manual/auto-generated distinction
 - Download disabled until required fields are valid
 - progress state
 - completion state
@@ -457,6 +528,8 @@ UI برای این خطاها پیام مشخص داشته باشد:
 - audio-only
 - verify output path
 - verify ffmpeg post-process
+- verify subtitle download
+- verify media/subtitle basename equality
 - verify Windows path handling
 
 CI نباید به YouTube live network وابسته باشد.
@@ -475,6 +548,9 @@ CI نباید به YouTube live network وابسته باشد.
 - [x] service/UI separation طراحی شود.
 - [x] FFmpeg dependency در plan ثبت شود.
 - [x] public-content-only baseline ثبت شود.
+- [x] subtitle download وارد scope نسخه اول شود.
+- [x] یک subtitle track در هر job برای حفظ basename یکسان تعریف شود.
+- [x] naming فایل‌ها بر اساس عنوان sanitizeشده ویدئو تعریف شود.
 
 ## YT-P1 — Dependency / service foundation
 
@@ -483,6 +559,8 @@ CI نباید به YouTube live network وابسته باشد.
 - [ ] ایجاد service abstraction.
 - [ ] URL validation.
 - [ ] metadata inspection.
+- [ ] subtitle/caption metadata inspection.
+- [ ] manual-vs-auto subtitle classification.
 - [ ] normalized error model.
 - [ ] unit tests.
 
@@ -492,8 +570,9 @@ CI نباید به YouTube live network وابسته باشد.
 - [ ] normalize/resolve path.
 - [ ] writable validation.
 - [ ] optional directory creation confirmation.
-- [ ] filename sanitization.
-- [ ] collision policy.
+- [ ] filename sanitization بر اساس عنوان ویدئو.
+- [ ] matched basename policy برای media + subtitle.
+- [ ] grouped collision policy.
 - [ ] optional allowed-root configuration for hosted mode.
 - [ ] Windows/Linux tests.
 
@@ -511,6 +590,8 @@ CI نباید به YouTube live network وابسته باشد.
 - [ ] Video + audio mode.
 - [ ] Audio-only mode.
 - [ ] quality presets.
+- [ ] subtitle download.
+- [ ] SRT target / VTT-or-original fallback handling.
 - [ ] progress hooks.
 - [ ] post-processing status.
 - [ ] final path reporting.
@@ -524,6 +605,8 @@ CI نباید به YouTube live network وابسته باشد.
 - [ ] metadata card.
 - [ ] thumbnail.
 - [ ] format controls.
+- [ ] subtitle enable/disable.
+- [ ] subtitle language/type selector.
 - [ ] save-directory field.
 - [ ] warning card.
 - [ ] progress UI.
@@ -546,6 +629,9 @@ CI نباید به YouTube live network وابسته باشد.
 - [ ] Docker test.
 - [ ] Video+audio test.
 - [ ] Audio-only test.
+- [ ] Manual subtitle test.
+- [ ] Auto-generated caption test.
+- [ ] filename/basename matching test.
 - [ ] warning flow test.
 - [ ] error-path test.
 - [ ] final review before merge.
@@ -563,7 +649,8 @@ CI نباید به YouTube live network وابسته باشد.
 - automatic geo-bypass
 - batch URL queues
 - scheduled downloads
-- subtitles/chapters
+- multiple subtitle languages in one download job
+- chapters
 - SponsorBlock
 - thumbnail-only downloads
 
