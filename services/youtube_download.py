@@ -164,6 +164,7 @@ def download_video(
     policy = evaluate_download_policy(
         metadata,
         acknowledged=request.acknowledged,
+        authenticated_session=bool(request.auth and request.auth.enabled),
     )
     if policy.blocked:
         raise YouTubeServiceError(
