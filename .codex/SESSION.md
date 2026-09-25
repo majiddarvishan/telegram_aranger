@@ -2130,3 +2130,38 @@ Validated:
 - anti-bot error guidance now points to fresh `youtube.com cookies.txt` as an optional recovery path instead of incorrectly claiming auth is unsupported.
 
 The remaining authentication item is real/manual validation with a fresh YouTube cookie export from a session the user controls.
+
+
+## 2026-09-26 — Browser-session-first YouTube authentication
+
+User requested that Telegram Harbor reuse the user's existing browser login so normal local users do not have to export/import cookies manually.
+
+Implemented:
+- YouTube auth remains optional and disabled by default;
+- no Google username/password collection;
+- no YouTube OAuth flow;
+- local **Browser session** is now the preferred auth source;
+- supported browser choices: Auto, Chrome, Firefox, Edge, Brave, Chromium, Vivaldi, Opera, Safari and Whale;
+- optional browser profile name/path;
+- Auto performs best-effort detection from standard local profile directories without reading cookie contents;
+- Inspect passes a validated yt-dlp `cookiesfrombrowser` tuple;
+- Download uses the same validated browser-session tuple;
+- no browser cookie values are copied into SQLite, logs, or validation reports;
+- reports contain only source/browser and whether a profile was configured; profile path itself is excluded;
+- browser-cookie extraction/decryption failures are normalized as `youtube_browser_session_unavailable`;
+- `login_required` is now retryable and tells the user to enable Browser Session or cookies.txt fallback instead of saying the content is outside V1;
+- private/member-only/premium/DRM states remain blocked;
+- Browser Session and independent YouTube SOCKS5 can be combined.
+
+Remote/Docker fallback:
+- youtube.com-only Netscape `cookies.txt` remains supported;
+- it is session-only;
+- temporary materialization is removed after the yt-dlp operation.
+
+Automated checkpoint:
+- commit `7d63e279dc3925d64987bdff49cc1f06df86fb90` completed GitHub Actions successfully with the Browser Session implementation and tests included.
+
+Manual acceptance still open:
+- one local Browser Session Inspect;
+- one local Browser Session download;
+- cookies.txt fallback validation for remote/Docker topology if that deployment mode is required.
