@@ -83,13 +83,22 @@ def _is_successful_live(report: dict[str, Any]) -> bool:
 
 
 def summarize_reports(reports: list[dict[str, Any]]) -> dict[str, Any]:
-    commits = sorted(
-        {
-            str(_environment(report).get("commit_sha"))
-            for report in reports
-            if _environment(report).get("commit_sha")
-            not in {None, "", "unknown", "local"}
-        }
+    usable_commit_values = {
+        str(_environment(report).get("commit_sha"))
+        for report in reports
+        if _environment(report).get("commit_sha")
+        not in {None, "", "unknown", "local"}
+    }
+    commits = sorted(usable_commit_values)
+    reports_missing_source_commit = sum(
+        1
+        for report in reports
+        if _environment(report).get("commit_sha")
+        in {None, "", "unknown", "local"}
+    )
+    source_commit_complete = (
+        bool(reports)
+        and reports_missing_source_commit == 0
     )
 
     coverage = {
@@ -187,7 +196,11 @@ def summarize_reports(reports: list[dict[str, Any]]) -> dict[str, Any]:
             1 for report in reports if report.get("status") == "failed"
         ),
         "source_commits": commits,
-        "single_source_commit": len(commits) <= 1,
+        "reports_missing_source_commit": reports_missing_source_commit,
+        "source_commit_complete": source_commit_complete,
+        "single_source_commit": (
+            source_commit_complete and len(commits) == 1
+        ),
         "coverage": coverage,
         "core_runner_coverage_complete": all(
             coverage[key] for key in core_keys
