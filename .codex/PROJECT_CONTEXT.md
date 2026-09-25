@@ -6,8 +6,9 @@
 The product supports Saved Messages plus private chats, groups, supergroups, and channels. The GitHub repository remains `majiddarvishan/telegram_aranger` for compatibility/history.
 
 ## Current branch
-- Working branch: `gui`
-- `gui` is based on the current stable `main` and is reserved for presentation-layer redesign. Functional behavior from `main` must be preserved unless explicitly approved.
+- Working branch: `main`
+- The completed `gui` redesign branch was fast-forward merged into `main`.
+- `main` is the current source of truth.
 - Re-check GitHub branch HEAD before making future edits.
 
 ## Current capabilities
@@ -164,9 +165,9 @@ Real Telegram/browser validation has been completed successfully with no issues 
 
 
 ## Release status
-- Latest release: `v1.0.4`
-- v1.0.4 checkpoint SHA: `0c3144f4d99201a917c9353c788def4df9fb4258`
-- Current version: `1.0.4`
+- Latest release: `v1.1.0`
+- v1.1.0 checkpoint SHA: `4b7325b06cb92c32b56fc8a9a82388f547492ae8`
+- Current version: `1.1.0`
 
 
 ## Dialog startup behavior
@@ -178,13 +179,11 @@ Real Telegram/browser validation has been completed successfully with no issues 
 - If an explicit refresh fails and cache exists, the cached dialog list remains usable.
 
 
-## GUI redesign scope
-- Branch: `gui`.
-- Baseline: `main@2bd6fbd18ac6ab03a38ee5ffc586c2d76c8ccc49`.
+## GUI redesign status
+- The GUI redesign is complete and merged into `main`.
 - Primary design document: `docs/GUI_DESIGN_PLAN_FA.md`.
-- Execution backlog: `.codex/GUI_PLAN.md`.
-- Focus: design system, sidebar, toolbar, message cards, auth/empty states, responsive behavior and accessibility.
-- Guardrail: avoid business-logic/database/runtime changes during GUI phases unless explicitly approved.
+- Historical execution backlog: `.codex/GUI_PLAN.md`.
+- Completed scope: design system, sidebar, toolbar, message cards, auth/empty states, responsive behavior, accessibility, Light/Dark support, RTL/LTR rendering and final interaction polish.
 
 
 ## Pyrogram peer persistence
