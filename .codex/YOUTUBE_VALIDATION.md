@@ -304,13 +304,13 @@ These are automated/code-review findings only. They do not complete the manual L
 For download modes, `scripts/youtube_manual_validate.py` now adds a `checks` object to the JSON report and returns a non-zero exit code if the checks fail.
 
 Checks include:
-- final media file exists;
+- final media file exists and is a non-empty file;
 - final media remains under the selected Save directory;
 - completion progress event was observed;
 - output basename is derived from the sanitized video title, allowing only the defined numeric collision suffix;
 - media extension matches the requested mode (.mp4 or .mp3);
 - when subtitle/caption is enabled:
-  - subtitle file exists;
+  - subtitle file exists and is non-empty;
   - subtitle remains under the selected Save directory;
   - media and subtitle have exactly the same basename;
   - subtitle source matches Manual vs Auto-generated selection;
@@ -408,3 +408,14 @@ The summary reports runner evidence for:
 It also reports whether the evidence comes from one source commit or mixed commits.
 
 The aggregator does **not** mark visual/manual-only items complete. Light/Dark/narrow review, real Streamlit warning/error presentation, and final merge/release review remain separate manual acceptance items.
+
+
+### Zero-byte output rule
+
+A file path existing on disk is not sufficient evidence of a successful download.
+
+YT-P7 validation now requires:
+- final media size > 0 bytes;
+- requested subtitle/caption size > 0 bytes.
+
+The download engine rejects zero-byte media/subtitle outputs before final acceptance. A zero-byte SRT created by FFmpeg is not treated as a successful conversion; Telegram Harbor falls back to the original non-empty subtitle format instead.
