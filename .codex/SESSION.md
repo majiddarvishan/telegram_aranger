@@ -1814,3 +1814,19 @@ Manual evidence:
 - `media_nonempty` and `subtitle_nonempty` participate in `all_passed`.
 
 Regression tests cover empty media, empty subtitle, and zero-byte SRT conversion fallback.
+
+
+## 2026-09-26 — Zero-byte YouTube output hardening
+
+A concurrent branch update added rejection of zero-byte media/subtitle outputs and related regression coverage.
+
+Follow-up review found one remaining conversion edge case:
+- FFmpeg could return code 0 while leaving a zero-byte SRT target;
+- `try_convert_subtitle_to_srt()` previously treated any existing target as success.
+
+Fixed:
+- SRT conversion success now requires a non-empty target;
+- empty/failed conversion target is removed best-effort;
+- the original non-empty subtitle source is retained with its truthful fallback format.
+
+This aligns the conversion path with the new non-empty final-output invariant.
