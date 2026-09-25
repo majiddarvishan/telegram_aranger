@@ -29,6 +29,7 @@ from services.youtube_service import (  # noqa: E402
 )
 from utils.download_paths import (  # noqa: E402
     DownloadPathError,
+    sanitize_youtube_title,
     validate_save_directory,
 )
 
@@ -172,10 +173,32 @@ def _result_checks(
         for event in progress_events
     )
 
+    expected_title_base = sanitize_youtube_title(result.title)
+    stem = media.stem
+    title_based_name = (
+        stem == expected_title_base
+        or (
+            stem.startswith(expected_title_base + " (")
+            and stem.endswith(")")
+            and stem[len(expected_title_base) + 2 : -1].isdigit()
+        )
+    )
+    expected_media_suffix = ".mp3" if result.mode == "audio_only" else ".mp4"
+    media_extension_matches_mode = media.suffix.lower() == expected_media_suffix
+    subtitle_extension_matches_report = (
+        subtitle.suffix.lower()
+        == f".{str(result.subtitle_format).lower().lstrip('.')}"
+        if subtitle is not None and result.subtitle_format
+        else subtitle is None
+    )
+
     boolean_checks = [
         media_exists,
         media_contained,
         completed_progress,
+        title_based_name,
+        media_extension_matches_mode,
+        subtitle_extension_matches_report,
     ]
     if subtitle is not None:
         boolean_checks.extend(
@@ -193,6 +216,9 @@ def _result_checks(
         "subtitle_within_save_directory": subtitle_contained,
         "media_subtitle_basename_match": matched_basename,
         "completed_progress_observed": completed_progress,
+        "title_based_output_name": title_based_name,
+        "media_extension_matches_mode": media_extension_matches_mode,
+        "subtitle_extension_matches_report": subtitle_extension_matches_report,
         "all_passed": all(boolean_checks),
     }
 
