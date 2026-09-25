@@ -1680,3 +1680,8 @@ Guardrail:
 remain manual-only and are explicitly listed as such by the summary rather than being auto-completed.
 
 Added offline unit tests for complete core coverage, Windows/Docker live requirements, collision evidence, mixed commits, structured failures, and invalid JSON handling.
+
+
+## 2026-09-26 — Strict validation source identity
+
+The report aggregator now treats missing/unknown/local source SHA as incomplete evidence. `single_source_commit` is true only when every loaded report carries one concrete identical source SHA. The summary also reports `reports_missing_source_commit` and `source_commit_complete` so mixed or untraceable acceptance evidence cannot look complete.
