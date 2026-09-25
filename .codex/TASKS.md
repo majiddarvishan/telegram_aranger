@@ -365,6 +365,9 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Move workspace selection ownership into the shared sidebar routing and add regression coverage.
 - [x] Scan all GitHub Actions workflow YAML files for accidental live YouTube URLs/direct live runner usage.
 - [x] Add self-validating post-download checks to the manual runner for file existence, final-path containment, completion progress, and matched media/subtitle basename.
+- [x] Record OS/Python/app-version/build-commit identity in manual validation reports without hostname/user/secrets.
+- [x] Embed Docker source commit via `TELEGRAM_HARBOR_BUILD_SHA` and verify it in CI.
+- [x] Record a safe reproducible request summary (mode/quality/save directory/roots/subtitle/acknowledgement) without persisting the original URL.
 
 - [ ] Public test video.
 - [ ] Video + audio.
