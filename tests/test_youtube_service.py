@@ -793,7 +793,9 @@ class YouTubeErrorNormalizationTests(unittest.TestCase):
                 self.assertEqual(error.code, "bot_verification_required")
                 self.assertFalse(error.access_restricted)
                 self.assertIn("not a copyright determination", error.message)
+                self.assertIn("Browser session", error.message)
                 self.assertIn("SOCKS5", error.message)
+                self.assertIn("cookies.txt", error.message)
                 self.assertIn("cookies.txt", error.message)
 
     def test_generic_sign_in_to_confirm_is_not_misclassified_as_auth(self):
