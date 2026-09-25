@@ -22,6 +22,7 @@ from services.youtube_download import (  # noqa: E402
 )
 from services.youtube_policy import evaluate_download_policy  # noqa: E402
 from services.youtube_service import (  # noqa: E402
+    YouTubeAuthConfig,
     YouTubeProxyConfig,
     YouTubeServiceError,
     detect_ffmpeg,
@@ -98,6 +99,26 @@ def _environment_summary() -> dict[str, Any]:
     }
 
 
+def _auth_from_args(args) -> YouTubeAuthConfig | None:
+    raw_path = str(getattr(args, "cookies_file", "") or "").strip()
+    if not raw_path:
+        return None
+
+    path = Path(raw_path).expanduser()
+    try:
+        data = path.read_bytes()
+    except OSError as exc:
+        raise YouTubeServiceError(
+            "youtube_auth_invalid",
+            "YouTube cookies.txt could not be read.",
+        ) from exc
+
+    return YouTubeAuthConfig(
+        enabled=True,
+        cookie_data=data,
+    )
+
+
 def _proxy_from_args(args) -> YouTubeProxyConfig | None:
     host = str(getattr(args, "proxy_host", "") or "").strip()
     if not host:
@@ -124,6 +145,7 @@ def _proxy_from_args(args) -> YouTubeProxyConfig | None:
 
 def _request_summary(args) -> dict[str, Any]:
     proxy = _proxy_from_args(args)
+    auth_enabled = bool(str(getattr(args, "cookies_file", "") or "").strip())
     return {
         "mode": args.mode,
         "quality": (
@@ -151,6 +173,10 @@ def _request_summary(args) -> dict[str, Any]:
                 "password_configured": False,
             }
         ),
+        "auth": {
+            "enabled": auth_enabled,
+            "source": "cookies_file" if auth_enabled else None,
+        },
     }
 
 
@@ -486,6 +512,13 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--cookies-file",
+        help=(
+            "Optional Netscape-format youtube.com cookies.txt for an authenticated "
+            "YouTube session. The file contents/path are not written to reports."
+        ),
+    )
+    parser.add_argument(
         "--report-file",
         help=(
             "Optional JSON report path. Prefer validation-reports/...; "
@@ -515,6 +548,10 @@ def run(args) -> tuple[dict[str, Any], int]:
         proxy = _proxy_from_args(args)
         if proxy is not None:
             proxy.proxy_url()
+
+        auth = _auth_from_args(args)
+        if auth is not None:
+            auth.normalized_cookie_bytes()
 
         if args.mode == "preflight":
             if not args.save_directory:
@@ -551,6 +588,11 @@ def run(args) -> tuple[dict[str, Any], int]:
                     if proxy is not None
                     else {"enabled": False}
                 ),
+                "auth": (
+                    auth.as_safe_dict()
+                    if auth is not None
+                    else {"enabled": False}
+                ),
             }
             report["status"] = "passed" if runtime_ready else "failed"
             if not ffmpeg.fully_available:
@@ -575,6 +617,7 @@ def run(args) -> tuple[dict[str, Any], int]:
         metadata = inspect_video(
             validated["url"],
             proxy=proxy,
+            auth=auth,
         )
         report["metadata"] = _safe_metadata_summary(metadata)
 
@@ -628,6 +671,7 @@ def run(args) -> tuple[dict[str, Any], int]:
                 subtitle=subtitle,
                 acknowledged=bool(args.acknowledge),
                 proxy=proxy,
+                auth=auth,
             ),
             metadata,
             allowed_roots=tuple(args.allowed_root),
