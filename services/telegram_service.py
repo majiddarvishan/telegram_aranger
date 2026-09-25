@@ -444,6 +444,62 @@ async def _history(chat_id, start_dt, end_dt, limit=100, client=None):
     return out
 
 
+async def _latest_history(chat_id, limit=100, client=None):
+    """Return the newest messages in a chat without a date constraint."""
+    if client is None:
+        raise RuntimeError("Telegram client is not connected.")
+
+    out = []
+    async for message in client.get_chat_history(
+        chat_id,
+        limit=limit,
+    ):
+        if not message.date:
+            continue
+
+        media = _media_metadata(message)
+        out.append(
+            {
+                "id": message.id,
+                "chat_id": chat_id,
+                "text": _message_text(message, media),
+                "caption": message.caption or "",
+                "date": message.date,
+                "user_id": chat_id,
+                "media": media,
+            }
+        )
+
+    return out
+
+
+async def _latest_history_with_peer_recovery(
+    client,
+    chat_id,
+    limit=100,
+    peer_username: str = "",
+    dialog_limit: int = 100,
+):
+    try:
+        return await _latest_history(
+            chat_id,
+            limit,
+            client=client,
+        )
+    except PeerIdInvalid:
+        await _warm_peer_for_history(
+            client,
+            chat_id,
+            username=peer_username,
+            dialog_limit=dialog_limit,
+        )
+        return await _latest_history(
+            chat_id,
+            limit,
+            client=client,
+        )
+
+
 async def _history_with_peer_recovery(
     client,
     chat_id,
@@ -497,6 +553,26 @@ def history(
             dialog_limit=dialog_limit,
         ),
         operation="history",
+    )
+
+
+def latest_history(
+    chat_id,
+    limit=100,
+    peer_username: str = "",
+    dialog_limit: int = 100,
+):
+    """Return the newest messages for automatic empty-range fallback."""
+    runtime = get_runtime()
+    return runtime.run(
+        _latest_history_with_peer_recovery(
+            runtime.client,
+            chat_id,
+            limit,
+            peer_username=peer_username,
+            dialog_limit=dialog_limit,
+        ),
+        operation="latest_history",
     )
 
 
