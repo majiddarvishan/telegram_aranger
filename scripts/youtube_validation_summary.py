@@ -17,6 +17,7 @@ YOUTUBE_FAILURE_CODES = {
     "premium_only",
     "members_only",
     "login_required",
+    "bot_verification_required",
     "geo_restricted",
     "drm_protected",
     "restricted_availability",
