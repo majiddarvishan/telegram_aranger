@@ -35,6 +35,19 @@ def initialize_state():
         "message_date_range_picker": (today - timedelta(days=6), today),
         "pending_message_date_range": None,
         "page_anchor": today,
+        "workspace": "Telegram Messages",
+        "youtube_url": "",
+        "youtube_inspected_url": "",
+        "youtube_metadata": None,
+        "youtube_error": None,
+        "youtube_download_result": None,
+        "youtube_mode": "Video + Audio",
+        "youtube_quality_key": "best",
+        "youtube_subtitles_enabled": False,
+        "youtube_subtitle_index": 0,
+        "youtube_save_directory": "",
+        "youtube_create_directory": False,
+        "youtube_acknowledged": False,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
