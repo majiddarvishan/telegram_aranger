@@ -12,6 +12,9 @@ Primary Persian design document:
 
 - Add YouTube download capability to Telegram Harbor.
 - Ask the user for the save location.
+- Support optional subtitle download.
+- Keep the saved media filename based on the sanitized YouTube video title.
+- When a subtitle is downloaded, keep the same basename as the media file.
 - Show copyright / service-restriction warnings when applicable.
 - Warning is informational/acknowledgement-oriented and should not block ordinarily accessible public content.
 - Do not bypass DRM, paywalls, private/member-only access controls, or similar protection mechanisms.
@@ -23,8 +26,12 @@ Primary Persian design document:
 - Inspect metadata before download.
 - Video + audio output.
 - Audio-only output.
+- Optional single subtitle track download.
+- Manual subtitles and auto-generated captions are identified separately.
+- Default subtitle output target is SRT; fallback format must be reported when conversion is unavailable.
 - Simple quality presets.
 - User-supplied save directory.
+- Title-based matched output naming.
 - Progress and post-processing state.
 - Warning / acknowledgement flow.
 - Windows + Linux path handling.
@@ -88,6 +95,8 @@ Names may change during implementation if the existing project structure suggest
 - [x] Define access-control/DRM boundary.
 - [x] Define service/UI separation.
 - [x] Record FFmpeg requirement.
+- [x] Include optional subtitle download in V1.
+- [x] Define title-based matched filename policy for media + subtitle outputs.
 - [x] Create implementation backlog.
 
 ### YT-P1 — Service foundation
@@ -95,6 +104,8 @@ Names may change during implementation if the existing project structure suggest
 - [ ] Detect FFmpeg capability.
 - [ ] Validate supported YouTube URLs.
 - [ ] Inspect metadata without downloading media.
+- [ ] Inspect manual subtitle and auto-caption tracks without downloading them.
+- [ ] Normalize subtitle language/type/format information.
 - [ ] Normalize formats/quality presets.
 - [ ] Normalize downloader errors.
 - [ ] Add unit tests.
@@ -104,9 +115,11 @@ Names may change during implementation if the existing project structure suggest
 - [ ] Normalize/resolve path.
 - [ ] Verify directory existence/writability.
 - [ ] Decide/create directory only with explicit user intent.
-- [ ] Sanitize filenames.
+- [ ] Sanitize the YouTube title into the shared output basename.
+- [ ] Save media as `<sanitized-title>.<media-ext>`.
+- [ ] Save a selected subtitle as `<sanitized-title>.<subtitle-ext>`.
 - [ ] Prevent output path escape.
-- [ ] Handle filename collisions.
+- [ ] Handle filename collisions as one output group so media/subtitle basenames remain aligned.
 - [ ] Add optional allowed-root configuration for hosted mode.
 - [ ] Cover Windows/Linux path cases.
 
@@ -122,6 +135,9 @@ Names may change during implementation if the existing project structure suggest
 - [ ] Video + audio.
 - [ ] Audio only.
 - [ ] Quality presets.
+- [ ] Optional subtitle-track download.
+- [ ] Prefer SRT output for the selected subtitle; report VTT/original fallback explicitly.
+- [ ] Keep manual subtitle vs auto-caption provenance in result metadata.
 - [ ] Progress normalization.
 - [ ] FFmpeg/post-process state.
 - [ ] Partial-file cleanup/recovery.
@@ -133,6 +149,9 @@ Names may change during implementation if the existing project structure suggest
 - [ ] URL input + Inspect action.
 - [ ] Metadata/thumbnail preview.
 - [ ] Mode/quality controls.
+- [ ] Subtitle enable/disable control.
+- [ ] Subtitle language selector with Manual / Auto-generated labeling.
+- [ ] Subtitle format display/selection according to supported V1 behavior.
 - [ ] Save directory input.
 - [ ] Warning/acknowledgement UI.
 - [ ] Download progress.
@@ -151,6 +170,10 @@ Names may change during implementation if the existing project structure suggest
 - [ ] Public test video.
 - [ ] Video + audio.
 - [ ] Audio only.
+- [ ] Manual subtitle download.
+- [ ] Auto-generated caption download.
+- [ ] Verify media and subtitle share the same basename.
+- [ ] Verify collision suffix is applied consistently to the complete output set.
 - [ ] Save directory.
 - [ ] Windows path.
 - [ ] Docker.
