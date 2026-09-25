@@ -247,3 +247,10 @@ Planning source:
 - [x] Synchronize the Date range picker to the oldest/newest dates represented by the latest-message batch.
 - [x] Keep the automatic fallback one-shot so later manual empty date selections are preserved.
 - [x] Keep Saved Messages as the default startup chat when available.
+
+
+## v1.1.0 follow-up media/sidebar fixes
+- [x] Inline Telegram voice/audio playback using the existing lazy media download/cache path and Streamlit audio player.
+- [x] Remove the unsupported Voice preview notice.
+- [x] Compact Sign out inside the Web Account card and remove its internal divider.
+- [x] Add regression coverage for voice/audio rendering and compact Sign out.
