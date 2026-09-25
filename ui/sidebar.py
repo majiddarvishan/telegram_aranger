@@ -534,13 +534,32 @@ def _render_telegram_login(settings, user: dict, proxy) -> None:
             st.sidebar.error(f"2FA verification failed: {exc}")
 
 
-def render_sidebar(settings):
+def render_sidebar(settings) -> str:
     user = st.session_state.web_user
 
     _render_brand()
     _render_web_account(settings, user)
     st.sidebar.divider()
 
+    st.sidebar.markdown(
+        section_title_html("Workspace"),
+        unsafe_allow_html=True,
+    )
+    workspace = st.sidebar.radio(
+        "Workspace",
+        ("Telegram Messages", "YouTube Download"),
+        key="workspace",
+        label_visibility="collapsed",
+    )
+
+    if workspace == "YouTube Download":
+        st.sidebar.caption(
+            "YouTube uses the host network directly. "
+            "Telegram SOCKS5 proxy settings are not reused."
+        )
+        return workspace
+
+    st.sidebar.divider()
     proxy = _render_network_settings()
     st.sidebar.divider()
 
@@ -555,4 +574,4 @@ def render_sidebar(settings):
         proxy,
     )
 
-    return proxy
+    return workspace
