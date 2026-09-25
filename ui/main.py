@@ -11,7 +11,13 @@ from db.dialogs import (
     replace_dialogs,
 )
 from db.tags import all_tags, get_tags_for_messages, save_tags
-from services.telegram_service import delete_message, get_dialogs, history, start_media_download
+from services.telegram_service import (
+    delete_message,
+    get_dialogs,
+    history,
+    latest_history,
+    start_media_download,
+)
 from ui.theme import (
     MESSAGE_HEADER_CSS,
     action_summary_html,
@@ -431,6 +437,81 @@ def _chat_label(chat, saved_messages_chat_id: int | None = None):
     parts.append(type_label)
 
     return " · ".join(parts)
+
+
+def _latest_message_date_range(messages: list[dict]):
+    """Return the inclusive date span covered by a latest-message batch."""
+    message_dates = [
+        message["date"].date()
+        for message in messages
+        if message.get("date") is not None
+    ]
+    if not message_dates:
+        return None
+    return min(message_dates), max(message_dates)
+
+
+def _maybe_align_empty_chat_to_latest(
+    settings,
+    selected_chat_id: int,
+    peer_username: str = "",
+) -> bool:
+    """Show latest messages once when a newly selected chat has an empty range."""
+    if (
+        st.session_state.get("message_auto_latest_chat_id")
+        != selected_chat_id
+    ):
+        return False
+
+    # One-shot behavior: manual empty date selections after this point
+    # must remain exactly as the user chose them.
+    st.session_state.message_auto_latest_chat_id = None
+
+    if (
+        st.session_state.get("message_fetch_error")
+        or st.session_state.messages
+    ):
+        return False
+
+    try:
+        with st.spinner("No messages in this date range. Loading latest…"):
+            latest = latest_history(
+                selected_chat_id,
+                settings.default_message_limit,
+                peer_username=peer_username,
+                dialog_limit=settings.telegram_dialog_limit,
+            )
+    except Exception as exc:
+        st.warning(
+            "No messages were found in the selected date range, and "
+            f"the latest messages could not be loaded: {exc}"
+        )
+        return False
+
+    latest_range = _latest_message_date_range(latest)
+    if not latest or latest_range is None:
+        return False
+
+    start_date, end_date = latest_range
+    result_limit = settings.default_message_limit
+    range_signature = (
+        selected_chat_id,
+        start_date.isoformat(),
+        end_date.isoformat(),
+    )
+
+    st.session_state.messages = latest
+    st.session_state.message_fetch_error = None
+    st.session_state.message_result_limit = result_limit
+    st.session_state.message_range_signature = range_signature
+    st.session_state.message_query_signature = (
+        *range_signature,
+        result_limit,
+    )
+    st.session_state.message_date_range = (start_date, end_date)
+    _set_pending_date_range(start_date, end_date)
+    st.rerun()
+    return True
 
 
 def _set_pending_date_range(start_date, end_date):
@@ -1025,6 +1106,7 @@ def render_main(settings):
             st.session_state.telegram_user,
         )
         st.session_state.selected_chat_id = current_chat_id
+        st.session_state.message_auto_latest_chat_id = current_chat_id
 
     today = date.today()
     selected_chat_id, search, tag, start_date, end_date = _render_message_header(
@@ -1040,6 +1122,7 @@ def render_main(settings):
         st.session_state.message_query_signature = None
         st.session_state.message_range_signature = None
         st.session_state.message_result_limit = settings.default_message_limit
+        st.session_state.message_auto_latest_chat_id = selected_chat_id
         st.rerun()
 
     selected_dialog = dialogs_by_id.get(selected_chat_id, {})
@@ -1048,6 +1131,12 @@ def render_main(settings):
         selected_chat_id,
         start_date,
         end_date,
+        peer_username=selected_dialog.get("username", ""),
+    )
+
+    _maybe_align_empty_chat_to_latest(
+        settings,
+        selected_chat_id,
         peer_username=selected_dialog.get("username", ""),
     )
 
