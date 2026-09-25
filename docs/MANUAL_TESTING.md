@@ -330,7 +330,9 @@ python scripts/youtube_manual_validate.py \
 Expected result:
 - exit code 0;
 - `status=passed`;
-- FFmpeg + FFprobe fully available;
+- FFmpeg + FFprobe found;
+- `ffmpeg -version` and `ffprobe -version` both execute successfully;
+- `ffmpeg_runtime_ready=true`;
 - Save directory valid/writable;
 - environment/build identity included in the JSON report;
 - no YouTube URL required and no live YouTube request performed.
