@@ -132,8 +132,24 @@ body,
     margin: var(--th-space-3) 0;
 }}
 
+.st-key-web-account-card {{
+    margin-bottom: var(--th-space-1);
+}}
+
+.st-key-web-account-card [data-testid="stVerticalBlockBorderWrapper"] {{
+    border-color: var(--th-border) !important;
+    border-radius: var(--th-radius-panel) !important;
+    background: var(--th-surface);
+}}
+
+.st-key-web-account-card [data-testid="stVerticalBlock"] {{
+    gap: var(--th-space-2);
+}}
+
 .st-key-sidebar-web-logout {{
-    margin-top: calc(var(--th-space-1) * -1);
+    margin-top: 0;
+    padding-top: var(--th-space-1);
+    border-top: 1px solid var(--th-border);
 }}
 
 [data-testid="stExpander"] summary {{
@@ -450,10 +466,9 @@ a[href]:hover {{
 }}
 
 .th-account-card {{
-    padding: var(--th-space-3);
-    border: 1px solid var(--th-border);
-    border-radius: var(--th-radius-panel);
-    background: var(--th-surface);
+    padding: 0;
+    border: 0;
+    background: transparent;
 }}
 
 .th-account-card__name {{
