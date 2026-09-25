@@ -255,3 +255,16 @@ Telegram Harbor caches the latest Telegram chat/dialog list in SQLite per Telegr
 - **Refresh Chats** explicitly refreshes the cache from Telegram.
 - If an explicit refresh fails and cached dialogs exist, the cached list remains usable.
 - Concurrent Streamlit sessions share a process-level refresh lock so only one uncached dialog refresh is sent at a time.
+
+
+### YouTube authenticated session
+
+Telegram Harbor can optionally use a signed-in YouTube session through a Mozilla/Netscape `cookies.txt` file.
+
+- No Google username/password is requested.
+- OAuth is not used.
+- The cookie file is not persisted by Telegram Harbor.
+- Cookies are materialized only for the lifetime of one Inspect/Download operation and then deleted.
+- Only `youtube.com` cookie rows are accepted.
+- Authenticated mode can be combined with the independent YouTube SOCKS5 proxy.
+- Private/member-only/premium/DRM content remains blocked by product policy.
