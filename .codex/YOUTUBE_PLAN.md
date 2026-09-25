@@ -3,7 +3,7 @@
 Branch: `feature/youtube-download`
 Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`
 
-Status: YT-P7 validation active. YT-P1 through YT-P6 are implemented; automated CI baseline is green; YT-P5 manual Light/Dark/responsive review and YT-P7 live/manual validation remain open.
+Status: YT-P7 validation/readiness active. YT-P1 through YT-P6 are implemented; additional responsive/security/filesystem/CI hardening is in place. Manual Light/Dark/narrow review and YT-P7 live/manual validation remain open.
 
 Primary Persian design document:
 `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
@@ -159,6 +159,8 @@ Names may change during implementation if the existing project structure suggest
 - [x] Download progress.
 - [x] Completed/error state.
 - [ ] Light/Dark/responsive behavior.
+  - [x] Responsive structure is implemented and regression-tested.
+  - [ ] Manual Light/Dark/narrow screenshot review remains required.
 
 ### YT-P6 — Platform/docs
 - [x] Windows FFmpeg setup.
