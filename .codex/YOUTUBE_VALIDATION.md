@@ -227,7 +227,15 @@ ffprobe -version
 
 ### Docker
 
-With the image built as `telegram-harbor:test`:
+Build the image with the exact source commit embedded:
+
+```bash
+docker build \
+  --build-arg TELEGRAM_HARBOR_BUILD_SHA="$(git rev-parse HEAD)" \
+  -t telegram-harbor:test .
+```
+
+Then run the validation:
 
 ```bash
 docker run --rm \
@@ -291,3 +299,40 @@ Checks include:
   - media and subtitle have exactly the same basename.
 
 This makes the manual evidence self-validating for the matched-basename and final-path parts of YT-P7. Collision validation still requires a second real run with the first output pair left in place.
+
+
+## Environment/build identity evidence
+
+Every manual-runner JSON report records a safe environment summary:
+- operating-system family;
+- OS release;
+- CPU architecture;
+- Python version;
+- whether the runner detected Docker;
+- Telegram Harbor `VERSION`;
+- source commit SHA when available.
+
+The report deliberately does **not** record hostname, username, environment variables, credentials or network-interface identity.
+
+Native source-tree runs resolve the current commit from Git when available.
+
+Docker images accept:
+
+`TELEGRAM_HARBOR_BUILD_SHA`
+
+as a build argument/environment value. For release validation, always build with:
+
+```bash
+docker build \
+  --build-arg TELEGRAM_HARBOR_BUILD_SHA="$(git rev-parse HEAD)" \
+  -t telegram-harbor:test .
+```
+
+For Docker Compose, export the same value before building:
+
+```bash
+export TELEGRAM_HARBOR_BUILD_SHA="$(git rev-parse HEAD)"
+docker compose build
+```
+
+This ensures the validation report can be tied back to the exact source commit rather than only to an image tag.
