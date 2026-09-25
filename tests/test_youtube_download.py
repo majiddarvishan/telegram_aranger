@@ -264,6 +264,7 @@ class DownloadExecutionTests(unittest.TestCase):
             self.assertEqual(Path(result.subtitle_path).stem, "My Video")
             self.assertEqual(result.subtitle_format, "srt")
             self.assertEqual(result.subtitle_source, "manual")
+            self.assertEqual(result.subtitle_language, "en")
 
     def test_vtt_conversion_success_reports_srt(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -290,6 +291,7 @@ class DownloadExecutionTests(unittest.TestCase):
             self.assertEqual(result.subtitle_format, "srt")
             self.assertEqual(Path(result.subtitle_path).suffix, ".srt")
             self.assertEqual(result.subtitle_source, "automatic")
+            self.assertEqual(result.subtitle_language, "fa")
 
     def test_vtt_conversion_failure_keeps_actual_vtt_extension(self):
         with tempfile.TemporaryDirectory() as tmp:
