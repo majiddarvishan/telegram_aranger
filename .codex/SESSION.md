@@ -1634,3 +1634,15 @@ Collision validation:
 - the flag does not manufacture a collision; the tester must retain the first output group and perform the second live run.
 
 Manual/live acceptance remains open until these checks are exercised against real YouTube output.
+
+
+## 2026-09-26 — Persisted subtitle provenance in YouTube UI
+
+The immediate post-download state already displayed subtitle path/format/source, but the persisted `Last completed output` block after a Streamlit rerun showed only the subtitle path.
+
+Updated the persisted result block to retain:
+- subtitle language;
+- actual subtitle format;
+- Manual vs Auto-generated source.
+
+Regression coverage verifies these provenance fields remain part of the completed-output UI contract.
