@@ -4,6 +4,9 @@ All notable Telegram Harbor changes are recorded here.
 
 ## Unreleased
 
+- Add lazy inline playback for Telegram voice and audio messages instead of showing an unsupported-preview notice.
+- Compact the Web Account **Sign out** action inside the account card and remove the unnecessary internal divider.
+
 - Automatically fall back to the latest messages when a newly selected chat has no messages in the current date range, and synchronize the Date range control to the returned message dates.
 - Keep this fallback one-shot per chat selection so manually choosing an empty historical range remains respected.
 
