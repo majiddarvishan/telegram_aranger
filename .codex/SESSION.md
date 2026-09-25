@@ -1462,3 +1462,16 @@ Changed:
 Regression coverage asserts the notice-rendering call appears before the acknowledgement control and that blocked state forces acknowledgement false.
 
 Manual warning-flow validation remains open until exercised in the real Streamlit UI.
+
+
+## 2026-09-26 — Enforced offline YouTube CI policy
+
+Added `tests/test_youtube_ci_policy.py` so the no-live-YouTube CI rule is executable rather than documentation-only.
+
+The guard asserts:
+- GitHub Actions workflow does not contain a live `youtube.com/watch` URL;
+- workflow does not contain a live `youtu.be/` URL;
+- workflow does not execute `scripts/youtube_manual_validate.py` directly;
+- the manual-validation helper is exercised only through its fake/offline unit test module.
+
+The CI workflow now runs this network-policy test explicitly.
