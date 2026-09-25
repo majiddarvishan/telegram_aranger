@@ -479,3 +479,9 @@ def render_youtube(settings) -> None:
         st.code(str(result["media_path"]))
         if result.get("subtitle_path"):
             st.code(str(result["subtitle_path"]))
+            st.caption(
+                "Subtitle: "
+                f"{result.get('subtitle_language') or 'unknown'} · "
+                f"{str(result.get('subtitle_format') or 'unknown').upper()} · "
+                f"{result.get('subtitle_source') or 'unknown'}"
+            )
