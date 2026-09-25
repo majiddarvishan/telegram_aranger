@@ -358,6 +358,8 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Sanitize unexpected YouTube/downloader errors so raw exception text, signed URLs or query tokens are not surfaced to UI/manual reports.
 - [x] Add regression coverage for unknown downloader/UI/manual-runner error sanitization.
 - [x] Guard GitHub Actions against live YouTube URLs/direct manual-runner execution with `tests/test_youtube_ci_policy.py`.
+- [x] Contain downloader-returned media/subtitle paths to the per-job temporary directory before moving final outputs.
+- [x] Reject direct outside paths and symlink escapes with regression coverage.
 
 - [ ] Public test video.
 - [ ] Video + audio.
