@@ -308,7 +308,6 @@ def _render_account_selector(
         index=list(labels).index(current),
         format_func=lambda account_id: labels[account_id],
         label_visibility="collapsed",
-        key="sidebar-active-account",
     )
 
     if _apply_account_selection(
