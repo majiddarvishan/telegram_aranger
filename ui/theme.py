@@ -629,6 +629,149 @@ a[href]:hover {{
 
 {MESSAGE_HEADER_CSS}
 
+@media (max-width: 1100px) {{
+    .st-key-message-filters [data-testid="stHorizontalBlock"],
+    .st-key-message-date-nav [data-testid="stHorizontalBlock"],
+    .st-key-message-actions [data-testid="stHorizontalBlock"],
+    [class*="st-key-message-footer-actions-"] [data-testid="stHorizontalBlock"],
+    [class*="st-key-message-footer-edit-actions-"] [data-testid="stHorizontalBlock"],
+    [class*="st-key-message-footer-delete-actions-"] [data-testid="stHorizontalBlock"],
+    [class*="st-key-media-actions-"] [data-testid="stHorizontalBlock"],
+    [class*="st-key-media-download-actions-"] [data-testid="stHorizontalBlock"] {{
+        flex-wrap: wrap;
+        gap: var(--th-space-2);
+    }}
+
+    .st-key-message-filters
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(1) {{
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        min-width: 100% !important;
+    }}
+
+    .st-key-message-filters
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(2) {{
+        flex: 2 1 220px !important;
+        width: auto !important;
+        min-width: 220px !important;
+    }}
+
+    .st-key-message-filters
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(3) {{
+        flex: 1 1 110px !important;
+        width: auto !important;
+        min-width: 110px !important;
+    }}
+
+    .st-key-message-date-nav
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(1) {{
+        flex: 1 1 280px !important;
+        width: auto !important;
+        min-width: 240px !important;
+    }}
+
+    .st-key-message-date-nav
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(2),
+    .st-key-message-date-nav
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(3) {{
+        flex: 0 0 52px !important;
+        width: 52px !important;
+        min-width: 52px !important;
+    }}
+
+    .st-key-message-actions
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"] {{
+        flex: 0 0 auto !important;
+        width: auto !important;
+        min-width: 112px !important;
+    }}
+
+    .st-key-message-actions
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:last-child {{
+        flex: 1 1 180px !important;
+        min-width: 180px !important;
+    }}
+
+    .st-key-message-actions .th-action-summary {{
+        justify-content: flex-end;
+    }}
+
+    [class*="st-key-message-footer-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:first-child {{
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        min-width: 100% !important;
+    }}
+
+    [class*="st-key-message-footer-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(2),
+    [class*="st-key-message-footer-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(3) {{
+        flex: 0 0 112px !important;
+        width: 112px !important;
+        min-width: 112px !important;
+    }}
+
+    [class*="st-key-message-footer-edit-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(1),
+    [class*="st-key-message-footer-edit-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(2),
+    [class*="st-key-message-footer-delete-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(1),
+    [class*="st-key-message-footer-delete-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(2) {{
+        flex: 0 0 128px !important;
+        width: 128px !important;
+        min-width: 128px !important;
+    }}
+
+    [class*="st-key-message-footer-edit-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:last-child,
+    [class*="st-key-message-footer-delete-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:last-child {{
+        flex: 1 1 120px !important;
+        min-width: 120px !important;
+    }}
+
+    [class*="st-key-media-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"],
+    [class*="st-key-media-download-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"] {{
+        flex: 0 0 auto !important;
+        width: auto !important;
+        min-width: 128px !important;
+    }}
+
+    [class*="st-key-media-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:last-child,
+    [class*="st-key-media-download-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:last-child {{
+        flex: 1 1 120px !important;
+        min-width: 120px !important;
+    }}
+}}
+
 @media (max-width: 900px) {{
     [data-testid="stAppViewContainer"] .block-container,
     [data-testid="stMainBlockContainer"] {{
@@ -668,9 +811,28 @@ a[href]:hover {{
         border-radius: 10px !important;
     }}
 
-    .th-action-summary {{
+    .st-key-message-actions
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:last-child {{
+        flex-basis: 100% !important;
+        min-width: 100% !important;
+    }}
+
+    .st-key-message-actions .th-action-summary {{
+        justify-content: flex-start;
         gap: var(--th-space-1);
         font-size: 0.76rem;
+    }}
+
+    [class*="st-key-message-footer-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(2),
+    [class*="st-key-message-footer-actions-"]
+    [data-testid="stHorizontalBlock"]
+    > [data-testid="stColumn"]:nth-child(3) {{
+        flex: 1 1 120px !important;
+        width: auto !important;
+        min-width: 120px !important;
     }}
 
     [class*="st-key-message-card-"] {{
