@@ -1303,3 +1303,42 @@ Testing:
 
 Next:
 - YT-P5 — Streamlit UI.
+
+
+## 2026-09-26 — YT-P5 Streamlit UI implementation
+
+Continued on `feature/youtube-download` after re-checking the live branch state.
+
+Branch discovery:
+- the branch had already advanced to `6b9e5ca697e27619fab694a9e054926ccd8ade8b`;
+- YT-P1 through YT-P4 were already implemented on the branch;
+- work therefore continued from the first actually incomplete phase, YT-P5, without duplicating earlier service/download code.
+
+Implemented:
+- added `ui/youtube.py` as an independent YouTube workspace;
+- added sidebar workspace routing between Telegram Messages and YouTube Download;
+- Inspect retrieves metadata without downloading media;
+- metadata view shows title, channel/uploader, thumbnail, duration, video ID, availability, estimated size, formats/quality data and subtitle/caption tracks;
+- output controls support Video + Audio and Audio only;
+- quality presets use the normalized service contract;
+- optional one-track subtitle selection distinguishes Manual and Auto-generated captions and shows preferred/fallback format information;
+- Save directory is explicit and clearly described as a path on the Telegram Harbor host;
+- optional directory creation remains an explicit user action;
+- hosted allowed-root restrictions are surfaced when configured;
+- general rights/service notice plus stronger restriction warnings are shown before download;
+- explicit acknowledgement is required and blocked/access-controlled metadata remains non-downloadable;
+- FFmpeg/FFprobe capability is shown before download;
+- download progress displays percentage, transferred/estimated bytes, speed, ETA, phase and post-processing detail;
+- completed outputs show final media path and subtitle path/format/source when present;
+- raw yt-dlp logs remain hidden behind the service layer.
+
+State/tests:
+- added YouTube workspace state defaults in `utils/state.py`;
+- added `tests/test_youtube_ui.py` for formatting, Manual/Auto subtitle labeling, progress text and architecture/safety smoke assertions;
+- UI code does not import `yt_dlp` directly and uses the existing service/download abstractions.
+
+Still open in YT-P5:
+- Light/Dark/responsive manual visual review.
+
+Next:
+- complete YT-P5 visual validation, then continue to YT-P6 — Platform / docs.
