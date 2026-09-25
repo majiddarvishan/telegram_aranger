@@ -397,6 +397,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Re-check Windows reserved device names after truncation.
 - [x] Bound sanitized YouTube titles by both UTF-16 units and UTF-8 bytes so long Unicode names stay valid on Windows and common Linux filesystems.
 - [x] Keep `full_release_ready=false` in validation summaries until real Streamlit/manual acceptance is completed; runner evidence alone cannot release the feature.
+- [x] Prefer native Git HEAD over `TELEGRAM_HARBOR_BUILD_SHA` for validation identity; use the environment value only when Git metadata is unavailable (for example Docker image).
 
 - [ ] Public test video.
 - [ ] Video + audio.
