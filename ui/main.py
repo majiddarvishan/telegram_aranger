@@ -341,9 +341,19 @@ def _render_media(settings, account_id: int, message: dict) -> None:
     )
 
 
+def _has_saved_messages_dialog(
+    dialogs: list[dict],
+    self_chat_id: int | None,
+) -> bool:
+    if self_chat_id is None:
+        return True
+    return any(dialog.get("id") == self_chat_id for dialog in dialogs)
+
+
 def _load_or_refresh_dialogs(
     settings,
     account_id: int,
+    self_chat_id: int | None = None,
     force_refresh: bool = False,
 ) -> tuple[list[dict], str | None]:
     cached = load_cached_dialogs(settings.db_file, account_id)
@@ -351,13 +361,18 @@ def _load_or_refresh_dialogs(
         cached
         and not force_refresh
         and cache_has_peer_metadata(cached)
+        and _has_saved_messages_dialog(cached, self_chat_id)
     ):
         return cached, None
 
     with _DIALOG_REFRESH_LOCK:
         if not force_refresh:
             cached = load_cached_dialogs(settings.db_file, account_id)
-            if cached and cache_has_peer_metadata(cached):
+            if (
+                cached
+                and cache_has_peer_metadata(cached)
+                and _has_saved_messages_dialog(cached, self_chat_id)
+            ):
                 return cached, None
 
         try:
@@ -376,7 +391,33 @@ def _load_or_refresh_dialogs(
         return dialogs, None
 
 
-def _chat_label(chat):
+def _default_chat_id(
+    dialogs: list[dict],
+    telegram_user: dict | None,
+) -> int | None:
+    if not dialogs:
+        return None
+
+    own_id = (telegram_user or {}).get("id")
+    if own_id is not None:
+        for dialog in dialogs:
+            if dialog.get("id") == own_id:
+                return own_id
+
+    for dialog in dialogs:
+        if str(dialog.get("title", "")).strip().lower() == "saved messages":
+            return dialog["id"]
+
+    return dialogs[0]["id"]
+
+
+def _chat_label(chat, saved_messages_chat_id: int | None = None):
+    if (
+        saved_messages_chat_id is not None
+        and chat.get("id") == saved_messages_chat_id
+    ):
+        return "Saved Messages · Private"
+
     type_label = {
         "private": "Private",
         "group": "Group",
@@ -945,6 +986,7 @@ def render_main(settings):
             dialogs, warning = _load_or_refresh_dialogs(
                 settings,
                 st.session_state.selected_telegram_account_id,
+                self_chat_id=st.session_state.telegram_user.get("id"),
                 force_refresh=force_refresh,
             )
             st.session_state.dialogs = dialogs
@@ -970,14 +1012,18 @@ def render_main(settings):
         return
 
     dialogs_by_id = {chat["id"]: chat for chat in dialogs}
+    saved_messages_chat_id = st.session_state.telegram_user.get("id")
     options = {
-        chat_id: _chat_label(chat)
+        chat_id: _chat_label(chat, saved_messages_chat_id)
         for chat_id, chat in dialogs_by_id.items()
     }
     current_chat_id = st.session_state.selected_chat_id
 
     if current_chat_id not in options:
-        current_chat_id = next(iter(options))
+        current_chat_id = _default_chat_id(
+            dialogs,
+            st.session_state.telegram_user,
+        )
         st.session_state.selected_chat_id = current_chat_id
 
     today = date.today()
