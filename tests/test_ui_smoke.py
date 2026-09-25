@@ -13,6 +13,7 @@ from ui.main import (
     _delete_state_key,
     _display_message_text,
     _message_card_key,
+    _latest_message_date_range,
     _message_footer_key,
     _message_matches_filters,
     _tag_editor_state_key,
@@ -121,6 +122,38 @@ class ChatLabelPolishTests(unittest.TestCase):
             _default_chat_id(dialogs, {"id": 1001}),
             -100,
         )
+
+
+class AutoLatestRangeTests(unittest.TestCase):
+    def test_latest_message_date_range_tracks_latest_batch_span(self):
+        messages = [
+            {"date": datetime(2026, 9, 25, 14, 0)},
+            {"date": datetime(2026, 9, 23, 10, 0)},
+            {"date": datetime(2026, 9, 24, 8, 0)},
+        ]
+
+        self.assertEqual(
+            _latest_message_date_range(messages),
+            (
+                datetime(2026, 9, 23).date(),
+                datetime(2026, 9, 25).date(),
+            ),
+        )
+
+    def test_latest_message_date_range_handles_empty_batch(self):
+        self.assertIsNone(_latest_message_date_range([]))
+
+    def test_empty_new_chat_has_one_shot_latest_fallback(self):
+        import inspect
+        from ui.main import _maybe_align_empty_chat_to_latest
+
+        source = inspect.getsource(_maybe_align_empty_chat_to_latest)
+
+        self.assertIn("message_auto_latest_chat_id", source)
+        self.assertIn("latest_history", source)
+        self.assertIn("_set_pending_date_range", source)
+        self.assertIn("message_query_signature", source)
+        self.assertIn("st.rerun()", source)
 
 
 class UiMessageSmokeTests(unittest.TestCase):
@@ -346,6 +379,7 @@ class UiAccountSelectionSmokeTests(unittest.TestCase):
             "selected_chat_id": -100,
             "messages": [{"id": 1}],
             "message_fetch_error": "old error",
+            "message_auto_latest_chat_id": -100,
             "dialogs": [{"id": -100}],
             "telegram_user": {"id": 123},
             "media_files": {"1:-100:1:preview": {"path": "cached"}},
@@ -358,6 +392,7 @@ class UiAccountSelectionSmokeTests(unittest.TestCase):
         self.assertIsNone(state["selected_chat_id"])
         self.assertEqual(state["messages"], [])
         self.assertIsNone(state["message_fetch_error"])
+        self.assertIsNone(state["message_auto_latest_chat_id"])
         self.assertEqual(state["dialogs"], [])
         self.assertIsNone(state["telegram_user"])
         self.assertEqual(state["media_files"], {})
