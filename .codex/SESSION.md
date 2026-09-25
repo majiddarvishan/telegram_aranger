@@ -1851,3 +1851,24 @@ Regression coverage verifies:
 - OSError/broken executable;
 - missing binary;
 - preflight failure when runtime execution is incomplete.
+
+
+## 2026-09-26 — Canonical YouTube URL boundary
+
+Hardened the V1 URL boundary so downloader backends do not receive the user's original share/tracking URL.
+
+After validating a supported single-video shape, Telegram Harbor now passes only:
+
+`https://www.youtube.com/watch?v=<VIDEO_ID>`
+
+to Inspect and Download backends.
+
+Effects:
+- share/tracking query parameters are stripped;
+- playlist query context is not propagated even when a valid single video ID is present;
+- URL fragments are stripped;
+- embedded username/password userinfo is rejected;
+- explicit ports are rejected;
+- video-ID identity checks remain unchanged.
+
+Regression coverage verifies canonicalization for youtu.be, Shorts, Live and youtube-nocookie Embed shapes plus Inspect and Download backend calls.
