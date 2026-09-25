@@ -25,7 +25,20 @@ class YouTubeCiPolicyTests(unittest.TestCase):
         self.assertNotIn("youtu.be/", lowered)
         self.assertNotIn("youtube_manual_validate.py --url", lowered)
 
-    def test_ci_only_runs_manual_runner_through_offline_unit_tests(self):
+    def test_ci_manual_runner_invocation_is_preflight_only(self):
+        workflow = _workflow_text()
+        lowered = workflow.lower()
+
+        self.assertIn(
+            "scripts/youtube_manual_validate.py",
+            workflow,
+        )
+        self.assertIn("--mode preflight", lowered)
+        self.assertNotIn("--mode inspect", lowered)
+        self.assertNotIn("--mode video_audio", lowered)
+        self.assertNotIn("--mode audio_only", lowered)
+
+    def test_ci_still_runs_manual_runner_offline_unit_tests(self):
         workflow = _workflow_text()
         self.assertIn(
             'python -m unittest discover -s tests '
