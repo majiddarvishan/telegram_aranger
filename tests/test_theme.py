@@ -154,16 +154,17 @@ class ThemeFoundationTests(unittest.TestCase):
 
     def test_web_account_card_owns_sign_out_layout(self):
         self.assertIn(".st-key-web-account-card", APP_CSS)
+        self.assertIn(".st-key-sidebar-web-logout", APP_CSS)
+        self.assertIn("justify-content: flex-end", APP_CSS)
+        self.assertIn("min-height: 28px", APP_CSS)
         self.assertIn(
-            ".st-key-sidebar-web-logout",
-            APP_CSS,
-        )
-        self.assertIn(
-            "border-top: 1px solid var(--th-border)",
+            "margin-top: calc(var(--th-space-1) * -1)",
             APP_CSS,
         )
         self.assertNotIn(
-            "margin-top: calc(var(--th-space-1) * -1)",
+            ".st-key-sidebar-web-logout {\n    margin-top: 0;\n"
+            "    padding-top: var(--th-space-1);\n"
+            "    border-top: 1px solid var(--th-border);",
             APP_CSS,
         )
 
