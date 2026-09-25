@@ -1147,3 +1147,38 @@ Planning artifacts:
 - `.codex/PROJECT_CONTEXT.md` and `.codex/START_HERE.md` updated for the branch.
 
 No production code, dependency, Docker, Streamlit UI, or downloader implementation was added in this planning phase.
+
+
+## 2026-09-25 — YouTube subtitle and matched filename planning
+
+User added two YouTube requirements while keeping the branch planning-only:
+- support subtitle download;
+- saved filenames must match the YouTube video title, and subtitle/media outputs must share the same basename.
+
+Planning updates:
+- V1 now includes optional subtitle download.
+- One subtitle track is selected per download job.
+- Metadata/UI must distinguish manual subtitles from auto-generated captions.
+- User explicitly enables subtitles and selects one language/track.
+- Preferred subtitle output is SRT.
+- If SRT conversion is unavailable, the actual fallback format such as VTT/original must be reported.
+- The output basename is the sanitized YouTube video title; the default filename no longer includes the video ID.
+- Examples:
+  - `My Video.mp4`
+  - `My Video.mp3`
+  - `My Video.srt`
+- When media and subtitle are downloaded together, they use the exact same basename.
+- If a collision exists, one numeric suffix is selected for the entire output group:
+  - `My Video (2).mp4`
+  - `My Video (2).srt`
+- Multiple simultaneous subtitle languages remain deferred in V1 because they conflict with the exact matched-basename requirement.
+
+Updated planning artifacts:
+- `.codex/YOUTUBE_PLAN.md`
+- `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
+- `.codex/TASKS.md`
+- `.codex/DECISIONS.md` (D-031..D-033)
+- `.codex/PROJECT_CONTEXT.md`
+- `.codex/START_HERE.md`
+
+No production code, dependency, Streamlit UI, downloader implementation or Docker change was added.
