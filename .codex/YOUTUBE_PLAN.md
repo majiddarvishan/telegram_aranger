@@ -3,7 +3,7 @@
 Branch: `feature/youtube-download`
 Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`
 
-Status: implementation active. YT-P1 through YT-P4 are complete; YT-P5 Streamlit UI is next.
+Status: implementation active. YT-P1 through YT-P6 are implemented; YT-P5 manual Light/Dark/responsive review and YT-P7 manual/live validation remain open.
 
 Primary Persian design document:
 `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
@@ -18,7 +18,7 @@ Primary Persian design document:
 - Show copyright / service-restriction warnings when applicable.
 - Warning is informational/acknowledgement-oriented and should not block ordinarily accessible public content.
 - Do not bypass DRM, paywalls, private/member-only access controls, or similar protection mechanisms.
-- Do not implement code until the planning/task phase is approved.
+- Implementation was explicitly approved by the user; continue only from remaining incomplete validation/review work.
 
 ## V1 scope
 
@@ -71,7 +71,7 @@ V1 behavior:
 - No cookies/authentication import in V1.
 - No automatic reuse of the Telegram SOCKS5 proxy.
 - No playlist/channel/batch download in V1.
-- No production code in this planning commit set.
+- Production implementation is now present on `feature/youtube-download`; preserve the service/UI boundary and completed phase behavior.
 
 ## Planned modules
 
@@ -145,17 +145,17 @@ Names may change during implementation if the existing project structure suggest
 - [x] Failure handling.
 
 ### YT-P5 — Streamlit UI
-- [ ] Independent YouTube workspace.
-- [ ] URL input + Inspect action.
-- [ ] Metadata/thumbnail preview.
-- [ ] Mode/quality controls.
-- [ ] Subtitle enable/disable control.
-- [ ] Subtitle language selector with Manual / Auto-generated labeling.
-- [ ] Subtitle format display/selection according to supported V1 behavior.
-- [ ] Save directory input.
-- [ ] Warning/acknowledgement UI.
-- [ ] Download progress.
-- [ ] Completed/error state.
+- [x] Independent YouTube workspace.
+- [x] URL input + Inspect action.
+- [x] Metadata/thumbnail preview.
+- [x] Mode/quality controls.
+- [x] Subtitle enable/disable control.
+- [x] Subtitle language selector with Manual / Auto-generated labeling.
+- [x] Subtitle format display/selection according to supported V1 behavior.
+- [x] Save directory input.
+- [x] Warning/acknowledgement UI.
+- [x] Download progress.
+- [x] Completed/error state.
 - [ ] Light/Dark/responsive behavior.
 
 ### YT-P6 — Platform/docs
@@ -203,7 +203,7 @@ When continuing this feature in another ChatGPT conversation:
 
 - Branch is `feature/youtube-download`.
 - Implementation is active on this branch after explicit user approval.
-- YT-P1 through YT-P4 are complete; continue from YT-P5 unless the user changes priority.
+- YT-P1 through YT-P6 are implemented; do not re-implement them. Continue from remaining YT-P5 visual review and YT-P7 manual/live validation unless the user changes priority.
 - Read this file and `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md` before proposing changes.
 - Preserve existing Telegram Harbor behavior and architecture.
 - Continue implementation phase-by-phase from the next incomplete YouTube phase.
