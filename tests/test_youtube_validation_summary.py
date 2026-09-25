@@ -180,6 +180,16 @@ class YouTubeValidationSummaryTests(unittest.TestCase):
         self.assertTrue(summary["source_commit_complete"])
         self.assertTrue(summary["single_source_commit"])
         self.assertTrue(summary["release_runner_evidence_ready"])
+        self.assertTrue(summary["manual_acceptance_required"])
+        self.assertFalse(summary["full_release_ready"])
+        self.assertIn(
+            "Real Streamlit public Inspect flow",
+            summary["manual_only_remaining"],
+        )
+        self.assertIn(
+            "Real Streamlit Save-directory create/validate/write behavior",
+            summary["manual_only_remaining"],
+        )
 
         reports[-1]["environment"]["commit_sha"] = "different"
         mixed = summarize_reports(reports)
