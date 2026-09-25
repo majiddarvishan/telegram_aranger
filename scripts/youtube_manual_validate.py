@@ -151,6 +151,7 @@ def _result_checks(
     *,
     subtitle_expected: bool = False,
     expected_subtitle_source: str | None = None,
+    expected_subtitle_language: str | None = None,
     expect_collision: bool = False,
 ) -> dict[str, Any]:
     root = Path(save_directory).expanduser().resolve(strict=True)
@@ -185,6 +186,11 @@ def _result_checks(
         result.subtitle_source == expected_subtitle_source
         if subtitle_expected
         else result.subtitle_source is None
+    )
+    subtitle_language_matches_request = (
+        result.subtitle_language == expected_subtitle_language
+        if subtitle_expected
+        else result.subtitle_language is None
     )
     completed_progress = any(
         event.get("phase") == "completed"
@@ -227,6 +233,7 @@ def _result_checks(
         media_extension_matches_mode,
         subtitle_presence_matches_request,
         subtitle_source_matches_request,
+        subtitle_language_matches_request,
         subtitle_extension_matches_report,
     ]
     if subtitle_expected:
@@ -251,6 +258,7 @@ def _result_checks(
         "media_extension_matches_mode": media_extension_matches_mode,
         "subtitle_presence_matches_request": subtitle_presence_matches_request,
         "subtitle_source_matches_request": subtitle_source_matches_request,
+        "subtitle_language_matches_request": subtitle_language_matches_request,
         "subtitle_extension_matches_report": subtitle_extension_matches_report,
         "all_passed": all(boolean_checks),
     }
@@ -502,6 +510,9 @@ def run(args) -> tuple[dict[str, Any], int]:
             subtitle_expected=subtitle is not None,
             expected_subtitle_source=(
                 subtitle.source if subtitle is not None else None
+            ),
+            expected_subtitle_language=(
+                subtitle.language if subtitle is not None else None
             ),
             expect_collision=bool(
                 getattr(args, "expect_collision", False)
