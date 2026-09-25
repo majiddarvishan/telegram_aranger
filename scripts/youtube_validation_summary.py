@@ -30,7 +30,9 @@ YOUTUBE_FAILURE_CODES = {
     "subtitle_unavailable",
     "subtitle_format_unavailable",
     "output_missing",
+    "output_empty",
     "subtitle_output_missing",
+    "subtitle_output_empty",
 }
 
 
