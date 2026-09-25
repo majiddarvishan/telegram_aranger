@@ -290,6 +290,35 @@ class YouTubeValidationSummaryTests(unittest.TestCase):
         self.assertEqual(summary["source_commits"], ["aaa", "bbb"])
         self.assertFalse(summary["single_source_commit"])
 
+    def test_preflight_failure_does_not_satisfy_youtube_failure_evidence(self):
+        failed = report(
+            mode="preflight",
+            status="failed",
+        )
+        failed["error"] = {
+            "code": "ffmpeg_unavailable",
+            "message": "FFmpeg missing.",
+        }
+
+        summary = summarize_reports([failed])
+
+        self.assertEqual(summary["reports_failed"], 1)
+        self.assertFalse(summary["coverage"]["structured_failure_report"])
+
+    def test_non_youtube_generic_failure_does_not_satisfy_failure_evidence(self):
+        failed = report(
+            mode="inspect",
+            status="failed",
+        )
+        failed["error"] = {
+            "code": "unexpected_error",
+            "message": "Unexpected validation failure.",
+        }
+
+        summary = summarize_reports([failed])
+
+        self.assertFalse(summary["coverage"]["structured_failure_report"])
+
     def test_structured_failure_is_counted_without_satisfying_live_modes(self):
         failed = report(
             mode="video_audio",
