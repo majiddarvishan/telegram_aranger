@@ -8,7 +8,7 @@ The product supports Saved Messages plus private chats, groups, supergroups, and
 ## Current branch
 - Working branch: `feature/youtube-download`
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
-- YouTube implementation is active on this branch. YT-P1 through YT-P4 are complete; YT-P5 Streamlit UI is next.
+- YouTube implementation is active on this branch. YT-P1 through YT-P6 are implemented; YT-P5 manual visual review and YT-P7 manual/live validation remain open.
 - The completed `gui` redesign is already merged into `main`.
 - Re-check GitHub branch HEAD before making future edits.
 
@@ -50,6 +50,8 @@ The product supports Saved Messages plus private chats, groups, supergroups, and
 - cryptography/Fernet
 - python-dotenv
 - extra-streamlit-components
+- yt-dlp (behind the YouTube service abstraction)
+- FFmpeg/FFprobe for YouTube merge/extraction/subtitle conversion
 
 ## Configuration
 Required:
@@ -73,6 +75,7 @@ Storage/media:
 - `MEDIA_DOWNLOAD_MAX_MB=200`
 - `MESSAGE_SCROLL_HEIGHT=620`
 - `TELEGRAM_DIALOG_LIMIT=100`
+- `YOUTUBE_DOWNLOAD_ROOTS=` (optional for native installs; Docker defaults to `/data/youtube`)
 
 Operations:
 - `LOG_LEVEL=INFO`
@@ -214,6 +217,8 @@ Real Telegram/browser validation has been completed successfully with no issues 
 - YT-P2 filesystem safety is implemented in `utils/download_paths.py`: absolute host paths, optional explicit directory creation, writable probing, configured allowed roots, symlink-aware containment, cross-platform title sanitization, matched media/subtitle basenames, and grouped collision suffixing.
 - YT-P3 policy is implemented in `services/youtube_policy.py`: a general rights/service notice always requires acknowledgement; metadata restriction signals produce stronger warnings; accessible public content remains allowed after acknowledgement; private/membership/premium/authentication/DRM/unavailable states remain blocked without any bypass behavior.
 - YT-P4 download engine is implemented in `services/youtube_download.py`: video+audio MP4 output, audio-only MP3 output, quality presets, one optional manual/automatic subtitle, SRT-preferred conversion with explicit original/VTT fallback, normalized progress/post-processing state, isolated temp downloads, grouped no-overwrite final naming, cleanup on failure, and final output-path reporting.
+- YT-P5 Streamlit UI is implemented in `ui/youtube.py` with independent workspace routing, Inspect, metadata/thumbnail/formats/subtitle display, output/quality controls, save-directory UI, rights/restriction acknowledgement, FFmpeg capability state, normalized progress and final output reporting. Manual Light/Dark/responsive review remains open.
+- YT-P6 platform/docs is implemented: Docker installs FFmpeg/FFprobe, Docker/Compose default to `/data/youtube` as the allowed root, Windows/remote-host guidance is documented, CI includes YouTube UI/offline tests and Docker FFmpeg verification.
 - V1 scope: single public YouTube video URL.
 - User must provide a Save directory.
 - On local installations the path is local to the user machine; on remote deployments it is a server-host path and must be labeled as such.
