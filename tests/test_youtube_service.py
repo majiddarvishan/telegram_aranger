@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 from services.youtube_service import (
     YtDlpBackend,
+    YouTubeProxyConfig,
     YouTubeServiceError,
     detect_ffmpeg,
     inspect_video,
@@ -264,6 +265,87 @@ class YouTubeMetadataNormalizationTests(unittest.TestCase):
             )
 
 
+class YouTubeProxyConfigTests(unittest.TestCase):
+    def test_disabled_proxy_returns_direct_connection(self):
+        proxy = YouTubeProxyConfig(
+            enabled=False,
+            host="127.0.0.1",
+            port=1080,
+        )
+        self.assertIsNone(proxy.proxy_url())
+
+    def test_builds_socks5_url_without_auth(self):
+        proxy = YouTubeProxyConfig(
+            enabled=True,
+            host="127.0.0.1",
+            port=1080,
+        )
+        self.assertEqual(
+            proxy.proxy_url(),
+            "socks5://127.0.0.1:1080",
+        )
+
+    def test_builds_encoded_authenticated_socks5_url(self):
+        proxy = YouTubeProxyConfig(
+            enabled=True,
+            host="proxy.example",
+            port=1081,
+            username="user@example.com",
+            password="p@ss:/word",
+        )
+        self.assertEqual(
+            proxy.proxy_url(),
+            "socks5://user%40example.com:p%40ss%3A%2Fword@proxy.example:1081",
+        )
+
+    def test_ipv6_host_is_bracketed(self):
+        proxy = YouTubeProxyConfig(
+            enabled=True,
+            host="2001:db8::1",
+            port=1080,
+        )
+        self.assertEqual(
+            proxy.proxy_url(),
+            "socks5://[2001:db8::1]:1080",
+        )
+
+    def test_rejects_invalid_proxy_inputs(self):
+        cases = (
+            YouTubeProxyConfig(enabled=True, host="", port=1080),
+            YouTubeProxyConfig(
+                enabled=True,
+                host="socks5://127.0.0.1",
+                port=1080,
+            ),
+            YouTubeProxyConfig(enabled=True, host="proxy host", port=1080),
+            YouTubeProxyConfig(enabled=True, host="127.0.0.1", port=0),
+            YouTubeProxyConfig(
+                enabled=True,
+                host="127.0.0.1",
+                port=1080,
+                password="secret",
+            ),
+        )
+        for proxy in cases:
+            with self.subTest(proxy=proxy.as_safe_dict()):
+                with self.assertRaises(YouTubeServiceError) as caught:
+                    proxy.proxy_url()
+                self.assertEqual(caught.exception.code, "proxy_invalid")
+
+    def test_safe_summary_never_contains_proxy_password(self):
+        proxy = YouTubeProxyConfig(
+            enabled=True,
+            host="proxy.example",
+            port=1080,
+            username="user",
+            password="super-secret",
+        )
+        summary = proxy.as_safe_dict()
+        self.assertTrue(summary["password_configured"])
+        self.assertNotIn("password", summary)
+        self.assertNotIn("super-secret", str(summary))
+
+
 class YtDlpBackendTests(unittest.TestCase):
     def test_backend_inspects_without_downloading_media(self):
         seen = {}
@@ -294,6 +376,42 @@ class YtDlpBackendTests(unittest.TestCase):
         self.assertTrue(seen["options"]["noplaylist"])
         self.assertTrue(seen["options"]["quiet"])
         self.assertTrue(seen["options"]["no_warnings"])
+
+    def test_backend_uses_validated_first_class_socks5_proxy(self):
+        seen = {}
+
+        class FakeYoutubeDL:
+            def __init__(self, options):
+                seen["options"] = options
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def extract_info(self, _url, download):
+                seen["download"] = download
+                return {"id": "BaW_jenozKc", "title": "Test"}
+
+        fake_module = SimpleNamespace(YoutubeDL=FakeYoutubeDL)
+        proxy = YouTubeProxyConfig(
+            enabled=True,
+            host="127.0.0.1",
+            port=1080,
+            username="proxy-user",
+            password="proxy-pass",
+        )
+        with patch.dict(sys.modules, {"yt_dlp": fake_module}):
+            YtDlpBackend(proxy=proxy).inspect(
+                "https://www.youtube.com/watch?v=BaW_jenozKc"
+            )
+
+        self.assertEqual(
+            seen["options"]["proxy"],
+            "socks5://proxy-user:proxy-pass@127.0.0.1:1080",
+        )
+        self.assertFalse(seen["download"])
 
     def test_backend_rejects_v1_forbidden_access_options(self):
         forbidden_cases = (
