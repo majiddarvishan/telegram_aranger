@@ -290,7 +290,8 @@ def run(args) -> tuple[dict[str, Any], int]:
         report["status"] = "failed"
         report["error"] = {
             "code": "unexpected_error",
-            "message": str(exc),
+            "message": "Unexpected validation failure.",
+            "exception_type": type(exc).__name__,
         }
         return report, 3
     finally:
