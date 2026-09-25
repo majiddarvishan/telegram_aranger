@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass
+import os
 import re
 import shutil
-from typing import Any, Mapping, Protocol
+import tempfile
+from typing import Any, Iterator, Mapping, Protocol
 from urllib.parse import parse_qs, quote, urlparse
 
 
@@ -19,6 +22,11 @@ YOUTUBE_HOSTS = {
 }
 VIDEO_PATH_PREFIXES = {"shorts", "live", "embed", "v"}
 VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{6,64}$")
+MAX_YOUTUBE_COOKIE_BYTES = 1024 * 1024
+_COOKIE_HEADERS = {
+    "# HTTP Cookie File",
+    "# Netscape HTTP Cookie File",
+}
 
 FORBIDDEN_V1_DOWNLOADER_OPTIONS = {
     "cookiefile",
@@ -58,6 +66,136 @@ class YouTubeServiceError(RuntimeError):
             "message": self.message,
             "access_restricted": self.access_restricted,
         }
+
+
+@dataclass(frozen=True)
+class YouTubeAuthConfig:
+    """Ephemeral authenticated YouTube session backed by Netscape cookies."""
+
+    enabled: bool = False
+    cookie_data: bytes = b""
+
+    def normalized_cookie_bytes(self) -> bytes | None:
+        if not self.enabled:
+            return None
+        data = bytes(self.cookie_data or b"")
+        if not data:
+            raise YouTubeServiceError(
+                "youtube_auth_invalid",
+                "YouTube authentication is enabled but no cookies.txt data was provided.",
+            )
+        if len(data) > MAX_YOUTUBE_COOKIE_BYTES:
+            raise YouTubeServiceError(
+                "youtube_auth_invalid",
+                "YouTube cookies.txt is too large.",
+            )
+        if b"\x00" in data:
+            raise YouTubeServiceError(
+                "youtube_auth_invalid",
+                "YouTube cookies.txt contains invalid binary data.",
+            )
+
+        try:
+            text = data.decode("utf-8-sig")
+        except UnicodeDecodeError as exc:
+            raise YouTubeServiceError(
+                "youtube_auth_invalid",
+                "YouTube cookies.txt must be UTF-8 text in Netscape format.",
+            ) from exc
+
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
+        lines = text.split("\n")
+        if not lines or lines[0].strip() not in _COOKIE_HEADERS:
+            raise YouTubeServiceError(
+                "youtube_auth_invalid",
+                "YouTube cookies.txt must use Mozilla/Netscape cookie format.",
+            )
+
+        cookie_count = 0
+        for raw_line in lines[1:]:
+            line = raw_line.strip()
+            if not line:
+                continue
+            if line.startswith("#") and not line.startswith("#HttpOnly_"):
+                continue
+            fields = raw_line.split("\t")
+            if len(fields) != 7:
+                raise YouTubeServiceError(
+                    "youtube_auth_invalid",
+                    "YouTube cookies.txt contains an invalid cookie row.",
+                )
+            domain = fields[0].strip()
+            if domain.startswith("#HttpOnly_"):
+                domain = domain[len("#HttpOnly_") :]
+            normalized_domain = domain.lstrip(".").lower()
+            if not (
+                normalized_domain == "youtube.com"
+                or normalized_domain.endswith(".youtube.com")
+            ):
+                raise YouTubeServiceError(
+                    "youtube_auth_invalid",
+                    "For safety, cookies.txt must contain only youtube.com cookies.",
+                )
+            cookie_count += 1
+
+        if cookie_count == 0:
+            raise YouTubeServiceError(
+                "youtube_auth_invalid",
+                "YouTube cookies.txt does not contain any YouTube cookies.",
+            )
+
+        normalized = "\n".join(lines).rstrip("\n") + "\n"
+        return normalized.encode("utf-8")
+
+    def as_safe_dict(self) -> dict[str, Any]:
+        if not self.enabled:
+            return {
+                "enabled": False,
+                "format": None,
+                "size_bytes": 0,
+            }
+        normalized = self.normalized_cookie_bytes()
+        return {
+            "enabled": True,
+            "format": "netscape",
+            "size_bytes": len(normalized or b""),
+        }
+
+
+@contextmanager
+def materialize_youtube_cookie_file(
+    auth: YouTubeAuthConfig | None,
+) -> Iterator[str | None]:
+    """Materialize session cookies only for the lifetime of one yt-dlp operation."""
+    if auth is None or not auth.enabled:
+        yield None
+        return
+
+    data = auth.normalized_cookie_bytes()
+    fd, path = tempfile.mkstemp(
+        prefix=".telegram-harbor-youtube-auth-",
+        suffix=".txt",
+    )
+    try:
+        try:
+            os.fchmod(fd, 0o600)
+        except (AttributeError, OSError):
+            pass
+        with os.fdopen(fd, "wb") as handle:
+            fd = -1
+            handle.write(data or b"")
+            handle.flush()
+        yield path
+    finally:
+        if fd >= 0:
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+        try:
+            os.remove(path)
+        except FileNotFoundError:
+            pass
 
 
 @dataclass(frozen=True)
@@ -180,10 +318,12 @@ class YtDlpBackend:
         *,
         extra_options: Mapping[str, Any] | None = None,
         proxy: YouTubeProxyConfig | None = None,
+        auth: YouTubeAuthConfig | None = None,
     ) -> None:
         self.extra_options = dict(extra_options or {})
         _validate_v1_downloader_options(self.extra_options)
         self.proxy = proxy
+        self.auth = auth
 
     def inspect(self, url: str) -> Mapping[str, Any]:
         try:
@@ -209,8 +349,13 @@ class YtDlpBackend:
         )
 
         try:
-            with yt_dlp.YoutubeDL(options) as downloader:
-                info = downloader.extract_info(url, download=False)
+            with materialize_youtube_cookie_file(self.auth) as cookiefile:
+                if cookiefile:
+                    options["cookiefile"] = cookiefile
+                with yt_dlp.YoutubeDL(options) as downloader:
+                    info = downloader.extract_info(url, download=False)
+        except YouTubeServiceError:
+            raise
         except Exception as exc:
             raise normalize_downloader_error(exc) from exc
 
@@ -231,9 +376,9 @@ def _validate_v1_downloader_options(options: Mapping[str, Any]) -> None:
     if forbidden:
         raise YouTubeServiceError(
             "downloader_option_not_allowed",
-            "Authenticated, raw proxy, custom-header, and geo-bypass downloader "
+            "Raw authentication, raw proxy, custom-header, and geo-bypass downloader "
             "options are not allowed through generic downloader options. Use the "
-            "validated YouTube SOCKS5 configuration for proxy access.",
+            "validated YouTube auth/SOCKS5 configuration paths instead.",
             access_restricted=True,
         )
 
@@ -324,10 +469,11 @@ def inspect_video(
     *,
     backend: DownloaderBackend | None = None,
     proxy: YouTubeProxyConfig | None = None,
+    auth: YouTubeAuthConfig | None = None,
 ) -> dict[str, Any]:
     """Inspect one YouTube video and return stable, UI-safe normalized metadata."""
     validated = validate_youtube_url(url)
-    downloader = backend or YtDlpBackend(proxy=proxy)
+    downloader = backend or YtDlpBackend(proxy=proxy, auth=auth)
 
     try:
         raw = downloader.inspect(validated["url"])
