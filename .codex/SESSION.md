@@ -848,3 +848,23 @@ Regression coverage:
 Validation:
 - full Unit Tests + Docker + Windows/Python 3.14 were green at the persisted-peer hydration checkpoint.
 - An additional channel-access-hash test was added afterward and its final workflow should be checked before release/merge.
+
+
+## 2026-09-25 — Preserve message-header top edge
+
+User reported from screenshot that the top border/radius of the main message header panel was clipped under Streamlit's top toolbar.
+
+Root cause:
+- the GUI branch had reduced the main block container top padding to 12px while polishing excess whitespace;
+- this placed the first bordered panel too close to Streamlit's top toolbar/overlay region;
+- the top border/shadow could therefore be visually clipped.
+
+Fix:
+- added a dedicated design token `top_safe_area=48px`;
+- apply the safe area to both the legacy `.block-container` selector and Streamlit's `stMainBlockContainer` selector;
+- explicitly keep the main container overflow visible;
+- add an 8px top margin to the message header itself;
+- use a 40px safe area on <=900px layouts;
+- added theme regression coverage so the safe-area behavior is not accidentally removed during future whitespace tuning.
+
+This is visual-only; no Telegram/message/cache behavior changed.
