@@ -197,6 +197,11 @@ def download_video(
             dir=save_directory,
         ) as temp_root:
             temp_directory = Path(temp_root)
+            browser_spec = (
+                request.auth.cookies_from_browser_spec()
+                if request.auth is not None
+                else None
+            )
             with materialize_youtube_cookie_file(request.auth) as cookiefile:
                 options = build_download_options(
                     temp_directory=temp_directory,
@@ -207,6 +212,7 @@ def download_video(
                     progress_callback=progress_callback,
                     proxy=request.proxy,
                     cookiefile=cookiefile,
+                    cookies_from_browser=browser_spec,
                 )
                 downloader = backend or YtDlpDownloadBackend()
 
@@ -339,6 +345,7 @@ def build_download_options(
     progress_callback: Callable[[DownloadProgress], None] | None,
     proxy: YouTubeProxyConfig | None = None,
     cookiefile: str | None = None,
+    cookies_from_browser: tuple[str, str | None, None, None] | None = None,
 ) -> dict[str, Any]:
     postprocessors: list[dict[str, Any]] = []
     if mode == "audio_only":
@@ -383,6 +390,8 @@ def build_download_options(
         options["proxy"] = proxy_url
     if cookiefile:
         options["cookiefile"] = cookiefile
+    if cookies_from_browser:
+        options["cookiesfrombrowser"] = cookies_from_browser
 
     if mode == "video_audio":
         options["merge_output_format"] = "mp4"
