@@ -336,6 +336,54 @@ class DownloadExecutionTests(unittest.TestCase):
             self.assertEqual(Path(result.media_path).name, "My Video (2).mp4")
             self.assertEqual(Path(result.subtitle_path).name, "My Video (2).srt")
 
+    def test_stale_metadata_for_different_video_is_rejected_before_backend(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            backend = FakeDownloadBackend()
+            with self.assertRaises(YouTubeServiceError) as caught:
+                download_video(
+                    DownloadRequest(
+                        url="https://youtu.be/BaW_jenozKc",
+                        save_directory=tmp,
+                        acknowledged=True,
+                    ),
+                    metadata(video_id="Different123"),
+                    backend=backend,
+                    ffmpeg=FFMPEG,
+                )
+
+            self.assertEqual(
+                caught.exception.code,
+                "metadata_video_mismatch",
+            )
+            self.assertIsNone(backend.options)
+
+    def test_backend_output_for_different_video_is_rejected_and_cleaned(self):
+        class MismatchedBackend(FakeDownloadBackend):
+            def download(self, url, options):
+                info = dict(super().download(url, options))
+                info["id"] = "Different123"
+                return info
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            with self.assertRaises(YouTubeServiceError) as caught:
+                download_video(
+                    DownloadRequest(
+                        url="https://youtu.be/BaW_jenozKc",
+                        save_directory=tmp,
+                        acknowledged=True,
+                    ),
+                    metadata(),
+                    backend=MismatchedBackend(),
+                    ffmpeg=FFMPEG,
+                )
+
+            self.assertEqual(
+                caught.exception.code,
+                "download_video_mismatch",
+            )
+            self.assertEqual(list(root.iterdir()), [])
+
     def test_acknowledgement_is_enforced_before_backend_execution(self):
         with tempfile.TemporaryDirectory() as tmp:
             backend = FakeDownloadBackend()
