@@ -147,9 +147,16 @@ body,
 }}
 
 .st-key-sidebar-web-logout {{
-    margin-top: 0;
-    padding-top: var(--th-space-1);
-    border-top: 1px solid var(--th-border);
+    display: flex;
+    justify-content: flex-end;
+    margin-top: calc(var(--th-space-1) * -1);
+}}
+
+.st-key-sidebar-web-logout button {{
+    min-height: 28px !important;
+    width: auto !important;
+    padding: 2px var(--th-space-2) !important;
+    font-size: 0.78rem !important;
 }}
 
 [data-testid="stExpander"] summary {{
