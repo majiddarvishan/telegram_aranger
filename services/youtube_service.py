@@ -502,7 +502,7 @@ def normalize_downloader_error(error: Exception) -> YouTubeServiceError:
 
     return YouTubeServiceError(
         "downloader_error",
-        message,
+        "YouTube operation failed unexpectedly.",
     )
 
 
