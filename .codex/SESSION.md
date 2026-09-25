@@ -1830,3 +1830,24 @@ Fixed:
 - the original non-empty subtitle source is retained with its truthful fallback format.
 
 This aligns the conversion path with the new non-empty final-output invariant.
+
+
+## 2026-09-26 — Executable FFmpeg/FFprobe preflight
+
+Strengthened YT-P7 preflight so PATH discovery alone cannot produce a passing prerequisite report.
+
+Preflight now:
+- discovers FFmpeg/FFprobe as before;
+- executes each binary with `-version` using a bounded 10-second subprocess;
+- suppresses raw stdout/stderr from the validation report/UI;
+- records `ffmpeg_runtime_ok`, `ffprobe_runtime_ok`, and `ffmpeg_runtime_ready`;
+- fails with normalized `ffmpeg_runtime_unavailable` when both paths exist but either executable cannot run.
+
+This remains network-free.
+
+Regression coverage verifies:
+- executable success;
+- non-zero exit;
+- OSError/broken executable;
+- missing binary;
+- preflight failure when runtime execution is incomplete.
