@@ -45,6 +45,18 @@ class TitleSanitizationTests(unittest.TestCase):
         value = sanitize_youtube_title("CONXYZ", max_length=3)
         self.assertNotEqual(value.upper(), "CON")
         self.assertTrue(value.startswith("_"))
+        self.assertLessEqual(
+            len(value.encode("utf-16-le")) // 2,
+            3,
+        )
+
+    def test_tiny_filename_budget_still_returns_nonempty_safe_value(self):
+        value = sanitize_youtube_title("", max_length=1)
+        self.assertTrue(value)
+        self.assertLessEqual(
+            len(value.encode("utf-16-le")) // 2,
+            1,
+        )
 
 
 class SaveDirectoryValidationTests(unittest.TestCase):
