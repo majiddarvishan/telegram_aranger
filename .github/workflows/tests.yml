@@ -48,6 +48,9 @@ jobs:
       - name: YouTube service tests
         run: python -m unittest discover -s tests -p "test_youtube_service.py" -v
 
+      - name: YouTube download path tests
+        run: python -m unittest discover -s tests -p "test_download_paths.py" -v
+
       - name: Import Telegram service
         run: python -c "import services.telegram_service"
 
@@ -181,3 +184,6 @@ jobs:
 
       - name: Run crypto acceleration tests
         run: python -m unittest discover -s tests -p "test_crypto_acceleration.py" -v
+
+      - name: Run YouTube download path tests
+        run: python -m unittest discover -s tests -p "test_download_paths.py" -v

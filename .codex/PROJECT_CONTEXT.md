@@ -8,7 +8,7 @@ The product supports Saved Messages plus private chats, groups, supergroups, and
 ## Current branch
 - Working branch: `feature/youtube-download`
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
-- YouTube implementation is active on this branch. YT-P1 service foundation is complete; YT-P2 filesystem safety is next.
+- YouTube implementation is active on this branch. YT-P1 and YT-P2 are complete; YT-P3 warning/acknowledgement is next.
 - The completed `gui` redesign is already merged into `main`.
 - Re-check GitHub branch HEAD before making future edits.
 
@@ -211,6 +211,7 @@ Real Telegram/browser validation has been completed successfully with no issues 
 ## YouTube download implementation status
 - Working branch: `feature/youtube-download`.
 - YT-P1 service foundation is implemented with an isolated yt-dlp backend, offline URL validation/metadata normalization, subtitle/format normalization, FFmpeg detection, normalized downloader errors, and no-live-network unit tests.
+- YT-P2 filesystem safety is implemented in `utils/download_paths.py`: absolute host paths, optional explicit directory creation, writable probing, configured allowed roots, symlink-aware containment, cross-platform title sanitization, matched media/subtitle basenames, and grouped collision suffixing.
 - V1 scope: single public YouTube video URL.
 - User must provide a Save directory.
 - On local installations the path is local to the user machine; on remote deployments it is a server-host path and must be labeled as such.

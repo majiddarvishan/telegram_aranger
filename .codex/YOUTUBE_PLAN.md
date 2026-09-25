@@ -3,7 +3,7 @@
 Branch: `feature/youtube-download`
 Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`
 
-Status: implementation active. YT-P1 service foundation is complete; YT-P2 filesystem safety is next.
+Status: implementation active. YT-P1 and YT-P2 are complete; YT-P3 warning/acknowledgement is next.
 
 Primary Persian design document:
 `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
@@ -111,17 +111,17 @@ Names may change during implementation if the existing project structure suggest
 - [x] Add unit tests.
 
 ### YT-P2 — Filesystem safety
-- [ ] Require Save directory input.
-- [ ] Normalize/resolve path.
-- [ ] Verify directory existence/writability.
-- [ ] Decide/create directory only with explicit user intent.
-- [ ] Sanitize the YouTube title into the shared output basename.
-- [ ] Save media as `<sanitized-title>.<media-ext>`.
-- [ ] Save a selected subtitle as `<sanitized-title>.<subtitle-ext>`.
-- [ ] Prevent output path escape.
-- [ ] Handle filename collisions as one output group so media/subtitle basenames remain aligned.
-- [ ] Add optional allowed-root configuration for hosted mode.
-- [ ] Cover Windows/Linux path cases.
+- [x] Require Save directory input.
+- [x] Normalize/resolve path.
+- [x] Verify directory existence/writability.
+- [x] Decide/create directory only with explicit user intent.
+- [x] Sanitize the YouTube title into the shared output basename.
+- [x] Save media as `<sanitized-title>.<media-ext>`.
+- [x] Save a selected subtitle as `<sanitized-title>.<subtitle-ext>`.
+- [x] Prevent output path escape.
+- [x] Handle filename collisions as one output group so media/subtitle basenames remain aligned.
+- [x] Add optional allowed-root configuration for hosted mode.
+- [x] Cover Windows/Linux path cases.
 
 ### YT-P3 — Warning and acknowledgement
 - [ ] General rights/service notice.
@@ -203,7 +203,7 @@ When continuing this feature in another ChatGPT conversation:
 
 - Branch is `feature/youtube-download`.
 - Implementation is active on this branch after explicit user approval.
-- YT-P1 is complete; continue from YT-P2 unless the user changes priority.
+- YT-P1 and YT-P2 are complete; continue from YT-P3 unless the user changes priority.
 - Read this file and `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md` before proposing changes.
 - Preserve existing Telegram Harbor behavior and architecture.
 - Continue implementation phase-by-phase from the next incomplete YouTube phase.

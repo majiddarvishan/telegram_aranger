@@ -24,6 +24,7 @@ class Settings:
     media_download_max_mb: int = 200
     message_scroll_height: int = 620
     telegram_dialog_limit: int = 100
+    youtube_download_roots: tuple[str, ...] = ()
 
 
 def _env_bool(name: str, default: bool) -> bool:
@@ -36,6 +37,13 @@ def _env_bool(name: str, default: bool) -> bool:
     if normalized in ("0", "false", "no", "off"):
         return False
     raise RuntimeError(f"{name} must be a boolean value.")
+
+
+def _env_path_list(name: str) -> tuple[str, ...]:
+    value = os.getenv(name, "").strip()
+    if not value:
+        return ()
+    return tuple(part.strip() for part in value.split(os.pathsep) if part.strip())
 
 
 def _required(name: str) -> str:
@@ -126,4 +134,5 @@ def load_settings() -> Settings:
         media_download_max_mb=media_download_max_mb,
         message_scroll_height=message_scroll_height,
         telegram_dialog_limit=telegram_dialog_limit,
+        youtube_download_roots=_env_path_list("YOUTUBE_DOWNLOAD_ROOTS"),
     )

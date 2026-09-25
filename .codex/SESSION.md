@@ -1227,3 +1227,29 @@ Testing / CI:
 
 Next:
 - YT-P2 — Save path / filesystem safety.
+
+## 2026-09-25 — YT-P2 filesystem safety implementation
+
+Completed:
+- added `utils/download_paths.py`;
+- save-directory validation requires a non-empty absolute path on the machine running Telegram Harbor;
+- missing directories are rejected by default and are created only when the caller explicitly opts in;
+- writability is verified with a temporary create/delete probe;
+- `YOUTUBE_DOWNLOAD_ROOTS` adds optional host-level allowed roots for shared/hosted deployments;
+- allowed-root checks resolve symlinks before containment checks so symlink/path traversal cannot escape the configured root;
+- YouTube titles are normalized into readable Windows/Linux-safe basenames while preserving Unicode;
+- Windows reserved device names and invalid filename characters are handled;
+- output extensions are validated separately from filenames;
+- media and optional subtitle paths are allocated as one output group;
+- collision suffixes are selected for the complete group, so paired outputs remain aligned (for example `My Video (2).mp4` and `My Video (2).srt`);
+- existing output files are never selected for automatic overwrite.
+
+Testing / CI:
+- added `tests/test_download_paths.py`;
+- isolated local run passed 13 filesystem/path tests;
+- Linux CI runs the path tests;
+- Windows/Python 3.14 CI also runs the same path tests for native Windows path behavior;
+- actual Save-directory UI control remains YT-P5; YT-P2 provides and enforces the filesystem contract it will call.
+
+Next:
+- YT-P3 — Warning / acknowledgement.

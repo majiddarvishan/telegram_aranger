@@ -5,7 +5,7 @@
 - Branch: `feature/youtube-download`
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`
 - برنامه‌ریزی کامل شده و implementation با تأیید صریح کاربر شروع شده است.
-- YT-P1 (Service foundation) تکمیل شده و YT-P2 (Filesystem safety) مرحله بعدی است.
+- YT-P1 و YT-P2 تکمیل شده‌اند و YT-P3 (Warning / acknowledgement) مرحله بعدی است.
 
 ---
 
@@ -566,15 +566,15 @@ CI نباید به YouTube live network وابسته باشد.
 
 ## YT-P2 — Save path / filesystem safety
 
-- [ ] Save directory UI requirement.
-- [ ] normalize/resolve path.
-- [ ] writable validation.
-- [ ] optional directory creation confirmation.
-- [ ] filename sanitization بر اساس عنوان ویدئو.
-- [ ] matched basename policy برای media + subtitle.
-- [ ] grouped collision policy.
-- [ ] optional allowed-root configuration for hosted mode.
-- [ ] Windows/Linux tests.
+- [x] Save directory requirement در filesystem/service contract؛ کنترل UI در YT-P5 اضافه می‌شود.
+- [x] normalize/resolve path.
+- [x] writable validation.
+- [x] optional directory creation confirmation.
+- [x] filename sanitization بر اساس عنوان ویدئو.
+- [x] matched basename policy برای media + subtitle.
+- [x] grouped collision policy.
+- [x] optional allowed-root configuration for hosted mode.
+- [x] Windows/Linux tests.
 
 ## YT-P3 — Warning / acknowledgement
 

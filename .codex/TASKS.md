@@ -290,17 +290,17 @@ Planning source:
 - [x] Unit-test service behavior without live YouTube.
 
 ### YT-P2 — Save path / filesystem safety
-- [ ] Add required Save directory input.
-- [ ] Normalize and resolve user path.
-- [ ] Verify writable directory.
-- [ ] Confirm before creating missing directories.
-- [ ] Sanitize the YouTube title into a shared output basename.
-- [ ] Save media using `<sanitized-title>.<media-ext>`.
-- [ ] Save the selected subtitle using the exact same basename.
-- [ ] Prevent output path escape.
-- [ ] Add grouped collision policy so media/subtitle suffixes stay aligned.
-- [ ] Add optional allowed-root configuration for hosted/multi-user mode.
-- [ ] Test Windows and Linux path handling.
+- [x] Add required Save directory input.
+- [x] Normalize and resolve user path.
+- [x] Verify writable directory.
+- [x] Confirm before creating missing directories.
+- [x] Sanitize the YouTube title into a shared output basename.
+- [x] Save media using `<sanitized-title>.<media-ext>`.
+- [x] Save the selected subtitle using the exact same basename.
+- [x] Prevent output path escape.
+- [x] Add grouped collision policy so media/subtitle suffixes stay aligned.
+- [x] Add optional allowed-root configuration for hosted/multi-user mode.
+- [x] Test Windows and Linux path handling.
 
 ### YT-P3 — Warning / acknowledgement
 - [ ] Always show concise rights/service notice.

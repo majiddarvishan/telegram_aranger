@@ -26,7 +26,7 @@ Before doing anything:
 7. Read `.codex/SESSION.md`.
 8. Re-check the current Git branch HEAD before making changes.
 
-Important: implementation has been explicitly approved. YT-P1 — Service foundation is complete. Continue phase-by-phase from YT-P2 — Filesystem safety unless I change priority.
+Important: implementation has been explicitly approved. YT-P1 and YT-P2 are complete. Continue phase-by-phase from YT-P3 — Warning / acknowledgement unless I change priority.
 
 Confirmed YouTube V1 requirements:
 
@@ -94,6 +94,6 @@ Explicitly deferred from V1:
 
 Planning documents and tasks are already prepared. Continue from them rather than re-planning from scratch.
 
-Continue phase-by-phase from **YT-P2 — Filesystem safety**, keep CI green, and update `.codex/TASKS.md` and `.codex/SESSION.md` after each meaningful step.
+Continue phase-by-phase from **YT-P3 — Warning / acknowledgement**, keep CI green, and update `.codex/TASKS.md` and `.codex/SESSION.md` after each meaningful step.
 
 ---

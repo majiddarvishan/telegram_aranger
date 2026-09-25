@@ -131,12 +131,12 @@ Status: planned on `feature/youtube-download`
 YouTube functionality is isolated from Telegram message browsing. The Streamlit UI should expose a separate workspace/tool rather than embedding YouTube download controls inside Telegram message cards.
 
 ## D-025 — YouTube download uses a service abstraction
-Status: planned
+Status: implemented on `feature/youtube-download`
 
 The UI must not call the downloader library directly. URL validation, metadata inspection, format selection, download execution, progress hooks, post-processing, and error normalization belong behind a dedicated service layer.
 
 ## D-026 — Save directory is user-supplied
-Status: planned
+Status: filesystem layer implemented on `feature/youtube-download`; UI pending YT-P5
 
 V1 requires the user to provide a filesystem save directory before download.
 
@@ -187,7 +187,7 @@ The preferred subtitle output is SRT. If conversion is unavailable, the actual f
 Multiple subtitle languages in one job are deferred so the V1 filename requirement can remain deterministic.
 
 ## D-032 — YouTube output basename comes from the video title
-Status: planned
+Status: implemented in filesystem layer on `feature/youtube-download`
 
 The default output basename is the sanitized YouTube video title, not the video ID.
 
@@ -201,7 +201,7 @@ When a subtitle is included, the media and subtitle files must use the same base
 Sanitization must preserve a readable title while producing valid Windows/Linux filenames.
 
 ## D-033 — Filename collisions are resolved as one output group
-Status: planned
+Status: implemented in filesystem layer on `feature/youtube-download`
 
 Automatic overwrite is not the default.
 
