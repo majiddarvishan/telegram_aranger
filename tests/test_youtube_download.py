@@ -19,6 +19,7 @@ from services.youtube_download import (
 )
 from services.youtube_service import (
     FFmpegCapability,
+    YouTubeAuthConfig,
     YouTubeProxyConfig,
     YouTubeServiceError,
 )
@@ -171,6 +172,21 @@ class DownloadOptionTests(unittest.TestCase):
         self.assertNotIn("proxy", options)
         self.assertNotIn("cookiefile", options)
 
+    def test_download_options_include_materialized_cookiefile(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cookiefile = str(Path(tmp) / "cookies.txt")
+            options = build_download_options(
+                temp_directory=Path(tmp),
+                basename="My Video",
+                mode="video_audio",
+                quality="best",
+                subtitle_plan=None,
+                progress_callback=None,
+                cookiefile=cookiefile,
+            )
+
+        self.assertEqual(options["cookiefile"], cookiefile)
+
     def test_download_options_include_validated_socks5_proxy(self):
         with tempfile.TemporaryDirectory() as tmp:
             options = build_download_options(
@@ -287,6 +303,32 @@ class DownloadExecutionTests(unittest.TestCase):
                 backend.url,
                 "https://www.youtube.com/watch?v=BaW_jenozKc",
             )
+
+    def test_download_request_uses_ephemeral_auth_cookiefile(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            backend = FakeDownloadBackend()
+            auth = YouTubeAuthConfig(
+                enabled=True,
+                cookie_data=(
+                    b"# Netscape HTTP Cookie File\n"
+                    b".youtube.com\tTRUE\t/\tTRUE\t0\tSID\tsecret-value\n"
+                ),
+            )
+            download_video(
+                DownloadRequest(
+                    url="https://youtu.be/BaW_jenozKc",
+                    save_directory=tmp,
+                    acknowledged=True,
+                    auth=auth,
+                ),
+                metadata(),
+                backend=backend,
+                ffmpeg=FFMPEG,
+            )
+
+            cookiefile = backend.options.get("cookiefile")
+            self.assertTrue(cookiefile)
+            self.assertFalse(Path(cookiefile).exists())
 
     def test_download_request_routes_backend_through_socks5(self):
         with tempfile.TemporaryDirectory() as tmp:
