@@ -1582,3 +1582,33 @@ Request evidence now records:
 - acknowledgement flag.
 
 The original YouTube URL remains intentionally excluded from report storage; video ID is already recorded separately.
+
+
+## 2026-09-26 — YT-P7 offline preflight and structured failure hardening
+
+Added `preflight` mode to `scripts/youtube_manual_validate.py`.
+
+Preflight behavior:
+- requires no YouTube URL;
+- performs no Inspect/download call;
+- validates FFmpeg + FFprobe capability;
+- validates/optionally creates the Save directory;
+- honors allowed-root restrictions;
+- emits the same environment/build identity evidence as live reports;
+- returns a non-zero result when prerequisites fail.
+
+CI:
+- Docker job now runs the real validation runner in `--mode preflight` against `/data/youtube`;
+- no YouTube URL is supplied;
+- CI policy explicitly allows only preflight direct runner execution and continues to prohibit Inspect/Video+Audio/Audio-only modes in workflows.
+
+Failure-path fix:
+- URL validation moved inside the runner's normalized exception boundary;
+- invalid/non-YouTube URLs now produce structured JSON failure reports instead of escaping as tracebacks.
+
+Additional self-checks:
+- media output must use the sanitized video title, allowing the defined numeric collision suffix;
+- media extension must match Video+Audio (.mp4) or Audio-only (.mp3);
+- subtitle extension must match the result's reported actual subtitle format.
+
+Manual/live YT-P7 items remain open.
