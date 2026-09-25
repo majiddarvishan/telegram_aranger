@@ -107,6 +107,13 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn('key="youtube-save-controls"', source)
         self.assertIn("use_container_width=True", source)
 
+    def test_ui_does_not_render_raw_unexpected_exception_text(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+        self.assertNotIn('st.error(f"YouTube download failed: {exc}")', source)
+        self.assertNotIn('"message": str(exc)', source)
+        self.assertIn("YouTube download failed unexpectedly.", source)
+        self.assertIn("YouTube inspection failed unexpectedly.", source)
+
     def test_ui_contains_v1_safety_and_progress_contract(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         self.assertIn("Save directory", source)
