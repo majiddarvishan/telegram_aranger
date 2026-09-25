@@ -107,3 +107,156 @@ Record:
 - pass/fail plus concise failure detail.
 
 Do not record cookies, auth headers, browser session data, Telegram secrets, downloader temporary tokens or signed media URLs.
+
+
+## Manual validation runner
+
+Use `scripts/youtube_manual_validate.py` for repeatable service-level live checks. The script is intentionally excluded from CI execution; its own unit tests are offline.
+
+It does not persist the original YouTube URL, thumbnails, signed media URLs, cookies or browser/authentication state in the JSON report.
+
+### Inspect only
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --report-file validation-reports/inspect.json
+```
+
+Inspect output shows normalized metadata, format count, subtitle/caption tracks, policy state and FFmpeg capability without downloading media.
+
+### Video + Audio
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode video_audio \
+  --quality max_720p \
+  --save-directory "/absolute/path/to/output" \
+  --acknowledge \
+  --report-file validation-reports/video-720p.json
+```
+
+### Audio only
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode audio_only \
+  --save-directory "/absolute/path/to/output" \
+  --acknowledge \
+  --report-file validation-reports/audio.json
+```
+
+### Manual subtitle
+
+First run Inspect and choose a track reported with `source=manual`, then:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode video_audio \
+  --quality max_720p \
+  --save-directory "/absolute/path/to/output" \
+  --subtitle-language en \
+  --subtitle-source manual \
+  --acknowledge \
+  --report-file validation-reports/manual-subtitle.json
+```
+
+### Auto-generated caption
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode video_audio \
+  --quality max_720p \
+  --save-directory "/absolute/path/to/output" \
+  --subtitle-language en \
+  --subtitle-source automatic \
+  --acknowledge \
+  --report-file validation-reports/auto-caption.json
+```
+
+### Explicit directory creation
+
+A missing output directory is not created unless explicitly requested:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode audio_only \
+  --save-directory "/absolute/path/new-output" \
+  --create-directory \
+  --acknowledge
+```
+
+### Allowed-root validation
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode video_audio \
+  --save-directory "/srv/telegram-harbor/youtube/test" \
+  --allowed-root "/srv/telegram-harbor/youtube" \
+  --create-directory \
+  --acknowledge
+```
+
+Repeat `--allowed-root` for multiple configured roots.
+
+### Windows PowerShell
+
+```powershell
+python scripts/youtube_manual_validate.py `
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" `
+  --mode video_audio `
+  --quality max_720p `
+  --save-directory "C:\Users\Majid\Downloads\TelegramHarbor" `
+  --acknowledge `
+  --report-file "validation-reports\windows-video.json"
+```
+
+Before the Windows live download:
+
+```powershell
+ffmpeg -version
+ffprobe -version
+```
+
+### Docker
+
+With the image built as `telegram-harbor:test`:
+
+```bash
+docker run --rm \
+  --env TELEGRAM_API_ID=123456 \
+  --env TELEGRAM_API_HASH=test \
+  --env TELEGRAM_SESSION_ENCRYPTION_KEY="unused-for-this-script" \
+  -v telegram_youtube_validation:/data/youtube \
+  --entrypoint python \
+  telegram-harbor:test \
+  scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode video_audio \
+  --quality max_720p \
+  --save-directory /data/youtube \
+  --allowed-root /data/youtube \
+  --acknowledge
+```
+
+The validation script itself does not load Telegram settings, so Telegram credentials are not required by the script. They are shown above only if the surrounding container workflow requires them; they can otherwise be omitted.
+
+## Collision validation procedure
+
+To verify grouped collision behavior with a real output:
+1. complete one media + subtitle download;
+2. keep both files in the Save directory;
+3. run the same command again;
+4. confirm the second media and subtitle both receive the same numeric suffix, for example:
+   - `Example (2).mp4`
+   - `Example (2).srt`
+5. record both filenames in the validation evidence.
+
+Do not delete/rename the first pair until the second run has completed.
