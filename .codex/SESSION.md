@@ -1993,3 +1993,40 @@ Important:
 - this establishes a better rights/licensing candidate, not a completed Telegram Harbor live test;
 - the current chat web environment cannot fetch the YouTube watch page directly, so Streamlit/yt-dlp runtime accessibility still must be confirmed on a machine/container running Telegram Harbor;
 - no YT-P7 live checkbox was marked complete.
+
+
+## 2026-09-26 — Optional independent YouTube SOCKS5 support
+
+User changed the networking requirement: YouTube should also be able to use SOCKS5.
+
+Implemented on `feature/youtube-download`:
+- added validated `YouTubeProxyConfig` in the YouTube service layer;
+- SOCKS5 is disabled by default;
+- supports host/IP, port, optional username and optional password;
+- credentials are URL-encoded before passing to yt-dlp;
+- IPv6 proxy hosts are bracketed correctly;
+- invalid host/port/password-without-username configurations fail with normalized `proxy_invalid`;
+- Inspect and Download both use the same first-class proxy contract;
+- generic yt-dlp `extra_options["proxy"]` remains forbidden so callers cannot bypass validation;
+- YouTube UI has its own `YouTube network / SOCKS5` expander;
+- changing any proxy setting invalidates the previous Inspect metadata and acknowledgement;
+- Telegram SOCKS5 state is not reused automatically or modified;
+- proxy password is masked and session-only in Streamlit;
+- manual validation runner supports `--proxy-host`, `--proxy-port`, `--proxy-user` and reads the password from `YOUTUBE_SOCKS5_PASSWORD` (or `--proxy-password-env`);
+- validation JSON records only safe proxy metadata and never the password value.
+
+Regression coverage added for:
+- unauthenticated/authenticated SOCKS5 URLs;
+- credential URL encoding;
+- IPv6;
+- invalid proxy inputs;
+- safe/redacted proxy summaries;
+- Inspect backend proxy injection;
+- Download options/request proxy routing;
+- UI isolation/state invalidation;
+- manual-runner proxy evidence.
+
+A legacy UI smoke assertion still expected the old sidebar sentence and caused CI failures after the copy changed. The test was updated to the new independent-proxy contract; production behavior did not need rollback.
+
+Manual item still open:
+- verify one real YouTube Inspect and one real download through an actual SOCKS5 endpoint.
