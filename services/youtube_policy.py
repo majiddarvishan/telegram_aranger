@@ -106,6 +106,14 @@ def evaluate_download_policy(
         code, message = _BLOCKED_AVAILABILITY[availability]
         return _blocked(acknowledged, code, message)
 
+    if availability and availability not in {"public", "unlisted"}:
+        return _blocked(
+            acknowledged,
+            "restricted_availability",
+            "YouTube reports a restricted or unsupported availability state "
+            "that is outside Telegram Harbor V1.",
+        )
+
     warnings = _restriction_warnings(info, availability)
     return DownloadPolicy(
         notice=GENERAL_RIGHTS_NOTICE,
