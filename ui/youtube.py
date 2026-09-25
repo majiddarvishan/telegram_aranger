@@ -373,7 +373,13 @@ def _render_metadata(metadata: Mapping[str, Any]) -> None:
 
 
 def _render_restriction_state(metadata: Mapping[str, Any]):
-    policy = evaluate_download_policy(metadata, acknowledged=False)
+    policy = evaluate_download_policy(
+        metadata,
+        acknowledged=False,
+        authenticated_session=bool(
+            st.session_state.get("youtube_use_auth", False)
+        ),
+    )
 
     for warning in policy.warnings:
         st.warning(warning.message)
@@ -651,6 +657,9 @@ def render_youtube(settings) -> None:
     policy = evaluate_download_policy(
         metadata,
         acknowledged=acknowledged,
+        authenticated_session=bool(
+            st.session_state.get("youtube_use_auth", False)
+        ),
     )
 
     can_start = (
