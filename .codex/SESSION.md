@@ -1888,3 +1888,24 @@ Unreadable reports:
 - CLI still returns the dedicated read-error exit code.
 
 Regression tests cover both Windows-container separation and CLI JSON output when an unreadable report is supplied.
+
+
+## 2026-09-26 — Windows/Unicode filename-component hardening
+
+Reviewed the title sanitizer before native Windows live validation.
+
+Issue:
+- Python `len()` counts Unicode code points;
+- supplementary characters such as emoji consume two UTF-16 code units on Windows/NTFS;
+- a character-count-only truncation therefore did not precisely express the intended Windows filename-component budget.
+
+Changed:
+- `sanitize_youtube_title()` now truncates by UTF-16 code units without splitting a Unicode character;
+- the existing default 160-unit basename budget remains conservative for media/subtitle extensions plus collision suffixes;
+- Windows reserved device-name protection is applied again after truncation so a custom small limit cannot accidentally produce `CON`, `NUL`, etc.
+
+Regression coverage:
+- long ASCII behavior remains unchanged;
+- supplementary Unicode is truncated by UTF-16 units;
+- truncation cannot create a reserved Windows device name;
+- long emoji titles plus media/subtitle extensions remain below the Windows filename-component limit.
