@@ -243,6 +243,11 @@ def inspect_video(
     normalized = normalize_metadata(raw)
     if not normalized["video_id"]:
         normalized["video_id"] = validated["video_id"]
+    elif normalized["video_id"] != validated["video_id"]:
+        raise YouTubeServiceError(
+            "metadata_video_mismatch",
+            "YouTube metadata does not match the requested video.",
+        )
     return normalized
 
 
