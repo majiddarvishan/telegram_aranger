@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 import re
 import shutil
 from typing import Any, Mapping, Protocol
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, quote, urlparse
 
 
 YOUTUBE_HOSTS = {
@@ -61,6 +61,78 @@ class YouTubeServiceError(RuntimeError):
 
 
 @dataclass(frozen=True)
+class YouTubeProxyConfig:
+    enabled: bool = False
+    host: str = ""
+    port: int = 1080
+    username: str = ""
+    password: str = ""
+
+    def proxy_url(self) -> str | None:
+        if not self.enabled:
+            return None
+
+        host = self.host.strip()
+        if not host:
+            raise YouTubeServiceError(
+                "proxy_invalid",
+                "YouTube SOCKS5 proxy host is required.",
+            )
+        if (
+            "://" in host
+            or any(char.isspace() for char in host)
+            or any(char in host for char in "/?#@")
+        ):
+            raise YouTubeServiceError(
+                "proxy_invalid",
+                "YouTube SOCKS5 proxy host is invalid.",
+            )
+
+        try:
+            port = int(self.port)
+        except (TypeError, ValueError) as exc:
+            raise YouTubeServiceError(
+                "proxy_invalid",
+                "YouTube SOCKS5 proxy port is invalid.",
+            ) from exc
+        if not 1 <= port <= 65535:
+            raise YouTubeServiceError(
+                "proxy_invalid",
+                "YouTube SOCKS5 proxy port must be between 1 and 65535.",
+            )
+
+        username = self.username.strip()
+        password = self.password
+        if password and not username:
+            raise YouTubeServiceError(
+                "proxy_invalid",
+                "YouTube SOCKS5 proxy username is required when a password is set.",
+            )
+
+        host_for_url = host
+        if ":" in host and not (host.startswith("[") and host.endswith("]")):
+            host_for_url = f"[{host}]"
+
+        auth = ""
+        if username:
+            auth = quote(username, safe="")
+            if password:
+                auth += ":" + quote(password, safe="")
+            auth += "@"
+
+        return f"socks5://{auth}{host_for_url}:{port}"
+
+    def as_safe_dict(self) -> dict[str, Any]:
+        return {
+            "enabled": self.enabled,
+            "host": self.host.strip() if self.enabled else "",
+            "port": int(self.port) if self.enabled else None,
+            "username_configured": bool(self.username.strip()) if self.enabled else False,
+            "password_configured": bool(self.password) if self.enabled else False,
+        }
+
+
+@dataclass(frozen=True)
 class FFmpegCapability:
     ffmpeg_path: str | None
     ffprobe_path: str | None
@@ -103,9 +175,15 @@ class _QuietLogger:
 class YtDlpBackend:
     """Small adapter that keeps yt-dlp details out of the UI/application layer."""
 
-    def __init__(self, *, extra_options: Mapping[str, Any] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        extra_options: Mapping[str, Any] | None = None,
+        proxy: YouTubeProxyConfig | None = None,
+    ) -> None:
         self.extra_options = dict(extra_options or {})
         _validate_v1_downloader_options(self.extra_options)
+        self.proxy = proxy
 
     def inspect(self, url: str) -> Mapping[str, Any]:
         try:
@@ -117,6 +195,9 @@ class YtDlpBackend:
             ) from exc
 
         options = dict(self.extra_options)
+        proxy_url = self.proxy.proxy_url() if self.proxy is not None else None
+        if proxy_url:
+            options["proxy"] = proxy_url
         options.update(
             {
                 "quiet": True,
@@ -150,8 +231,9 @@ def _validate_v1_downloader_options(options: Mapping[str, Any]) -> None:
     if forbidden:
         raise YouTubeServiceError(
             "downloader_option_not_allowed",
-            "Authenticated, proxy, custom-header, and geo-bypass downloader "
-            "options are outside Telegram Harbor V1.",
+            "Authenticated, raw proxy, custom-header, and geo-bypass downloader "
+            "options are not allowed through generic downloader options. Use the "
+            "validated YouTube SOCKS5 configuration for proxy access.",
             access_restricted=True,
         )
 
@@ -241,10 +323,11 @@ def inspect_video(
     url: str,
     *,
     backend: DownloaderBackend | None = None,
+    proxy: YouTubeProxyConfig | None = None,
 ) -> dict[str, Any]:
     """Inspect one YouTube video and return stable, UI-safe normalized metadata."""
     validated = validate_youtube_url(url)
-    downloader = backend or YtDlpBackend()
+    downloader = backend or YtDlpBackend(proxy=proxy)
 
     try:
         raw = downloader.inspect(validated["url"])
