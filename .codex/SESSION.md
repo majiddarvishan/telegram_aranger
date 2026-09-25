@@ -1342,3 +1342,31 @@ Still open in YT-P5:
 
 Next:
 - complete YT-P5 visual validation, then continue to YT-P6 — Platform / docs.
+
+
+## 2026-09-26 — YT-P6 platform, Docker and documentation
+
+Completed on `feature/youtube-download` after YT-P5 implementation.
+
+Docker/platform:
+- Docker image now installs `ffmpeg` and `ffprobe`;
+- image creates `/data/youtube` and uses it as the default YouTube allowed root;
+- Docker Compose explicitly defaults `YOUTUBE_DOWNLOAD_ROOTS` to `/data/youtube`, so a blank copied `.env` does not silently disable the container restriction;
+- direct Docker run documentation passes the root explicitly for the same reason;
+- native Windows guidance documents verifying both `ffmpeg.exe` and `ffprobe.exe` on PATH.
+
+Documentation:
+- `readme.md` now documents the independent YouTube workspace, V1 scope, save-path semantics, subtitles, warning boundary and FFmpeg requirement;
+- `docs/DEPLOYMENT.md` now documents local/remote/Docker save-path semantics, allowed roots, host bind mounts, Windows FFmpeg and the no-bypass access boundary;
+- `docs/DEPENDENCIES.md` now records yt-dlp and FFmpeg operational policy;
+- `docs/MANUAL_TESTING.md` now contains a complete YouTube V1 acceptance checklist.
+
+CI:
+- GitHub Actions now runs `tests/test_youtube_ui.py`;
+- Docker CI verifies both `ffmpeg` and `ffprobe` exist in the built image;
+- all YouTube automated tests remain fake/offline and make no live YouTube calls.
+
+Remaining:
+- YT-P5 still needs manual Light/Dark/responsive visual review;
+- YT-P7 manual/live validation remains intentionally open;
+- no merge to `main` has been performed.
