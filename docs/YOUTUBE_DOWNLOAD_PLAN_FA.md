@@ -405,13 +405,15 @@ Telegram Harbor multi-user Web login دارد، بنابراین arbitrary path 
 
 نسخه اول:
 
-- public YouTube content
-- بدون browser-cookie import
-- بدون username/password
+- public و otherwise-supported YouTube content
+- امکان استفاده اختیاری از Browser Session برای ویدئوهایی که YouTube به sign-in نیاز دارد
+- `cookies.txt` محدود به youtube.com به‌عنوان fallback برای Docker/Server
+- بدون username/password مستقیم
+- بدون YouTube OAuth
 - بدون automatic geo bypass
 - بدون reuse خودکار SOCKS5 Telegram proxy
 
-اگر بعداً proxy/cookies اضافه شد، باید به‌عنوان feature امنیتی جدا طراحی شود.
+Browser Session و cookies.txt فقط برای authentication عادی هستند و نباید برای دور زدن private/member-only/premium/DRM استفاده شوند.
 
 ---
 
@@ -642,8 +644,8 @@ CI نباید به YouTube live network وابسته باشد.
 
 - playlists
 - full channels
-- authenticated private content
-- importing browser cookies
+- authenticated private/member-only/premium content
+- browser-cookie access outside the explicit Browser Session authentication flow
 - membership bypass
 - DRM bypass
 - automatic geo-bypass
