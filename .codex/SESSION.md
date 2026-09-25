@@ -2052,3 +2052,28 @@ The strict runner evidence gate now requires:
 - one successful SOCKS5 live Download.
 
 This automated checkpoint does not complete the real SOCKS5 acceptance item. A live proxy endpoint still needs to be exercised manually.
+
+
+## 2026-09-26 — YouTube anti-bot challenge separated from content authentication
+
+User observed:
+`This video requires authentication and is outside Telegram Harbor V1.`
+
+The tested content was not copyright-restricted.
+
+Root cause:
+- yt-dlp can return `Sign in to confirm you're not a bot` for otherwise public videos when YouTube challenges the current IP/connection;
+- this is commonly seen with flagged/shared/datacenter/proxy IPs;
+- Telegram Harbor previously matched the broad substring `sign in to confirm` and incorrectly normalized it as `login_required`.
+
+Fix:
+- added dedicated `bot_verification_required` classification before true login/auth rules;
+- recognizes straight/curly-apostrophe variants and YouTube's community-protection wording;
+- user-facing message explicitly states this is not a copyright determination;
+- suggests disabling/changing the YouTube SOCKS5 route or using another trusted IP when applicable;
+- keeps authenticated-cookie support outside current V1;
+- `access_restricted=false` for this connection-level anti-bot signal;
+- true private/member/DRM/age-auth/login-required states remain restricted;
+- removed the overly broad generic `sign in to confirm` match to prevent future false positives.
+
+Validation-summary structured failure evidence now recognizes `bot_verification_required`.
