@@ -57,6 +57,9 @@ jobs:
       - name: YouTube download engine tests
         run: python -m unittest discover -s tests -p "test_youtube_download.py" -v
 
+      - name: YouTube UI tests
+        run: python -m unittest discover -s tests -p "test_youtube_ui.py" -v
+
       - name: Import Telegram service
         run: python -c "import services.telegram_service"
 
@@ -137,6 +140,11 @@ jobs:
 
       - name: Build image
         run: docker build -t telegram-harbor:test .
+
+      - name: Verify FFmpeg in image
+        run: |
+          docker run --rm --entrypoint ffmpeg telegram-harbor:test -version
+          docker run --rm --entrypoint ffprobe telegram-harbor:test -version
 
       - name: Start container
         run: |
