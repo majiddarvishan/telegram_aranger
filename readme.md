@@ -16,6 +16,7 @@ It provides one central place to connect multiple Telegram accounts, browse priv
 - Encrypted Telegram session strings using Fernet.
 - Telegram logout and non-destructive disconnect.
 - Chat selector for private chats, groups, supergroups, and channels.
+- Saved Messages is selected by default when a Telegram account is opened.
 - Responsive Light/Dark Telegram Harbor interface with content-first message cards.
 - Date-range message filtering; defaults to the latest 7 calendar days.
 - Compact Previous/Next day navigation in the message filter header.
