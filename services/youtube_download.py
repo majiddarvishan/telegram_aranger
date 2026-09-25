@@ -11,6 +11,7 @@ from typing import Any, Callable, Mapping, Protocol
 from services.youtube_policy import evaluate_download_policy
 from services.youtube_service import (
     FFmpegCapability,
+    YouTubeProxyConfig,
     YouTubeServiceError,
     detect_ffmpeg,
     normalize_downloader_error,
@@ -48,6 +49,7 @@ class DownloadRequest:
     quality: str = "best"
     subtitle: SubtitleSelection | None = None
     acknowledged: bool = False
+    proxy: YouTubeProxyConfig | None = None
 
 
 @dataclass(frozen=True)
@@ -199,6 +201,7 @@ def download_video(
                 quality=quality,
                 subtitle_plan=subtitle_plan,
                 progress_callback=progress_callback,
+                proxy=request.proxy,
             )
             downloader = backend or YtDlpDownloadBackend()
 
@@ -329,6 +332,7 @@ def build_download_options(
     quality: str,
     subtitle_plan: Mapping[str, Any] | None,
     progress_callback: Callable[[DownloadProgress], None] | None,
+    proxy: YouTubeProxyConfig | None = None,
 ) -> dict[str, Any]:
     postprocessors: list[dict[str, Any]] = []
     if mode == "audio_only":
@@ -367,6 +371,10 @@ def build_download_options(
         "progress_hooks": [progress_hook(progress_callback)],
         "postprocessor_hooks": [postprocessor_hook(progress_callback)],
     }
+
+    proxy_url = proxy.proxy_url() if proxy is not None else None
+    if proxy_url:
+        options["proxy"] = proxy_url
 
     if mode == "video_audio":
         options["merge_output_format"] = "mp4"
