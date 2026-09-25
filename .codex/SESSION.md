@@ -1494,3 +1494,16 @@ Regression coverage:
 - symlink inside temp pointing outside is rejected when symlinks are available.
 
 This complements the existing final Save-directory / allowed-root containment and no-overwrite logic.
+
+
+## 2026-09-26 — Expanded Windows YouTube CI coverage
+
+The Windows/Python 3.14 GitHub Actions job previously validated YouTube path handling only.
+
+It now also runs:
+- `tests/test_youtube_download.py` (download engine, fake backend, subtitle conversion fallback, grouped collision, containment/error behavior);
+- `tests/test_youtube_manual_validate.py` (manual runner parsing/report/service-contract behavior).
+
+All of these remain offline; no live YouTube request is introduced.
+
+This strengthens Windows implementation confidence but does not replace the still-open native Windows real-download validation in YT-P7.
