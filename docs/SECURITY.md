@@ -142,3 +142,21 @@ Security rules:
 - enabling SOCKS5 does not enable cookies, authenticated YouTube sessions, geo-bypass flags, or access-control bypass.
 
 Treat any proxy username/password as a secret and prefer a dedicated secret manager/environment injection for shared hosted deployments.
+
+
+## YouTube authenticated session cookies
+
+Telegram Harbor can optionally use a Netscape-format YouTube `cookies.txt` to establish an authenticated YouTube session for Inspect/Download.
+
+Security rules:
+- do not enter a Google username/password into Telegram Harbor; the application does not request or store it;
+- OAuth is not used;
+- upload/export only `youtube.com` cookies;
+- cookie content is treated as a secret equivalent to an authenticated browser session;
+- Telegram Harbor does not persist cookie content to SQLite, structured logs, or validation reports;
+- the cookie file is materialized to a temporary file only while yt-dlp is running and is deleted afterward;
+- validation reports contain only `auth.enabled` and a non-secret source label;
+- generic yt-dlp cookie/browser-profile options remain blocked;
+- authenticated mode does not override product blocks for private, members-only, premium, or DRM-protected content.
+
+Operationally, prefer a dedicated YouTube account/session and enable authenticated mode only when direct guest access is insufficient.
