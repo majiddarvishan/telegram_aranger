@@ -403,6 +403,11 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Keep generic yt-dlp `extra_options["proxy"]` forbidden; proxy must enter through validated `YouTubeProxyConfig`.
 - [x] Require SOCKS5 Inspect + live Download in the strict validation-summary release gate.
 - [x] Distinguish YouTube anti-bot verification (`Sign in to confirm you're not a bot`) from true authenticated/private content; do not describe it as copyright/authenticated-content restriction.
+- [x] Add optional session-only YouTube cookie authentication using a validated Netscape-format `cookies.txt`; do not collect Google username/password or OAuth credentials.
+- [x] Materialize auth cookies only for one Inspect/Download operation and delete the temporary file afterward.
+- [x] Keep raw `cookiefile`/`cookiesfrombrowser` generic yt-dlp options forbidden; only the validated auth path may supply cookies.
+- [x] Require authenticated Inspect + live Download evidence in the strict validation-summary release gate.
+- [ ] Manually validate one authenticated YouTube Inspect and one authenticated download using a real YouTube cookies.txt.
 - [ ] Manually validate YouTube Inspect and one download through a real SOCKS5 endpoint.
 
 - [ ] Public test video.
