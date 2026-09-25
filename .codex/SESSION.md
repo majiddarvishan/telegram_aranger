@@ -1727,3 +1727,22 @@ Changed:
 - `download=False` remains enforced at `extract_info`.
 
 Regression coverage explicitly attempts to override these invariants and verifies they stay enabled.
+
+
+## 2026-09-26 — Fail-closed handling for unknown availability states
+
+Reviewed the current yt-dlp availability contract and hardened policy behavior for forward compatibility.
+
+Existing explicit blocked states remain:
+- private;
+- premium_only;
+- subscriber_only;
+- needs_auth;
+- unavailable.
+
+New rule:
+- any non-empty availability value other than public/unlisted that is not explicitly known is blocked as `restricted_availability` rather than treated as a warning-only signal;
+- missing availability remains allowed because metadata may omit the field for ordinarily accessible content;
+- unlisted remains allowed after acknowledgement.
+
+Regression tests cover both the fail-closed unknown state and the allowed unlisted case.
