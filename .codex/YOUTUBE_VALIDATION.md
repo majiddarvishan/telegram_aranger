@@ -231,9 +231,6 @@ With the image built as `telegram-harbor:test`:
 
 ```bash
 docker run --rm \
-  --env TELEGRAM_API_ID=123456 \
-  --env TELEGRAM_API_HASH=test \
-  --env TELEGRAM_SESSION_ENCRYPTION_KEY="unused-for-this-script" \
   -v telegram_youtube_validation:/data/youtube \
   --entrypoint python \
   telegram-harbor:test \
@@ -246,7 +243,7 @@ docker run --rm \
   --acknowledge
 ```
 
-The validation script itself does not load Telegram settings, so Telegram credentials are not required by the script. They are shown above only if the surrounding container workflow requires them; they can otherwise be omitted.
+The validation script does not load Telegram settings, so Telegram credentials are not required for this service-level Docker validation.
 
 ## Collision validation procedure
 
