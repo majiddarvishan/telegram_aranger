@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 from scripts.youtube_manual_validate import (
     _binary_runtime_available,
+    _detect_commit_sha,
     _environment_summary,
     _request_summary,
     _result_checks,
@@ -62,6 +63,35 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(summary["subtitle_source"], "manual")
         self.assertTrue(summary["acknowledged"])
         self.assertNotIn("url", summary)
+
+    def test_native_git_head_overrides_stale_build_sha_environment(self):
+        completed = SimpleNamespace(stdout="git-head-sha\n")
+        with (
+            patch.dict(
+                "os.environ",
+                {"TELEGRAM_HARBOR_BUILD_SHA": "stale-env-sha"},
+                clear=False,
+            ),
+            patch(
+                "scripts.youtube_manual_validate.subprocess.run",
+                return_value=completed,
+            ),
+        ):
+            self.assertEqual(_detect_commit_sha(), "git-head-sha")
+
+    def test_build_sha_environment_is_fallback_when_git_is_unavailable(self):
+        with (
+            patch.dict(
+                "os.environ",
+                {"TELEGRAM_HARBOR_BUILD_SHA": "docker-build-sha"},
+                clear=False,
+            ),
+            patch(
+                "scripts.youtube_manual_validate.subprocess.run",
+                side_effect=OSError("git unavailable"),
+            ),
+        ):
+            self.assertEqual(_detect_commit_sha(), "docker-build-sha")
 
     def test_environment_summary_records_build_identity_without_hostname(self):
         with patch.dict(
