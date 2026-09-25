@@ -106,6 +106,39 @@ class YouTubePolicyTests(unittest.TestCase):
         self.assertIn("Browser session", policy.block_message)
         self.assertNotIn("outside Telegram Harbor V1", policy.block_message)
 
+    def test_needs_auth_is_allowed_when_authenticated_session_is_configured(self):
+        policy = evaluate_download_policy(
+            public_metadata(availability="needs_auth"),
+            acknowledged=True,
+            authenticated_session=True,
+        )
+
+        self.assertFalse(policy.blocked)
+        self.assertTrue(policy.can_download)
+        self.assertIn(
+            "signed_in_access",
+            {warning.code for warning in policy.warnings},
+        )
+        self.assertIn(
+            "availability_signal",
+            {warning.code for warning in policy.warnings},
+        )
+
+    def test_private_and_member_content_stay_blocked_with_authenticated_session(self):
+        for availability, expected in (
+            ("private", "private_content"),
+            ("subscriber_only", "members_only"),
+            ("premium_only", "premium_only"),
+        ):
+            with self.subTest(availability=availability):
+                policy = evaluate_download_policy(
+                    public_metadata(availability=availability),
+                    acknowledged=True,
+                    authenticated_session=True,
+                )
+                self.assertTrue(policy.blocked)
+                self.assertEqual(policy.block_code, expected)
+
     def test_unknown_non_public_availability_fails_closed(self):
         policy = evaluate_download_policy(
             public_metadata(availability="needs_subscription"),
