@@ -123,3 +123,49 @@ A first Delete action only enters a pending state. A second explicit confirmatio
 Status: current
 
 Tags remain comma-separated SQLite text for the current feature scope. Values are trimmed and de-duplicated. A normalized tag table is deferred until global rename/delete, richer tag metadata, or higher-scale querying is required.
+
+
+## D-024 — YouTube download is an independent workspace
+Status: planned on `feature/youtube-download`
+
+YouTube functionality is isolated from Telegram message browsing. The Streamlit UI should expose a separate workspace/tool rather than embedding YouTube download controls inside Telegram message cards.
+
+## D-025 — YouTube download uses a service abstraction
+Status: planned
+
+The UI must not call the downloader library directly. URL validation, metadata inspection, format selection, download execution, progress hooks, post-processing, and error normalization belong behind a dedicated service layer.
+
+## D-026 — Save directory is user-supplied
+Status: planned
+
+V1 requires the user to provide a filesystem save directory before download.
+
+On a local installation this is a path on the local machine. On a remotely hosted installation this path belongs to the host running Telegram Harbor, not the browser client. The UI must state this clearly.
+
+Hosted/multi-user deployments should support configured allowed roots so Web users cannot write to arbitrary server paths.
+
+## D-027 — Rights/service warning is informational, not a legal determination
+Status: planned
+
+Telegram Harbor cannot reliably determine copyright ownership from YouTube metadata. V1 therefore:
+- always presents a concise rights/service notice;
+- may show stronger warnings when metadata/downloader state indicates restrictions;
+- requires explicit user acknowledgement before download;
+- does not block ordinarily accessible public content solely because a warning is shown.
+
+## D-028 — No technical access-control bypass
+Status: planned
+
+V1 must not introduce mechanisms that bypass DRM, paywalls, private/member-only access controls, login protection, or comparable technical restrictions.
+
+The baseline scope is public content that the downloader can access normally without bypass behavior.
+
+## D-029 — YouTube V1 is single-video, unauthenticated, and non-batch
+Status: planned
+
+V1 intentionally excludes playlists, full channels, browser-cookie import, authenticated/private content, batch queues, scheduling, and automatic geo-bypass.
+
+## D-030 — FFmpeg is an operational dependency for full YouTube output support
+Status: planned
+
+FFmpeg must be treated as a platform dependency for video/audio merging and audio extraction where required. Windows and Docker setup, capability detection, and user-facing failure messages are part of the feature definition.
