@@ -151,6 +151,30 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn("subtitle_format", source)
         self.assertIn("subtitle_source", source)
 
+    def test_ui_exposes_session_only_youtube_cookie_login(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+        state_source = Path("utils/state.py").read_text(encoding="utf-8")
+
+        self.assertIn("Use authenticated YouTube session", source)
+        self.assertIn("YouTube cookies.txt", source)
+        self.assertIn("st.file_uploader", source)
+        self.assertIn("youtube_cookie_upload", source)
+        self.assertIn("YouTubeAuthConfig", source)
+        self.assertIn("auth=_youtube_auth_config()", source)
+        self.assertIn("does not persist the cookie file", source)
+        self.assertNotIn("Google password", source)
+        self.assertIn('"youtube_use_auth": False', state_source)
+
+    def test_auth_changes_invalidate_previous_inspection(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+        auth_start = source.index("def _render_youtube_auth_settings()")
+        proxy_start = source.index("def _youtube_proxy_config()")
+        auth_source = source[auth_start:proxy_start]
+        self.assertIn(
+            "on_change=_invalidate_youtube_inspection",
+            auth_source,
+        )
+
     def test_ui_exposes_independent_youtube_socks5_controls(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         sidebar_source = Path("ui/sidebar.py").read_text(encoding="utf-8")
