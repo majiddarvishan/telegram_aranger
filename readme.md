@@ -214,7 +214,7 @@ YOUTUBE_DOWNLOAD_ROOTS=/srv/telegram-harbor/youtube
 
 Use the platform path separator for multiple roots. The Docker image defaults to `/data/youtube`.
 
-Telegram Harbor shows a rights/service notice and stronger restriction warnings where metadata exposes them. The warning is informational and does not make a legal determination. V1 does not implement DRM bypass, paywall bypass, private/member-only/login-protected access, browser-cookie import, authenticated private-content support or automatic geo-bypass.
+Telegram Harbor shows a rights/service notice and stronger restriction warnings where metadata exposes them. The warning is informational and does not make a legal determination. V1 supports optional signed-in session cookies for otherwise supported videos, but does not implement DRM bypass, paywall bypass, private/member-only/premium-content access, authenticated private-content support, or automatic geo-bypass.
 
 FFmpeg and FFprobe are required for full output support.
 
