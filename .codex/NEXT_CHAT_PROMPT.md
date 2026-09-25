@@ -61,6 +61,7 @@ Confirmed YouTube V1 requirements:
 - Do not implement DRM bypass, paywall bypass, private/member-only/login-protection bypass, or comparable technical access-control circumvention.
 - No browser-cookie import or authenticated private-content support in V1.
 - No automatic geo-bypass in V1.
+- YouTube supports an optional independent SOCKS5 proxy for Inspect and Download.
 - Do not automatically reuse the Telegram SOCKS5 proxy for YouTube.
 - FFmpeg is an expected operational dependency for merge/audio extraction/post-processing.
 - Support Windows and Docker FFmpeg setup/capability detection.
