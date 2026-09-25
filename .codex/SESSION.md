@@ -1943,3 +1943,20 @@ Even a passing `release_runner_evidence_ready` still leaves actual Streamlit acc
 - final merge/release review.
 
 This is intentional; the aggregator cannot manufacture evidence for UI/manual checks it did not observe.
+
+
+## 2026-09-26 — Authoritative validation source identity
+
+Tightened commit-SHA evidence precedence.
+
+Before:
+- a concrete `TELEGRAM_HARBOR_BUILD_SHA` environment value could override the actual Git HEAD even in a native checkout.
+
+Now:
+- native/source-tree validation first resolves `git rev-parse --verify HEAD`;
+- a concrete environment build SHA is used only when Git metadata is unavailable;
+- Docker remains supported because `.git` is intentionally excluded and the image embeds `TELEGRAM_HARBOR_BUILD_SHA`.
+
+Regression coverage verifies:
+- stale environment SHA cannot override native Git HEAD;
+- Docker/no-Git fallback still uses the embedded build SHA.
