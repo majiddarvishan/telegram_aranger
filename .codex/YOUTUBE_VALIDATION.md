@@ -124,7 +124,7 @@ python scripts/youtube_manual_validate.py \
   --allowed-root "/absolute/path/to"
 ```
 
-A successful preflight produces a JSON report with environment/build identity, FFmpeg capability and validated Save directory.
+A successful preflight produces a JSON report with environment/build identity, validated Save directory, FFmpeg/FFprobe discovery, and executable runtime checks. It requires `ffmpeg_runtime_ready=true`, which means both `ffmpeg -version` and `ffprobe -version` completed successfully.
 
 For live modes it does not persist the original YouTube URL, thumbnails, signed media URLs, cookies or browser/authentication state in the JSON report. Invalid URLs are returned as structured failure reports rather than uncaught tracebacks.
 
