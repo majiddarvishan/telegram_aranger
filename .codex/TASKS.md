@@ -355,6 +355,8 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Create `.codex/YOUTUBE_VALIDATION.md` to track automated evidence separately from live/manual acceptance.
 - [x] Add `scripts/youtube_manual_validate.py` as an explicit manual live-validation runner; keep it out of CI network execution.
 - [x] Add offline unit coverage for the manual runner and gitignore `validation-reports/`.
+- [x] Sanitize unexpected YouTube/downloader errors so raw exception text, signed URLs or query tokens are not surfaced to UI/manual reports.
+- [x] Add regression coverage for unknown downloader/UI/manual-runner error sanitization.
 
 - [ ] Public test video.
 - [ ] Video + audio.
