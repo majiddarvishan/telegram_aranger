@@ -259,12 +259,15 @@ Telegram Harbor caches the latest Telegram chat/dialog list in SQLite per Telegr
 
 ### YouTube authenticated session
 
-Telegram Harbor can optionally use a signed-in YouTube session through a Mozilla/Netscape `cookies.txt` file.
+Telegram Harbor can optionally reuse a signed-in browser session for YouTube Inspect/Download when the browser profile exists on the same machine and under the same OS user as Telegram Harbor.
 
 - No Google username/password is requested.
 - OAuth is not used.
-- The cookie file is not persisted by Telegram Harbor.
-- Cookies are materialized only for the lifetime of one Inspect/Download operation and then deleted.
-- Only `youtube.com` cookie rows are accepted.
+- **Browser session** is the preferred local-install mode and uses yt-dlp's browser-cookie integration.
+- Supported browser choices include Auto, Chrome, Firefox, Edge, Brave, Chromium, Vivaldi, Opera, Safari and Whale.
+- An optional browser profile name/path can be supplied.
+- Browser cookie values are not persisted to SQLite, logs, or validation reports.
+- For Docker/remote deployments, where the user's browser is on another machine, a youtube.com-only Netscape `cookies.txt` upload remains available as a fallback.
 - Authenticated mode can be combined with the independent YouTube SOCKS5 proxy.
 - Private/member-only/premium/DRM content remains blocked by product policy.
+
