@@ -3,9 +3,9 @@
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
 - Current working branch: `feature/youtube-download`
-- Current phase status: YouTube V1 implementation and automated readiness hardening are substantially complete. The latest confirmed full-green checkpoint during this handoff is `c33bb39ebfd46cd06065a6653e0b1714da7624b3`. Newer hardening exists after that checkpoint and branch HEAD must always be re-checked before edits. Optional independent YouTube SOCKS5 plus Browser Session-first authentication (with cookies.txt fallback) are implemented and green in CI. Remaining product acceptance is manual YT-P5 Light/Dark/narrow review, YT-P7 real YouTube/Windows/Docker/UI validation, real SOCKS5 Inspect/Download validation, and final merge/release review.
+- Current phase status: YouTube V1 implementation and automated readiness hardening are substantially complete. The latest confirmed full-green checkpoint during this handoff is `e85a2a087419280b9dce0f61a1ad1d305498ac22`. Newer hardening exists after that checkpoint and branch HEAD must always be re-checked before edits. Optional independent YouTube SOCKS5 plus Browser Session-first authentication (with cookies.txt fallback) are implemented and green in CI. Remaining product acceptance is manual YT-P5 Light/Dark/narrow review, YT-P7 real YouTube/Windows/Docker/UI validation, real SOCKS5 Inspect/Download validation, and final merge/release review.
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
-- Latest confirmed full-green YouTube checkpoint in this handoff: `c33bb39ebfd46cd06065a6653e0b1714da7624b3`.
+- Latest confirmed full-green YouTube checkpoint in this handoff: `e85a2a087419280b9dce0f61a1ad1d305498ac22`.
 - Handoff HEAD after additional hardening: `8b1e39a4d23e9d2a666843100a4cfd9309c35ee1` (re-check GitHub because the branch may advance again).
 - The completed `gui` branch is already merged into `main`.
 
