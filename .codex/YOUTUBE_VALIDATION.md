@@ -396,6 +396,8 @@ The release-ready gate additionally requires:
 - native Windows live-download evidence;
 - Docker live-download evidence;
 - a successful acknowledged ordinary-public download;
+- one successful SOCKS5 Inspect report;
+- one successful SOCKS5 live-download report;
 - at least one structured failure report;
 - every loaded report to carry the same concrete source commit SHA.
 
