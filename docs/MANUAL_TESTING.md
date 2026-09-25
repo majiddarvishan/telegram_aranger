@@ -476,3 +476,20 @@ python scripts/youtube_manual_validate.py \
 ```
 
 The report must show `request.auth.enabled=true` but must not contain the cookie-file path or any cookie value.
+
+
+#### Export a fresh YouTube cookies.txt
+
+Use a dedicated/fresh YouTube session when possible.
+
+Recommended workflow:
+1. Open a private/incognito browser window and sign in to YouTube.
+2. Keep only that private browsing session open for the export.
+3. Navigate to `https://www.youtube.com/robots.txt` in the same private session.
+4. Export only `youtube.com` cookies in Mozilla/Netscape `cookies.txt` format.
+5. Close the private/incognito session after export so the exported cookie set is not immediately rotated by continued browser use.
+6. Upload/use that file only when authenticated mode is required.
+
+Do not export all browser cookies. Telegram Harbor intentionally rejects cookie rows outside `youtube.com`.
+
+Treat the exported file as a secret equivalent to an authenticated browser session. If YouTube invalidates/rotates the session, export a fresh file.
