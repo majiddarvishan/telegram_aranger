@@ -232,43 +232,81 @@ def _peer_record_from_input_peer(
     }
 
 
+async def _dialog_record(
+    client,
+    chat,
+    *,
+    title_override: str | None = None,
+) -> dict | None:
+    chat_type = getattr(chat.type, "value", str(chat.type)).lower()
+
+    if chat_type not in ("private", "group", "supergroup", "channel"):
+        return None
+
+    title = title_override or chat.title
+    if not title:
+        title = f"{chat.first_name or ''} {chat.last_name or ''}".strip()
+    if not title:
+        title = str(chat.id)
+
+    username = chat.username or ""
+    input_peer = await client.resolve_peer(chat.id)
+    peer_record = _peer_record_from_input_peer(
+        chat.id,
+        chat_type,
+        username,
+        input_peer,
+    )
+
+    return {
+        "id": chat.id,
+        "title": title,
+        "type": chat_type,
+        "username": username,
+        **peer_record,
+    }
+
+
 async def _dialogs(client, limit: int):
-    """Return Telegram dialogs without relying on version-specific Dialog attributes."""
+    """Return Telegram dialogs and always include Saved Messages."""
     if client is None:
         raise RuntimeError("Telegram client is not connected.")
 
     result = []
+    seen_ids = set()
 
     async for dialog in client.get_dialogs(limit=limit):
-        chat = dialog.chat
-        chat_type = getattr(chat.type, "value", str(chat.type)).lower()
-
-        if chat_type not in ("private", "group", "supergroup", "channel"):
+        record = await _dialog_record(client, dialog.chat)
+        if record is None:
             continue
 
-        title = chat.title
-        if not title:
-            title = f"{chat.first_name or ''} {chat.last_name or ''}".strip()
-        if not title:
-            title = str(chat.id)
+        result.append(record)
+        seen_ids.add(record["id"])
 
-        username = chat.username or ""
-        input_peer = await client.resolve_peer(chat.id)
+    me = await client.get_me()
+    if me.id in seen_ids:
+        for record in result:
+            if record["id"] == me.id:
+                record["title"] = "Saved Messages"
+                record["type"] = "private"
+                break
+    else:
+        input_peer = await client.resolve_peer(me.id)
         peer_record = _peer_record_from_input_peer(
-            chat.id,
-            chat_type,
-            username,
+            me.id,
+            "private",
+            me.username or "",
             input_peer,
         )
-
-        result.append(
+        result.insert(
+            0,
             {
-                "id": chat.id,
-                "title": title,
-                "type": chat_type,
-                "username": username,
+                "id": me.id,
+                "title": "Saved Messages",
+                "type": "private",
+                "username": me.username or "",
                 **peer_record,
-            }
+            },
         )
 
     return result
