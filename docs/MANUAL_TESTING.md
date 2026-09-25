@@ -434,32 +434,50 @@ The report records only safe proxy metadata such as enabled state, host/port and
 
 ### YouTube authenticated session
 
-Use this only when YouTube requires a signed-in session or presents a bot-verification challenge that guest access cannot satisfy.
+Use this only when guest access is insufficient or YouTube requests a signed-in session.
+
+#### Preferred local flow — Browser session
+
+Requirements:
+- Telegram Harbor runs on the same machine as the signed-in browser;
+- it runs under the same OS user that owns the browser profile.
 
 UI:
-1. Export a Mozilla/Netscape `cookies.txt` containing only `youtube.com` cookies from a YouTube session you control.
-2. Open **YouTube Download**.
-3. Expand **YouTube sign-in / cookies**.
-4. Enable **Use authenticated YouTube session**.
-5. Upload the `cookies.txt`.
-6. Re-run **Inspect** and then one Download.
+1. Open **YouTube Download**.
+2. Expand **YouTube sign-in**.
+3. Enable **Use authenticated YouTube session**.
+4. Select **Browser session**.
+5. Leave Browser on **Auto** or select Chrome/Firefox/Edge/Brave/etc.
+6. Leave profile empty for the default/recent profile, or enter a profile name/path.
+7. Run **Inspect**, then one Download.
 
 Expected:
 - no Google username/password field exists;
-- Inspect and Download both use the same uploaded session;
-- changing/disabling authenticated-session state invalidates old Inspect metadata;
-- cookie values never appear in UI output, logs, or validation JSON;
-- temporary cookie materialization is removed after each operation;
+- Inspect and Download use the same browser session;
+- changing auth source/browser/profile invalidates previous Inspect metadata;
+- cookie values never appear in UI output, logs, database, or validation JSON;
+- report records only auth source/browser and whether a profile was configured;
 - private/member-only/premium/DRM policy blocks still apply.
 
-Manual validation CLI:
+Manual-runner Inspect:
 
 ```bash
 python scripts/youtube_manual_validate.py \
   --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
   --mode inspect \
-  --cookies-file "/absolute/path/to/youtube-cookies.txt" \
-  --report-file validation-reports/auth-inspect.json
+  --browser-session chrome \
+  --report-file validation-reports/browser-auth-inspect.json
+```
+
+Optional explicit profile:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --browser-session firefox \
+  --browser-profile "default-release" \
+  --report-file validation-reports/browser-auth-profile.json
 ```
 
 Authenticated download:
@@ -470,26 +488,22 @@ python scripts/youtube_manual_validate.py \
   --mode video_audio \
   --quality max_720p \
   --save-directory "/absolute/path/to/output" \
-  --cookies-file "/absolute/path/to/youtube-cookies.txt" \
+  --browser-session chrome \
   --acknowledge \
-  --report-file validation-reports/auth-download.json
+  --report-file validation-reports/browser-auth-download.json
 ```
 
-The report must show `request.auth.enabled=true` but must not contain the cookie-file path or any cookie value.
+#### Remote/Docker fallback — cookies.txt
 
+When the backend cannot access the user's local browser profile, use the existing youtube.com-only Netscape `cookies.txt` fallback:
 
-#### Export a fresh YouTube cookies.txt
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --cookies-file "/absolute/path/to/youtube-cookies.txt" \
+  --report-file validation-reports/cookie-file-auth-inspect.json
+```
 
-Use a dedicated/fresh YouTube session when possible.
+Do not combine `--browser-session` and `--cookies-file`.
 
-Recommended workflow:
-1. Open a private/incognito browser window and sign in to YouTube.
-2. Keep only that private browsing session open for the export.
-3. Navigate to `https://www.youtube.com/robots.txt` in the same private session.
-4. Export only `youtube.com` cookies in Mozilla/Netscape `cookies.txt` format.
-5. Close the private/incognito session after export so the exported cookie set is not immediately rotated by continued browser use.
-6. Upload/use that file only when authenticated mode is required.
-
-Do not export all browser cookies. Telegram Harbor intentionally rejects cookie rows outside `youtube.com`.
-
-Treat the exported file as a secret equivalent to an authenticated browser session. If YouTube invalidates/rotates the session, export a fresh file.
