@@ -521,9 +521,7 @@ Acceptance:
 
 ### Authenticated-session live validation
 
-YouTube login in Telegram Harbor is cookie-session based. Do not provide Google username/password credentials.
-
-Prepare a Netscape-format `cookies.txt` containing only `youtube.com` cookies from a YouTube session you control.
+Preferred local path: reuse a signed-in browser session on the same host/OS user as Telegram Harbor.
 
 Inspect:
 
@@ -531,8 +529,19 @@ Inspect:
 python scripts/youtube_manual_validate.py \
   --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
   --mode inspect \
-  --cookies-file "/absolute/path/to/youtube-cookies.txt" \
-  --report-file validation-reports/auth-inspect.json
+  --browser-session chrome \
+  --report-file validation-reports/browser-auth-inspect.json
+```
+
+Optional explicit profile:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --browser-session firefox \
+  --browser-profile "default-release" \
+  --report-file validation-reports/browser-auth-profile.json
 ```
 
 Download:
@@ -543,14 +552,29 @@ python scripts/youtube_manual_validate.py \
   --mode video_audio \
   --quality max_720p \
   --save-directory "/absolute/path/to/output" \
-  --cookies-file "/absolute/path/to/youtube-cookies.txt" \
+  --browser-session chrome \
   --acknowledge \
-  --report-file validation-reports/auth-download.json
+  --report-file validation-reports/browser-auth-download.json
+```
+
+For local installs, `--browser-session auto` may be used to detect a supported browser from standard profile locations.
+
+Remote/Docker fallback:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --cookies-file "/absolute/path/to/youtube-cookies.txt" \
+  --report-file validation-reports/cookie-auth-inspect.json
 ```
 
 Acceptance:
-- both reports pass;
-- both report `request.auth.enabled=true`;
-- cookie path, names and values are absent from reports;
-- the UI does not request username/password;
-- private/member-only/premium/DRM blocks remain effective.
+- authenticated Inspect and one authenticated Download pass;
+- Browser Session report shows `request.auth.source=browser`;
+- report may record selected browser and whether a profile was configured, but never the profile path or cookie values;
+- `cookies.txt` fallback report records only the non-secret auth source;
+- browser/cookie values are absent from reports/logs/UI output;
+- private/member-only/premium/DRM blocks remain effective;
+- Browser Session and SOCKS5 may be enabled together.
+
