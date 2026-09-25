@@ -3,7 +3,7 @@
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
 - Current working branch: `feature/youtube-download`
-- Current phase status: YouTube download feature planning is complete; implementation has not started.
+- Current phase status: YouTube download planning is complete, including save-path, warning, subtitle and matched-filename requirements; implementation has not started.
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
 - The completed `gui` branch is already merged into `main`.
 
