@@ -1,14 +1,18 @@
+import os
 import sys
+import tempfile
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 
 from services.youtube_service import (
     YtDlpBackend,
+    YouTubeAuthConfig,
     YouTubeProxyConfig,
     YouTubeServiceError,
     detect_ffmpeg,
     inspect_video,
+    materialize_youtube_cookie_file,
     normalize_downloader_error,
     normalize_formats,
     normalize_metadata,
@@ -265,6 +269,71 @@ class YouTubeMetadataNormalizationTests(unittest.TestCase):
             )
 
 
+class YouTubeAuthConfigTests(unittest.TestCase):
+    COOKIE_BYTES = (
+        b"# Netscape HTTP Cookie File\n"
+        b".youtube.com\tTRUE\t/\tTRUE\t0\tSID\tsecret-value\n"
+    )
+
+    def test_validates_youtube_only_netscape_cookie_file(self):
+        auth = YouTubeAuthConfig(
+            enabled=True,
+            cookie_data=self.COOKIE_BYTES,
+        )
+        normalized = auth.normalized_cookie_bytes()
+
+        self.assertIn(b".youtube.com", normalized)
+        self.assertNotIn(b"google.com", normalized)
+        summary = auth.as_safe_dict()
+        self.assertTrue(summary["enabled"])
+        self.assertEqual(summary["format"], "netscape")
+        self.assertGreater(summary["size_bytes"], 0)
+        self.assertNotIn("secret-value", str(summary))
+
+    def test_rejects_non_netscape_and_non_youtube_cookie_files(self):
+        cases = (
+            b"not a cookie file",
+            (
+                b"# Netscape HTTP Cookie File\n"
+                b".example.com\tTRUE\t/\tTRUE\t0\tSID\tsecret\n"
+            ),
+            (
+                b"# Netscape HTTP Cookie File\n"
+                b".youtube.com\tTRUE\t/\tTRUE\t0\tbroken-row\n"
+            ),
+        )
+        for data in cases:
+            with self.subTest(data=data[:40]):
+                with self.assertRaises(YouTubeServiceError) as caught:
+                    YouTubeAuthConfig(
+                        enabled=True,
+                        cookie_data=data,
+                    ).normalized_cookie_bytes()
+                self.assertEqual(caught.exception.code, "youtube_auth_invalid")
+
+    def test_materialized_cookie_file_is_removed_after_operation(self):
+        auth = YouTubeAuthConfig(
+            enabled=True,
+            cookie_data=self.COOKIE_BYTES,
+        )
+        materialized = None
+        with materialize_youtube_cookie_file(auth) as path:
+            materialized = path
+            self.assertIsNotNone(path)
+            self.assertTrue(os.path.isfile(path))
+            self.assertEqual(
+                open(path, "rb").read(),
+                auth.normalized_cookie_bytes(),
+            )
+        self.assertFalse(os.path.exists(materialized))
+
+    def test_disabled_auth_does_not_materialize_cookie_file(self):
+        with materialize_youtube_cookie_file(
+            YouTubeAuthConfig(enabled=False)
+        ) as path:
+            self.assertIsNone(path)
+
+
 class YouTubeProxyConfigTests(unittest.TestCase):
     def test_disabled_proxy_returns_direct_connection(self):
         proxy = YouTubeProxyConfig(
@@ -376,6 +445,44 @@ class YtDlpBackendTests(unittest.TestCase):
         self.assertTrue(seen["options"]["noplaylist"])
         self.assertTrue(seen["options"]["quiet"])
         self.assertTrue(seen["options"]["no_warnings"])
+
+    def test_backend_uses_ephemeral_cookiefile_for_auth(self):
+        seen = {}
+
+        class FakeYoutubeDL:
+            def __init__(self, options):
+                seen["cookiefile"] = options.get("cookiefile")
+                seen["cookie_exists_during_init"] = os.path.isfile(
+                    seen["cookiefile"]
+                )
+                seen["cookie_bytes"] = open(
+                    seen["cookiefile"], "rb"
+                ).read()
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def extract_info(self, _url, download):
+                seen["download"] = download
+                return {"id": "BaW_jenozKc", "title": "Test"}
+
+        auth = YouTubeAuthConfig(
+            enabled=True,
+            cookie_data=YouTubeAuthConfigTests.COOKIE_BYTES,
+        )
+        fake_module = SimpleNamespace(YoutubeDL=FakeYoutubeDL)
+        with patch.dict(sys.modules, {"yt_dlp": fake_module}):
+            YtDlpBackend(auth=auth).inspect(
+                "https://www.youtube.com/watch?v=BaW_jenozKc"
+            )
+
+        self.assertTrue(seen["cookie_exists_during_init"])
+        self.assertIn(b".youtube.com", seen["cookie_bytes"])
+        self.assertFalse(os.path.exists(seen["cookiefile"]))
+        self.assertFalse(seen["download"])
 
     def test_backend_uses_validated_first_class_socks5_proxy(self):
         seen = {}
