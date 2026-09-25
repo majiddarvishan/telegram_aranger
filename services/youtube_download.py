@@ -77,6 +77,7 @@ class DownloadResult:
     subtitle_path: str | None
     subtitle_format: str | None
     subtitle_source: str | None
+    subtitle_language: str | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -259,6 +260,11 @@ def download_video(
                 subtitle_format=actual_subtitle_format,
                 subtitle_source=(
                     subtitle_plan["source"]
+                    if subtitle_plan is not None
+                    else None
+                ),
+                subtitle_language=(
+                    subtitle_plan["language"]
                     if subtitle_plan is not None
                     else None
                 ),
