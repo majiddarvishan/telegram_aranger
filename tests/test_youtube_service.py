@@ -11,6 +11,7 @@ from services.youtube_service import (
     YouTubeProxyConfig,
     YouTubeServiceError,
     detect_ffmpeg,
+    detect_local_browser_cookie_source,
     inspect_video,
     materialize_youtube_cookie_file,
     normalize_downloader_error,
@@ -311,6 +312,65 @@ class YouTubeAuthConfigTests(unittest.TestCase):
                     ).normalized_cookie_bytes()
                 self.assertEqual(caught.exception.code, "youtube_auth_invalid")
 
+    def test_browser_auth_builds_yt_dlp_browser_spec(self):
+        auth = YouTubeAuthConfig(
+            enabled=True,
+            source="browser",
+            browser="chrome",
+            profile="Profile 2",
+        )
+        self.assertEqual(
+            auth.cookies_from_browser_spec(),
+            ("chrome", "Profile 2", None, None),
+        )
+        self.assertIsNone(auth.normalized_cookie_bytes())
+        self.assertEqual(
+            auth.as_safe_dict(),
+            {
+                "enabled": True,
+                "source": "browser",
+                "browser": "chrome",
+                "profile_configured": True,
+            },
+        )
+
+    def test_auto_browser_detection_uses_standard_profile_roots(self):
+        with patch(
+            "services.youtube_service.os.path.exists",
+            side_effect=lambda path: "google-chrome" in path.lower(),
+        ):
+            self.assertEqual(
+                detect_local_browser_cookie_source(),
+                "chrome",
+            )
+
+    def test_browser_auth_auto_fails_when_no_local_profile_is_detected(self):
+        auth = YouTubeAuthConfig(
+            enabled=True,
+            source="browser",
+            browser="auto",
+        )
+        with patch(
+            "services.youtube_service.detect_local_browser_cookie_source",
+            return_value=None,
+        ):
+            with self.assertRaises(YouTubeServiceError) as caught:
+                auth.cookies_from_browser_spec()
+
+        self.assertEqual(
+            caught.exception.code,
+            "youtube_browser_session_unavailable",
+        )
+
+    def test_browser_auth_does_not_materialize_cookie_file(self):
+        auth = YouTubeAuthConfig(
+            enabled=True,
+            source="browser",
+            browser="firefox",
+        )
+        with materialize_youtube_cookie_file(auth) as path:
+            self.assertIsNone(path)
+
     def test_materialized_cookie_file_is_removed_after_operation(self):
         auth = YouTubeAuthConfig(
             enabled=True,
@@ -520,6 +580,42 @@ class YtDlpBackendTests(unittest.TestCase):
         )
         self.assertFalse(seen["download"])
 
+    def test_backend_uses_local_browser_session_cookies(self):
+        seen = {}
+
+        class FakeYoutubeDL:
+            def __init__(self, options):
+                seen["options"] = options
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def extract_info(self, _url, download):
+                seen["download"] = download
+                return {"id": "BaW_jenozKc", "title": "Test"}
+
+        fake_module = SimpleNamespace(YoutubeDL=FakeYoutubeDL)
+        auth = YouTubeAuthConfig(
+            enabled=True,
+            source="browser",
+            browser="firefox",
+            profile="default-release",
+        )
+        with patch.dict(sys.modules, {"yt_dlp": fake_module}):
+            YtDlpBackend(auth=auth).inspect(
+                "https://www.youtube.com/watch?v=BaW_jenozKc"
+            )
+
+        self.assertEqual(
+            seen["options"]["cookiesfrombrowser"],
+            ("firefox", "default-release", None, None),
+        )
+        self.assertNotIn("cookiefile", seen["options"])
+        self.assertFalse(seen["download"])
+
     def test_backend_rejects_v1_forbidden_access_options(self):
         forbidden_cases = (
             {"cookiefile": "/tmp/cookies.txt"},
@@ -697,6 +793,22 @@ class YouTubeErrorNormalizationTests(unittest.TestCase):
             RuntimeError("Sign in to confirm something unexpected")
         )
         self.assertEqual(error.code, "downloader_error")
+
+    def test_maps_browser_cookie_read_failures(self):
+        messages = (
+            "ERROR: could not find firefox cookies database in '/home/user/.mozilla'",
+            "ERROR: Failed to decrypt with DPAPI",
+            "ERROR: failed to load cookies",
+        )
+        for message in messages:
+            with self.subTest(message=message):
+                error = normalize_downloader_error(RuntimeError(message))
+                self.assertEqual(
+                    error.code,
+                    "youtube_browser_session_unavailable",
+                )
+                self.assertFalse(error.access_restricted)
+                self.assertNotIn("/home/user", error.message)
 
     def test_unknown_downloader_error_does_not_expose_raw_message(self):
         raw = (
