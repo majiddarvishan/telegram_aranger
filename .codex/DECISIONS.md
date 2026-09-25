@@ -212,3 +212,22 @@ Example:
 - `My Video (2).srt`
 
 This preserves the requirement that media and subtitle files remain obviously paired.
+
+
+## D-034 — YouTube SOCKS5 is optional and independent
+Status: implemented on `feature/youtube-download`
+
+YouTube Inspect and Download may use an optional SOCKS5 proxy.
+
+The YouTube proxy is intentionally independent from Telegram networking:
+- disabled by default;
+- configured inside the YouTube workspace;
+- never reuses Telegram SOCKS5 settings automatically;
+- applies consistently to both metadata Inspect and media/subtitle Download;
+- supports optional username/password authentication;
+- keeps the password session-only in the Streamlit UI and out of logs/validation JSON;
+- the manual validation runner reads an optional proxy password from an environment variable instead of a command-line password argument.
+
+Raw `proxy` values remain forbidden through generic yt-dlp `extra_options`; only the validated `YouTubeProxyConfig` path may set yt-dlp's proxy option.
+
+This proxy support is ordinary network routing only. It does not enable cookies, login-protected/private content, DRM bypass, geo-bypass flags, or other access-control circumvention.
