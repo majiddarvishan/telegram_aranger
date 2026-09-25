@@ -408,6 +408,9 @@ def _prepare_date_range(today):
 
 
 MESSAGE_HEADER_KEY = "message-header"
+MESSAGE_FILTERS_KEY = "message-filters"
+MESSAGE_DATE_NAV_KEY = "message-date-nav"
+MESSAGE_ACTIONS_KEY = "message-actions"
 MESSAGE_SCROLL_KEY = "message-scroll-area"
 
 def _render_message_header(settings, options, current_chat_id, today):
@@ -416,69 +419,71 @@ def _render_message_header(settings, options, current_chat_id, today):
     start_date, end_date = _prepare_date_range(today)
 
     with st.container(key=MESSAGE_HEADER_KEY):
-        chat_col, search_col, tag_col = st.columns([2.7, 2.2, 1.2])
+        with st.container(key=MESSAGE_FILTERS_KEY):
+            chat_col, search_col, tag_col = st.columns([2.7, 2.2, 1.2])
 
-        with chat_col:
-            selected_chat_id = st.selectbox(
-                "Chat / Group / Channel",
-                options=list(options),
-                index=list(options).index(current_chat_id),
-                format_func=lambda chat_id: options[chat_id],
-                key="chat_selector",
-                label_visibility="collapsed",
-            )
-
-        with search_col:
-            search = st.text_input(
-                "Search messages",
-                key="message_search",
-                placeholder="Search messages…",
-                label_visibility="collapsed",
-            )
-
-        with tag_col:
-            tag = st.selectbox(
-                "Tag",
-                ["All"] + tags,
-                key="message_tag_filter",
-                label_visibility="collapsed",
-            )
-
-        date_col, previous_col, next_col = st.columns([8.0, 1.0, 1.0])
-
-        with date_col:
-            picked = st.date_input(
-                "Date range",
-                value=(start_date, end_date),
-                max_value=today,
-                key="message_date_range_picker",
-            )
-
-        with previous_col:
-            if st.button(
-                "‹",
-                help="Previous day",
-                use_container_width=True,
-                key="previous_day",
-            ):
-                _set_pending_date_range(
-                    start_date - timedelta(days=1),
-                    end_date - timedelta(days=1),
+            with chat_col:
+                selected_chat_id = st.selectbox(
+                    "Chat / Group / Channel",
+                    options=list(options),
+                    index=list(options).index(current_chat_id),
+                    format_func=lambda chat_id: options[chat_id],
+                    key="chat_selector",
+                    label_visibility="collapsed",
                 )
-                st.rerun()
 
-        with next_col:
-            if st.button(
-                "›",
-                help="Next day",
-                use_container_width=True,
-                key="next_day",
-                disabled=end_date >= today,
-            ):
-                new_end = min(end_date + timedelta(days=1), today)
-                new_start = min(start_date + timedelta(days=1), new_end)
-                _set_pending_date_range(new_start, new_end)
-                st.rerun()
+            with search_col:
+                search = st.text_input(
+                    "Search messages",
+                    key="message_search",
+                    placeholder="Search messages…",
+                    label_visibility="collapsed",
+                )
+
+            with tag_col:
+                tag = st.selectbox(
+                    "Tag",
+                    ["All"] + tags,
+                    key="message_tag_filter",
+                    label_visibility="collapsed",
+                )
+
+        with st.container(key=MESSAGE_DATE_NAV_KEY):
+            date_col, previous_col, next_col = st.columns([8.0, 1.0, 1.0])
+
+            with date_col:
+                picked = st.date_input(
+                    "Date range",
+                    value=(start_date, end_date),
+                    max_value=today,
+                    key="message_date_range_picker",
+                )
+
+            with previous_col:
+                if st.button(
+                    "‹",
+                    help="Previous day",
+                    use_container_width=True,
+                    key="previous_day",
+                ):
+                    _set_pending_date_range(
+                        start_date - timedelta(days=1),
+                        end_date - timedelta(days=1),
+                    )
+                    st.rerun()
+
+            with next_col:
+                if st.button(
+                    "›",
+                    help="Next day",
+                    use_container_width=True,
+                    key="next_day",
+                    disabled=end_date >= today,
+                ):
+                    new_end = min(end_date + timedelta(days=1), today)
+                    new_start = min(start_date + timedelta(days=1), new_end)
+                    _set_pending_date_range(new_start, new_end)
+                    st.rerun()
 
     if isinstance(picked, (list, tuple)) and len(picked) == 2:
         start_date, end_date = picked
@@ -557,41 +562,42 @@ def _render_message_actions(
     )
     can_load_more = loaded_count >= result_limit
 
-    if can_load_more:
-        refresh_col, load_more_col, summary_col = st.columns(
-            [0.8, 0.95, 6.25]
-        )
-    else:
-        refresh_col, summary_col = st.columns([0.8, 7.2])
-        load_more_col = None
+    with st.container(key=MESSAGE_ACTIONS_KEY):
+        if can_load_more:
+            refresh_col, load_more_col, summary_col = st.columns(
+                [0.8, 0.95, 6.25]
+            )
+        else:
+            refresh_col, summary_col = st.columns([0.8, 7.2])
+            load_more_col = None
 
-    with refresh_col:
-        if st.button(
-            "Refresh",
-            key="refresh_messages",
-            use_container_width=True,
-        ):
-            st.session_state.message_query_signature = None
-            st.rerun()
-
-    if load_more_col is not None:
-        with load_more_col:
+        with refresh_col:
             if st.button(
-                "Load more",
-                key="load_more_messages",
+                "Refresh",
+                key="refresh_messages",
                 use_container_width=True,
             ):
-                st.session_state.message_result_limit = (
-                    result_limit + settings.default_message_limit
-                )
                 st.session_state.message_query_signature = None
                 st.rerun()
 
-    with summary_col:
-        st.markdown(
-            action_summary_html(visible_count, loaded_count),
-            unsafe_allow_html=True,
-        )
+        if load_more_col is not None:
+            with load_more_col:
+                if st.button(
+                    "Load more",
+                    key="load_more_messages",
+                    use_container_width=True,
+                ):
+                    st.session_state.message_result_limit = (
+                        result_limit + settings.default_message_limit
+                    )
+                    st.session_state.message_query_signature = None
+                    st.rerun()
+
+        with summary_col:
+            st.markdown(
+                action_summary_html(visible_count, loaded_count),
+                unsafe_allow_html=True,
+            )
 
 
 def _message_matches_filters(
