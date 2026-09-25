@@ -374,6 +374,23 @@ python scripts/youtube_validation_summary.py \
   validation-reports/*.json
 ```
 
+For the stricter pre-release runner evidence gate:
+
+```bash
+python scripts/youtube_validation_summary.py \
+  --require-release-ready \
+  validation-reports/*.json
+```
+
+The release-ready gate additionally requires:
+- native Windows live-download evidence;
+- Docker live-download evidence;
+- a successful acknowledged ordinary-public download;
+- at least one structured failure report;
+- every loaded report to carry the same concrete source commit SHA.
+
+It still does not replace the manual Light/Dark/narrow and real Streamlit presentation review.
+
 The summary reports runner evidence for:
 - preflight;
 - public Inspect;
