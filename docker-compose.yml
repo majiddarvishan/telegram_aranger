@@ -1,6 +1,9 @@
 services:
   telegram-harbor:
-    build: .
+    build:
+      context: .
+      args:
+        TELEGRAM_HARBOR_BUILD_SHA: ${TELEGRAM_HARBOR_BUILD_SHA:-local}
     env_file:
       - .env
     environment:
