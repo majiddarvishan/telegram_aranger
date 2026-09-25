@@ -311,17 +311,17 @@ Planning source:
 - [x] Add warning-state tests.
 
 ### YT-P4 — Download engine
-- [ ] Video + audio mode.
-- [ ] Audio-only mode.
-- [ ] Quality presets.
-- [ ] Optional single subtitle-track download.
-- [ ] Prefer SRT subtitle output and report VTT/original fallback explicitly.
-- [ ] Preserve Manual vs Auto-generated provenance in the normalized result.
-- [ ] Progress-hook normalization.
-- [ ] FFmpeg merge/extract state.
-- [ ] Partial-download cleanup/recovery.
-- [ ] Safe final filename/path reporting.
-- [ ] Error handling and cleanup.
+- [x] Video + audio mode.
+- [x] Audio-only mode.
+- [x] Quality presets.
+- [x] Optional single subtitle-track download.
+- [x] Prefer SRT subtitle output and report VTT/original fallback explicitly.
+- [x] Preserve Manual vs Auto-generated provenance in the normalized result.
+- [x] Progress-hook normalization.
+- [x] FFmpeg merge/extract state.
+- [x] Partial-download cleanup/recovery.
+- [x] Safe final filename/path reporting.
+- [x] Error handling and cleanup.
 
 ### YT-P5 — Streamlit UI
 - [ ] Add independent YouTube workspace.

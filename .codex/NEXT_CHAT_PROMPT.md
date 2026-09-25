@@ -26,7 +26,7 @@ Before doing anything:
 7. Read `.codex/SESSION.md`.
 8. Re-check the current Git branch HEAD before making changes.
 
-Important: implementation has been explicitly approved. YT-P1 through YT-P3 are complete. Continue phase-by-phase from YT-P4 — Download engine unless I change priority.
+Important: implementation has been explicitly approved. YT-P1 through YT-P4 are complete. Continue phase-by-phase from YT-P5 — Streamlit UI unless I change priority.
 
 Confirmed YouTube V1 requirements:
 
@@ -94,6 +94,6 @@ Explicitly deferred from V1:
 
 Planning documents and tasks are already prepared. Continue from them rather than re-planning from scratch.
 
-Continue phase-by-phase from **YT-P4 — Download engine**, keep CI green, and update `.codex/TASKS.md` and `.codex/SESSION.md` after each meaningful step.
+Continue phase-by-phase from **YT-P5 — Streamlit UI**, keep CI green, and update `.codex/TASKS.md` and `.codex/SESSION.md` after each meaningful step.
 
 ---

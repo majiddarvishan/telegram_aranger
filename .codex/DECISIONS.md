@@ -166,13 +166,13 @@ Status: planned
 V1 intentionally excludes playlists, full channels, browser-cookie import, authenticated/private content, batch queues, scheduling, and automatic geo-bypass.
 
 ## D-030 — FFmpeg is an operational dependency for full YouTube output support
-Status: planned
+Status: enforced by YT-P4 engine; platform installation/docs pending YT-P6
 
 FFmpeg must be treated as a platform dependency for video/audio merging and audio extraction where required. Windows and Docker setup, capability detection, and user-facing failure messages are part of the feature definition.
 
 
 ## D-031 — YouTube V1 includes one optional subtitle track
-Status: planned on `feature/youtube-download`
+Status: implemented in YT-P4 engine on `feature/youtube-download`
 
 V1 includes optional subtitle download for a single selected language/track per download job.
 

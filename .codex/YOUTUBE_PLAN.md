@@ -3,7 +3,7 @@
 Branch: `feature/youtube-download`
 Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`
 
-Status: implementation active. YT-P1 through YT-P3 are complete; YT-P4 download engine is next.
+Status: implementation active. YT-P1 through YT-P4 are complete; YT-P5 Streamlit UI is next.
 
 Primary Persian design document:
 `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
@@ -132,17 +132,17 @@ Names may change during implementation if the existing project structure suggest
 - [x] Tests for warning states.
 
 ### YT-P4 — Download engine
-- [ ] Video + audio.
-- [ ] Audio only.
-- [ ] Quality presets.
-- [ ] Optional subtitle-track download.
-- [ ] Prefer SRT output for the selected subtitle; report VTT/original fallback explicitly.
-- [ ] Keep manual subtitle vs auto-caption provenance in result metadata.
-- [ ] Progress normalization.
-- [ ] FFmpeg/post-process state.
-- [ ] Partial-file cleanup/recovery.
-- [ ] Final output path reporting.
-- [ ] Failure handling.
+- [x] Video + audio.
+- [x] Audio only.
+- [x] Quality presets.
+- [x] Optional subtitle-track download.
+- [x] Prefer SRT output for the selected subtitle; report VTT/original fallback explicitly.
+- [x] Keep manual subtitle vs auto-caption provenance in result metadata.
+- [x] Progress normalization.
+- [x] FFmpeg/post-process state.
+- [x] Partial-file cleanup/recovery.
+- [x] Final output path reporting.
+- [x] Failure handling.
 
 ### YT-P5 — Streamlit UI
 - [ ] Independent YouTube workspace.
@@ -203,7 +203,7 @@ When continuing this feature in another ChatGPT conversation:
 
 - Branch is `feature/youtube-download`.
 - Implementation is active on this branch after explicit user approval.
-- YT-P1 through YT-P3 are complete; continue from YT-P4 unless the user changes priority.
+- YT-P1 through YT-P4 are complete; continue from YT-P5 unless the user changes priority.
 - Read this file and `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md` before proposing changes.
 - Preserve existing Telegram Harbor behavior and architecture.
 - Continue implementation phase-by-phase from the next incomplete YouTube phase.

@@ -5,7 +5,7 @@
 - Branch: `feature/youtube-download`
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`
 - برنامه‌ریزی کامل شده و implementation با تأیید صریح کاربر شروع شده است.
-- YT-P1 تا YT-P3 تکمیل شده‌اند و YT-P4 (Download engine) مرحله بعدی است.
+- YT-P1 تا YT-P4 تکمیل شده‌اند و YT-P5 (Streamlit UI) مرحله بعدی است.
 
 ---
 
@@ -587,16 +587,16 @@ CI نباید به YouTube live network وابسته باشد.
 
 ## YT-P4 — Download engine
 
-- [ ] Video + audio mode.
-- [ ] Audio-only mode.
-- [ ] quality presets.
-- [ ] subtitle download.
-- [ ] SRT target / VTT-or-original fallback handling.
-- [ ] progress hooks.
-- [ ] post-processing status.
-- [ ] final path reporting.
-- [ ] failure cleanup.
-- [ ] partial-file handling.
+- [x] Video + audio mode.
+- [x] Audio-only mode.
+- [x] quality presets.
+- [x] subtitle download.
+- [x] SRT target / VTT-or-original fallback handling.
+- [x] progress hooks.
+- [x] post-processing status.
+- [x] final path reporting.
+- [x] failure cleanup.
+- [x] partial-file handling.
 
 ## YT-P5 — UI
 

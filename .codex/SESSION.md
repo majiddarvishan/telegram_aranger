@@ -1275,3 +1275,31 @@ Testing:
 
 Next:
 - YT-P4 — Download engine.
+
+## 2026-09-25 — YT-P4 download engine implementation
+
+Completed:
+- added `services/youtube_download.py` behind the existing downloader/service boundary;
+- added Video + Audio output with MP4 merge/remux and Audio-only output with MP3 extraction;
+- mapped Best / max 1080p / max 720p / max 480p presets to internal yt-dlp format selectors;
+- enforced FFmpeg + FFprobe capability before execution;
+- added optional one-track subtitle download with explicit Manual / Auto-generated source selection;
+- direct SRT is preferred; VTT is downloaded and converted to SRT when possible;
+- if VTT-to-SRT conversion fails, the original VTT is kept and the result reports `subtitle_format=vtt` instead of using a misleading .srt extension;
+- non-SRT/VTT subtitle formats remain in their actual original format;
+- media and subtitle are moved to the final save directory only after the complete job succeeds;
+- downloads and post-processing run inside an isolated temporary directory under the validated save root;
+- incomplete/failed jobs therefore remove partial/intermediate files automatically;
+- final output filenames are reserved with no-overwrite semantics and reuse the YT-P2 grouped collision policy;
+- progress is normalized into percentage, downloaded/total-or-estimated bytes, speed, ETA, phase and post-processor state;
+- final completion progress includes the final media output path;
+- disk-full, unavailable-format and FFmpeg/post-processing failures are normalized;
+- downloader options do not import cookies, reuse the Telegram proxy, or enable geo/access-control bypasses.
+
+Testing:
+- added `tests/test_youtube_download.py` with fake downloader behavior only;
+- isolated local run passed 20 download-engine scenarios;
+- CI now includes the download-engine tests with no live YouTube calls.
+
+Next:
+- YT-P5 — Streamlit UI.
