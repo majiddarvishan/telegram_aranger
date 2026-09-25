@@ -2165,3 +2165,36 @@ Manual acceptance still open:
 - one local Browser Session Inspect;
 - one local Browser Session download;
 - cookies.txt fallback validation for remote/Docker topology if that deployment mode is required.
+
+
+## 2026-09-26 — Browser Session auth policy completion
+
+A remaining policy gap was found after Browser Session support was implemented:
+- yt-dlp could successfully Inspect a signed-in video and return `availability=needs_auth`;
+- Telegram Harbor's policy still treated that metadata state as blocked even when a validated Browser Session/cookies.txt auth source was configured;
+- this could allow authenticated Inspect but prevent the following Download.
+
+Fix:
+- `evaluate_download_policy(..., authenticated_session=True)` now allows `needs_auth` metadata after configured authentication;
+- the user still sees an explicit signed-in-access warning and must acknowledge the normal rights/service notice;
+- without an authenticated session, `needs_auth` remains blocked and guides the user to Browser Session/cookies.txt;
+- private, subscriber/member-only, premium-only and DRM states remain blocked even with authentication;
+- UI, Download engine and manual validation runner pass the authenticated-session state into policy;
+- anti-bot guidance now prefers Browser Session, then direct/alternate SOCKS5/IP, with cookies.txt as the remote/Docker fallback;
+- README, Persian plan, decision records and next-chat contract were reconciled with the current Browser Session V1 scope.
+
+Automated checkpoint:
+- commit `e85a2a087419280b9dce0f61a1ad1d305498ac22`;
+- GitHub Actions run `36202880405`;
+- Linux unittest: success;
+- YouTube service/download/UI/manual-runner/validation-summary tests: success;
+- UI smoke tests: success;
+- Windows/Python 3.14 YouTube engine/manual-runner/summary tests: success;
+- Docker build, FFmpeg preflight and Streamlit health: success.
+
+Manual acceptance still open:
+- one real local Browser Session Inspect;
+- one real local Browser Session Download;
+- cookies.txt fallback on remote/Docker if required;
+- real SOCKS5 validation;
+- remaining YT-P7 media/subtitle/UI/Windows/Docker acceptance.
