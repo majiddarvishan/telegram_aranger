@@ -20,6 +20,7 @@ _WINDOWS_RESERVED = {
     *(f"LPT{number}" for number in range(1, 10)),
 }
 _EXTENSION_RE = re.compile(r"^[A-Za-z0-9]{1,12}$")
+_MAX_BASENAME_UTF8_BYTES = 230
 
 
 class DownloadPathError(ValueError):
@@ -59,10 +60,10 @@ def sanitize_youtube_title(title: str | None, *, max_length: int = 160) -> str:
         candidate = "YouTube Video"
 
     candidate = _avoid_windows_reserved_name(candidate)
-    candidate = _truncate_utf16_units(candidate, max_length).rstrip(" .")
+    candidate = _truncate_filename_budget(candidate, max_length).rstrip(" .")
     candidate = _avoid_windows_reserved_name(candidate)
-    candidate = _truncate_utf16_units(candidate, max_length).rstrip(" .")
-    return candidate or _truncate_utf16_units("YouTube Video", max_length) or "_"
+    candidate = _truncate_filename_budget(candidate, max_length).rstrip(" .")
+    return candidate or _truncate_filename_budget("YouTube Video", max_length) or "_"
 
 
 def _avoid_windows_reserved_name(value: str) -> str:
@@ -70,16 +71,22 @@ def _avoid_windows_reserved_name(value: str) -> str:
     return f"_{value}" if stem in _WINDOWS_RESERVED else value
 
 
-def _truncate_utf16_units(value: str, max_units: int) -> str:
-    """Truncate without splitting characters that use two UTF-16 code units."""
-    used = 0
+def _truncate_filename_budget(value: str, max_utf16_units: int) -> str:
+    """Stay within conservative Windows UTF-16 and Linux UTF-8 name budgets."""
+    used_utf16 = 0
+    used_utf8 = 0
     out: list[str] = []
     for char in value:
-        units = len(char.encode("utf-16-le")) // 2
-        if used + units > max_units:
+        utf16_units = len(char.encode("utf-16-le")) // 2
+        utf8_bytes = len(char.encode("utf-8"))
+        if (
+            used_utf16 + utf16_units > max_utf16_units
+            or used_utf8 + utf8_bytes > _MAX_BASENAME_UTF8_BYTES
+        ):
             break
         out.append(char)
-        used += units
+        used_utf16 += utf16_units
+        used_utf8 += utf8_bytes
     return "".join(out)
 
 
