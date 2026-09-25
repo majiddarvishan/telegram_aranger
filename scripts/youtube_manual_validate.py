@@ -149,7 +149,7 @@ def _result_checks(
     save_directory: str,
     progress_events: list[dict[str, Any]],
     *,
-    subtitle_expected: bool = False,
+    subtitle_expected: bool | None = None,
     expected_subtitle_source: str | None = None,
     expected_subtitle_language: str | None = None,
     expect_collision: bool = False,
@@ -161,6 +161,13 @@ def _result_checks(
         if result.subtitle_path
         else None
     )
+
+    if subtitle_expected is None:
+        subtitle_expected = subtitle is not None
+    if subtitle_expected and expected_subtitle_source is None:
+        expected_subtitle_source = result.subtitle_source
+    if subtitle_expected and expected_subtitle_language is None:
+        expected_subtitle_language = result.subtitle_language
 
     media_exists = media.is_file()
     subtitle_exists = (
