@@ -11,9 +11,11 @@ from typing import Any, Callable, Mapping, Protocol
 from services.youtube_policy import evaluate_download_policy
 from services.youtube_service import (
     FFmpegCapability,
+    YouTubeAuthConfig,
     YouTubeProxyConfig,
     YouTubeServiceError,
     detect_ffmpeg,
+    materialize_youtube_cookie_file,
     normalize_downloader_error,
     validate_youtube_url,
 )
@@ -50,6 +52,7 @@ class DownloadRequest:
     subtitle: SubtitleSelection | None = None
     acknowledged: bool = False
     proxy: YouTubeProxyConfig | None = None
+    auth: YouTubeAuthConfig | None = None
 
 
 @dataclass(frozen=True)
@@ -194,23 +197,25 @@ def download_video(
             dir=save_directory,
         ) as temp_root:
             temp_directory = Path(temp_root)
-            options = build_download_options(
-                temp_directory=temp_directory,
-                basename=temp_basename,
-                mode=mode,
-                quality=quality,
-                subtitle_plan=subtitle_plan,
-                progress_callback=progress_callback,
-                proxy=request.proxy,
-            )
-            downloader = backend or YtDlpDownloadBackend()
+            with materialize_youtube_cookie_file(request.auth) as cookiefile:
+                options = build_download_options(
+                    temp_directory=temp_directory,
+                    basename=temp_basename,
+                    mode=mode,
+                    quality=quality,
+                    subtitle_plan=subtitle_plan,
+                    progress_callback=progress_callback,
+                    proxy=request.proxy,
+                    cookiefile=cookiefile,
+                )
+                downloader = backend or YtDlpDownloadBackend()
 
-            try:
-                info = downloader.download(validated["url"], options)
-            except YouTubeServiceError:
-                raise
-            except Exception as exc:
-                raise normalize_download_error(exc) from exc
+                try:
+                    info = downloader.download(validated["url"], options)
+                except YouTubeServiceError:
+                    raise
+                except Exception as exc:
+                    raise normalize_download_error(exc) from exc
 
             downloaded_video_id = str(info.get("id") or "").strip()
             if (
@@ -333,6 +338,7 @@ def build_download_options(
     subtitle_plan: Mapping[str, Any] | None,
     progress_callback: Callable[[DownloadProgress], None] | None,
     proxy: YouTubeProxyConfig | None = None,
+    cookiefile: str | None = None,
 ) -> dict[str, Any]:
     postprocessors: list[dict[str, Any]] = []
     if mode == "audio_only":
@@ -375,6 +381,8 @@ def build_download_options(
     proxy_url = proxy.proxy_url() if proxy is not None else None
     if proxy_url:
         options["proxy"] = proxy_url
+    if cookiefile:
+        options["cookiefile"] = cookiefile
 
     if mode == "video_audio":
         options["merge_output_format"] = "mp4"
