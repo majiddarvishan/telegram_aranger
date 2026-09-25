@@ -102,7 +102,7 @@ def _prepare_media(
 
     progress_bar = st.progress(
         0,
-        text="Downloading media from Telegram... 0%",
+        text="Downloading media… 0%",
     )
 
     try:
@@ -127,7 +127,7 @@ def _prepare_media(
                     size_text = f" · {_format_bytes(current)} / {_format_bytes(total)}"
                 progress_bar.progress(
                     percent,
-                    text=f"Downloading media from Telegram... {percent}%{size_text}",
+                    text=f"Downloading media… {percent}%{size_text}",
                 )
                 last_percent = percent
 
@@ -136,7 +136,7 @@ def _prepare_media(
         result = future.result()
         progress_bar.progress(
             100,
-            text="Downloading media from Telegram... 100%",
+            text="Downloading media… 100%",
         )
     except Exception as exc:
         progress_bar.empty()
@@ -368,14 +368,19 @@ def _load_or_refresh_dialogs(
 
 
 def _chat_label(chat):
-    prefix = {
-        "private": "👤",
-        "group": "👥",
-        "supergroup": "👥",
-        "channel": "📢",
-    }.get(chat["type"], "💬")
-    username = f" (@{chat['username']})" if chat.get("username") else ""
-    return f"{prefix} {chat['title']}{username}"
+    type_label = {
+        "private": "Private",
+        "group": "Group",
+        "supergroup": "Group",
+        "channel": "Channel",
+    }.get(chat["type"], "Chat")
+
+    parts = [chat["title"]]
+    if chat.get("username"):
+        parts.append(f"@{chat['username']}")
+    parts.append(type_label)
+
+    return " · ".join(parts)
 
 
 def _set_pending_date_range(start_date, end_date):
@@ -521,7 +526,7 @@ def _fetch_messages_if_needed(
     if not should_fetch:
         return
 
-    with st.spinner("Fetching messages..."):
+    with st.spinner("Loading messages…"):
         try:
             start_dt, end_dt = bounds(start_date, end_date)
             st.session_state.messages = history(
