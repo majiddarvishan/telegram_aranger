@@ -34,6 +34,9 @@ from ui.theme import (
 )
 
 
+WEB_ACCOUNT_CARD_KEY = "web-account-card"
+
+
 def _reset_login() -> None:
     st.session_state.telegram_login_active = False
     st.session_state.telegram_login_stage = "phone"
@@ -80,26 +83,31 @@ def _render_web_account(settings, user: dict) -> None:
         section_title_html("Web account"),
         unsafe_allow_html=True,
     )
-    st.sidebar.markdown(
-        account_card_html(display_name, user["username"]),
-        unsafe_allow_html=True,
-    )
 
-    if st.sidebar.button(
-        "Sign out",
-        key="sidebar-web-logout",
-        use_container_width=True,
+    with st.sidebar.container(
+        border=True,
+        key=WEB_ACCOUNT_CARD_KEY,
     ):
-        try:
-            runtime = st.session_state.get("telegram_runtime")
-            if runtime:
-                runtime.stop()
-        except Exception:
-            pass
+        st.markdown(
+            account_card_html(display_name, user["username"]),
+            unsafe_allow_html=True,
+        )
 
-        logout_web_user(settings)
-        # Cookie deletion is browser-side. Let the component finish naturally.
-        st.stop()
+        if st.button(
+            "Sign out",
+            key="sidebar-web-logout",
+            use_container_width=True,
+        ):
+            try:
+                runtime = st.session_state.get("telegram_runtime")
+                if runtime:
+                    runtime.stop()
+            except Exception:
+                pass
+
+            logout_web_user(settings)
+            # Cookie deletion is browser-side. Let the component finish naturally.
+            st.stop()
 
 
 def _render_network_settings():
