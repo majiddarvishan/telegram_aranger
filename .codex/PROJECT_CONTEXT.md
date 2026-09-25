@@ -218,12 +218,18 @@ Real Telegram/browser validation has been completed successfully with no issues 
 - Planned outputs:
   - Video + audio;
   - Audio only;
+  - optional single-track subtitle download;
   - simple quality presets.
 - Metadata must be inspected before download.
+- Subtitle metadata distinguishes manual subtitles from auto-generated captions.
+- Preferred subtitle output is SRT with explicit fallback reporting when SRT conversion is unavailable.
+- Saved media names use the sanitized video title as the basename.
+- When subtitle download is enabled, media and subtitle files use the same basename.
+- Collision suffixes are applied to the complete output group so paired files remain aligned.
 - UI should show a general copyright/service notice and stronger restriction warnings where signals exist.
 - Warning remains non-blocking for ordinarily accessible public content after acknowledgement.
 - V1 does not include DRM/paywall/private/member-only/login-protection bypass.
-- V1 does not include playlists, channels, browser-cookie import, batch queues, scheduling, or automatic geo-bypass.
+- V1 does not include playlists, channels, browser-cookie import, batch queues, scheduling, automatic geo-bypass, or multiple subtitle languages in one job.
 - FFmpeg is an expected operational dependency for merging/extraction.
 - Downloader behavior must be isolated behind a service layer; Streamlit UI must not depend directly on the downloader library.
 - Detailed plans:
