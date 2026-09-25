@@ -131,6 +131,13 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn("YouTube download failed unexpectedly.", source)
         self.assertIn("YouTube inspection failed unexpectedly.", source)
 
+    def test_completed_output_keeps_subtitle_provenance(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+        self.assertIn("Last completed output", source)
+        self.assertIn("subtitle_language", source)
+        self.assertIn("subtitle_format", source)
+        self.assertIn("subtitle_source", source)
+
     def test_ui_contains_v1_safety_and_progress_contract(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         self.assertIn("Save directory", source)
