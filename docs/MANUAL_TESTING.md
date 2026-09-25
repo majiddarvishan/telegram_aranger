@@ -305,3 +305,34 @@ python scripts/youtube_manual_validate.py \
 This helper is for manual/live validation only. GitHub Actions tests the helper with fakes and does not call live YouTube.
 
 See `.codex/YOUTUBE_VALIDATION.md` for Windows, Docker, subtitle and collision commands.
+
+
+### YouTube offline preflight
+
+Before any live YouTube validation, verify the host prerequisites without network access:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --mode preflight \
+  --save-directory "/absolute/path/to/output"
+```
+
+For a restricted hosted root:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --mode preflight \
+  --save-directory "/srv/telegram-harbor/youtube/test" \
+  --allowed-root "/srv/telegram-harbor/youtube" \
+  --create-directory
+```
+
+Expected result:
+- exit code 0;
+- `status=passed`;
+- FFmpeg + FFprobe fully available;
+- Save directory valid/writable;
+- environment/build identity included in the JSON report;
+- no YouTube URL required and no live YouTube request performed.
+
+Invalid YouTube URLs in live modes must produce a structured JSON failure rather than a traceback.
