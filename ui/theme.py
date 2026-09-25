@@ -14,6 +14,7 @@ DESIGN_TOKENS = {
     "radius_panel": "12px",
     "radius_pill": "999px",
     "control_height": "40px",
+    "top_safe_area": "48px",
 }
 
 
@@ -22,7 +23,9 @@ MESSAGE_HEADER_CSS = """
     position: relative;
     z-index: 2;
     padding: var(--th-space-3) var(--th-space-4) var(--th-space-4);
+    margin-top: var(--th-space-2);
     margin-bottom: var(--th-space-3);
+    overflow: visible;
     background: var(--th-surface);
     border: 1px solid var(--th-border);
     border-radius: var(--th-radius-panel);
@@ -75,6 +78,7 @@ APP_CSS = f"""
     --th-radius-panel: {DESIGN_TOKENS["radius_panel"]};
     --th-radius-pill: {DESIGN_TOKENS["radius_pill"]};
     --th-control-height: {DESIGN_TOKENS["control_height"]};
+    --th-top-safe-area: {DESIGN_TOKENS["top_safe_area"]};
 
     --th-border: rgba(128, 128, 128, 0.22);
     --th-border-strong: rgba(128, 128, 128, 0.34);
@@ -93,9 +97,11 @@ body,
     text-rendering: optimizeLegibility;
 }}
 
-[data-testid="stAppViewContainer"] .block-container {{
-    padding-top: var(--th-space-3);
+[data-testid="stAppViewContainer"] .block-container,
+[data-testid="stMainBlockContainer"] {{
+    padding-top: var(--th-top-safe-area);
     padding-bottom: var(--th-space-6);
+    overflow: visible;
 }}
 
 [data-testid="stSidebar"] {{
@@ -535,8 +541,9 @@ hr {{
 {MESSAGE_HEADER_CSS}
 
 @media (max-width: 900px) {{
-    [data-testid="stAppViewContainer"] .block-container {{
-        padding-top: var(--th-space-4);
+    [data-testid="stAppViewContainer"] .block-container,
+    [data-testid="stMainBlockContainer"] {{
+        padding-top: 40px;
     }}
 
     .st-key-message-header [data-testid="stHorizontalBlock"] {{
