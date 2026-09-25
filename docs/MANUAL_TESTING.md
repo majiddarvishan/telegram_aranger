@@ -271,3 +271,37 @@ Expected:
 - ordinarily accessible public content remains downloadable after acknowledgement;
 - private/member-only/login-protected/DRM/paywalled content is not bypassed;
 - no browser-cookie import or automatic Telegram proxy reuse occurs.
+
+
+### Optional repeatable YouTube service-level runner
+
+For repeatable live checks outside the Streamlit UI, use:
+
+```bash
+python scripts/youtube_manual_validate.py --help
+```
+
+Example Inspect:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --report-file validation-reports/inspect.json
+```
+
+Example Video + Audio:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode video_audio \
+  --quality max_720p \
+  --save-directory "/absolute/path/to/output" \
+  --acknowledge \
+  --report-file validation-reports/video.json
+```
+
+This helper is for manual/live validation only. GitHub Actions tests the helper with fakes and does not call live YouTube.
+
+See `.codex/YOUTUBE_VALIDATION.md` for Windows, Docker, subtitle and collision commands.
