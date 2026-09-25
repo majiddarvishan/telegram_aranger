@@ -188,6 +188,24 @@ def summarize_reports(reports: list[dict[str, Any]]) -> dict[str, Any]:
         "collision_second_run",
         "save_directory_live",
     )
+    release_runner_keys = (
+        *core_keys,
+        "windows_live_download",
+        "docker_live_download",
+        "public_acknowledged_download",
+        "structured_failure_report",
+    )
+    core_runner_coverage_complete = all(
+        coverage[key] for key in core_keys
+    )
+    release_runner_coverage_complete = all(
+        coverage[key] for key in release_runner_keys
+    )
+    release_runner_evidence_ready = (
+        release_runner_coverage_complete
+        and source_commit_complete
+        and len(commits) == 1
+    )
 
     return {
         "reports_total": len(reports),
@@ -202,9 +220,9 @@ def summarize_reports(reports: list[dict[str, Any]]) -> dict[str, Any]:
             source_commit_complete and len(commits) == 1
         ),
         "coverage": coverage,
-        "core_runner_coverage_complete": all(
-            coverage[key] for key in core_keys
-        ),
+        "core_runner_coverage_complete": core_runner_coverage_complete,
+        "release_runner_coverage_complete": release_runner_coverage_complete,
+        "release_runner_evidence_ready": release_runner_evidence_ready,
         "manual_only_remaining": [
             "Light theme visual review",
             "Dark theme visual review",
@@ -243,6 +261,14 @@ def main() -> int:
         action="store_true",
         help="Return non-zero unless all core runner scenarios are covered.",
     )
+    parser.add_argument(
+        "--require-release-ready",
+        action="store_true",
+        help=(
+            "Return non-zero unless all runner/platform/policy scenarios are "
+            "covered by reports from one concrete source commit."
+        ),
+    )
     args = parser.parse_args()
 
     paths = _expand_patterns(args.reports)
@@ -263,6 +289,11 @@ def main() -> int:
         return 2
     if args.require_core and not summary["core_runner_coverage_complete"]:
         return 4
+    if (
+        args.require_release_ready
+        and not summary["release_runner_evidence_ready"]
+    ):
+        return 5
     return 0
 
 
