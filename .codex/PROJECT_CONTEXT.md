@@ -197,3 +197,11 @@ Real Telegram/browser validation has been completed successfully with no issues 
 - Legacy dialog-cache rows without peer metadata are intentionally refreshed once after schema v4 migration.
 - This prevents cached channel/supergroup IDs from producing `PeerIdInvalid` merely because the process restarted.
 - Username/bounded-dialog lazy recovery remains as a fallback for stale or unavailable records.
+
+
+## Automatic empty-range fallback
+- When a chat is selected for the first time in the current UI session, Telegram Harbor first tries the currently selected date range.
+- If that range contains no messages and the Telegram request itself succeeded, the app fetches only the newest `default_message_limit` messages for that chat.
+- The visible Date range is then synchronized to the oldest/newest dates represented by that latest-message batch.
+- The fallback is one-shot per chat selection. If the user later manually chooses an empty range, Telegram Harbor preserves that choice instead of jumping away from it.
+- The startup/default chat remains Saved Messages when it is available.
