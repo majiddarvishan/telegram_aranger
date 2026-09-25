@@ -364,6 +364,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Hide Telegram account/proxy controls while the YouTube workspace is selected, with explicit UI copy that Telegram SOCKS5 is not reused.
 - [x] Move workspace selection ownership into the shared sidebar routing and add regression coverage.
 - [x] Scan all GitHub Actions workflow YAML files for accidental live YouTube URLs/direct live runner usage.
+- [x] Add self-validating post-download checks to the manual runner for file existence, final-path containment, completion progress, and matched media/subtitle basename.
 
 - [ ] Public test video.
 - [ ] Video + audio.
