@@ -445,3 +445,21 @@ If any supplied validation report cannot be read/parsed, the summary sets:
 - `release_runner_evidence_ready=false`.
 
 A non-zero CLI exit code alone is not the only signal; the JSON readiness field is also forced false.
+
+
+### Runner evidence is not full release acceptance
+
+Even when `--require-release-ready` succeeds, that command means the **manual-runner evidence set** is complete and internally consistent.
+
+The JSON summary intentionally keeps:
+- `manual_acceptance_required=true`;
+- `full_release_ready=false`.
+
+The following still require actual Streamlit/manual acceptance:
+- public Inspect in the real UI;
+- Video + Audio progress/completion UI;
+- Audio-only progress/completion UI;
+- Save-directory create/validate/write behavior in the real UI;
+- Light/Dark/narrow visual review;
+- warning/error presentation;
+- final merge/release review.
