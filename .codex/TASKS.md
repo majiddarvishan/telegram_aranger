@@ -372,6 +372,9 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Run Docker preflight in CI without any YouTube URL.
 - [x] Return invalid YouTube URLs as structured failure reports instead of uncaught tracebacks.
 - [x] Self-check title-based output naming, collision suffix acceptance, media mode extension, and subtitle reported extension.
+- [x] Fail validation when a requested subtitle is missing or its Manual/Auto-generated source does not match.
+- [x] Include subtitle language in `DownloadResult` and verify it matches the selected language.
+- [x] Add `--expect-collision` so the intentional second live run can self-validate that a numeric suffix was actually used.
 
 - [ ] Public test video.
 - [ ] Video + audio.
