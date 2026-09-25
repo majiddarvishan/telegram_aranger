@@ -62,6 +62,7 @@ Confirmed YouTube V1 requirements:
 - No browser-cookie import or authenticated private-content support in V1.
 - No automatic geo-bypass in V1.
 - YouTube supports an optional independent SOCKS5 proxy for Inspect and Download.
+- YouTube supports optional cookie-session authentication via a user-supplied Netscape-format `cookies.txt`; never ask for Google username/password or OAuth credentials.
 - Do not automatically reuse the Telegram SOCKS5 proxy for YouTube.
 - FFmpeg is an expected operational dependency for merge/audio extraction/post-processing.
 - Support Windows and Docker FFmpeg setup/capability detection.
