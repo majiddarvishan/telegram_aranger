@@ -107,6 +107,18 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn('key="youtube-save-controls"', source)
         self.assertIn("use_container_width=True", source)
 
+    def test_notice_is_rendered_before_acknowledgement_control(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+        notice_position = source.index(
+            "base_policy = _render_restriction_state(metadata)"
+        )
+        acknowledgement_position = source.index(
+            '"I acknowledge the rights/service notice and want to continue."'
+        )
+        self.assertLess(notice_position, acknowledgement_position)
+        self.assertIn("if base_policy.blocked:", source)
+        self.assertIn("acknowledged = False", source)
+
     def test_ui_does_not_render_raw_unexpected_exception_text(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         self.assertNotIn('st.error(f"YouTube download failed: {exc}")', source)
