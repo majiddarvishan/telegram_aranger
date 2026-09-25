@@ -233,3 +233,6 @@ jobs:
 
       - name: Run YouTube manual-runner offline tests on Windows
         run: python -m unittest discover -s tests -p "test_youtube_manual_validate.py" -v
+
+      - name: Run YouTube validation-summary tests on Windows
+        run: python -m unittest discover -s tests -p "test_youtube_validation_summary.py" -v
