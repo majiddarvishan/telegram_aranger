@@ -33,13 +33,17 @@ class TitleSanitizationTests(unittest.TestCase):
             160,
         )
 
-    def test_truncates_supplementary_unicode_by_utf16_units(self):
+    def test_truncates_supplementary_unicode_by_cross_platform_budget(self):
         value = sanitize_youtube_title("😀" * 100)
-        self.assertEqual(len(value), 80)
-        self.assertEqual(
+        self.assertLessEqual(
             len(value.encode("utf-16-le")) // 2,
             160,
         )
+        self.assertLessEqual(
+            len(value.encode("utf-8")),
+            230,
+        )
+        self.assertGreater(len(value), 0)
 
     def test_truncation_does_not_create_windows_reserved_name(self):
         value = sanitize_youtube_title("CONXYZ", max_length=3)
@@ -175,8 +179,10 @@ class OutputGroupTests(unittest.TestCase):
             )
 
             for path in group.paths:
-                units = len(path.name.encode("utf-16-le")) // 2
-                self.assertLess(units, 255)
+                utf16_units = len(path.name.encode("utf-16-le")) // 2
+                utf8_bytes = len(path.name.encode("utf-8"))
+                self.assertLess(utf16_units, 255)
+                self.assertLess(utf8_bytes, 255)
 
     def test_rejects_extension_path_escape(self):
         with tempfile.TemporaryDirectory() as tmp:
