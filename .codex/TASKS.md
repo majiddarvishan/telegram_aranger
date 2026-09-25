@@ -386,6 +386,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Fail closed on unknown non-public availability states; only public/unlisted/unspecified states remain non-blocked before acknowledgement.
 - [x] Show the general rights/service notice before Inspect so it is always visible in the YouTube workspace.
 - [x] Enforce video-ID identity across URL, Inspect metadata, and downloader result so stale/mismatched metadata cannot drive policy or output.
+- [x] Reject zero-byte media/subtitle outputs and treat zero-byte SRT conversion as fallback rather than success.
 - [x] Reject zero-byte YouTube media/subtitle outputs and record output sizes in manual validation evidence.
 - [x] Treat zero-byte converted SRT as conversion failure and fall back to the original non-empty subtitle.
 
