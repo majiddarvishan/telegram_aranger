@@ -186,15 +186,18 @@ def _render_metadata(metadata: Mapping[str, Any]) -> None:
             )
 
 
-def _render_restriction_state(metadata: Mapping[str, Any], acknowledged: bool):
-    policy = evaluate_download_policy(metadata, acknowledged=acknowledged)
+def _render_restriction_state(metadata: Mapping[str, Any]):
+    policy = evaluate_download_policy(metadata, acknowledged=False)
 
     st.info(GENERAL_RIGHTS_NOTICE)
     for warning in policy.warnings:
         st.warning(warning.message)
 
     if policy.blocked:
-        st.error(policy.block_message or "This content is outside YouTube V1 support.")
+        st.error(
+            policy.block_message
+            or "This content is outside YouTube V1 support."
+        )
 
     return policy
 
@@ -437,11 +440,22 @@ def render_youtube(settings) -> None:
             + ", ".join(settings.youtube_download_roots)
         )
 
-    acknowledged = st.checkbox(
-        "I acknowledge the rights/service notice and want to continue.",
-        key="youtube_acknowledged",
+    base_policy = _render_restriction_state(metadata)
+
+    if base_policy.blocked:
+        if st.session_state.get("youtube_acknowledged"):
+            st.session_state.youtube_acknowledged = False
+        acknowledged = False
+    else:
+        acknowledged = st.checkbox(
+            "I acknowledge the rights/service notice and want to continue.",
+            key="youtube_acknowledged",
+        )
+
+    policy = evaluate_download_policy(
+        metadata,
+        acknowledged=acknowledged,
     )
-    policy = _render_restriction_state(metadata, acknowledged)
 
     can_start = (
         bool(st.session_state.get("youtube_save_directory", "").strip())
