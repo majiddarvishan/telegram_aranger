@@ -481,12 +481,14 @@ def resolve_media_source(
     candidates.append(temp_directory / f"{basename}.{extension}")
 
     for candidate in candidates:
-        if candidate.is_file() and candidate.suffix.lower() == f".{extension}":
-            return candidate
+        safe = _safe_temp_output(candidate, temp_directory)
+        if safe is not None and safe.suffix.lower() == f".{extension}":
+            return safe
 
     for candidate in temp_directory.glob(f"{basename}.*"):
-        if candidate.is_file() and candidate.suffix.lower() == f".{extension}":
-            return candidate
+        safe = _safe_temp_output(candidate, temp_directory)
+        if safe is not None and safe.suffix.lower() == f".{extension}":
+            return safe
 
     raise YouTubeServiceError(
         "output_missing",
@@ -506,26 +508,44 @@ def resolve_subtitle_source(
     if isinstance(requested, Mapping):
         sub = requested.get(language)
         if isinstance(sub, Mapping) and sub.get("filepath"):
-            candidate = Path(str(sub["filepath"]))
-            if candidate.is_file():
+            candidate = _safe_temp_output(
+                Path(str(sub["filepath"])),
+                temp_directory,
+            )
+            if candidate is not None:
                 return candidate
 
-    expected = temp_directory / f"{basename}.{language}.{requested_format}"
-    if expected.is_file():
+    expected = _safe_temp_output(
+        temp_directory / f"{basename}.{language}.{requested_format}",
+        temp_directory,
+    )
+    if expected is not None:
         return expected
 
-    matches = [
-        path
-        for path in temp_directory.glob(f"{basename}.{language}.*")
-        if path.is_file()
-    ]
-    if matches:
-        return matches[0]
+    for path in temp_directory.glob(f"{basename}.{language}.*"):
+        candidate = _safe_temp_output(path, temp_directory)
+        if candidate is not None:
+            return candidate
 
     raise YouTubeServiceError(
         "subtitle_output_missing",
         "Downloader completed but the selected subtitle file was not found.",
     )
+
+
+def _safe_temp_output(candidate: Path, temp_directory: Path) -> Path | None:
+    """Return a real file only when it resolves inside the job temp directory."""
+    try:
+        root = temp_directory.resolve(strict=True)
+        resolved = candidate.resolve(strict=True)
+    except OSError:
+        return None
+
+    if not resolved.is_file():
+        return None
+    if root not in resolved.parents:
+        return None
+    return resolved
 
 
 def try_convert_subtitle_to_srt(
