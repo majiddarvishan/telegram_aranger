@@ -9,6 +9,7 @@ from ui.main import (
     MESSAGE_HEADER_KEY,
     MESSAGE_SCROLL_KEY,
     _chat_label,
+    _default_chat_id,
     _delete_state_key,
     _display_message_text,
     _message_card_key,
@@ -17,7 +18,7 @@ from ui.main import (
     _tag_editor_state_key,
     _remove_message_from_state,
 )
-from ui.sidebar import _apply_account_selection
+from ui.sidebar import WEB_ACCOUNT_CARD_KEY, _apply_account_selection
 
 
 class StickyHeaderTests(unittest.TestCase):
@@ -79,6 +80,47 @@ class ChatLabelPolishTests(unittest.TestCase):
         self.assertNotIn("👥", label)
         self.assertNotIn("📢", label)
         self.assertNotIn("💬", label)
+
+
+    def test_saved_messages_is_default_chat_for_current_telegram_user(self):
+        dialogs = [
+            {
+                "id": -100,
+                "title": "Operations",
+                "type": "group",
+                "username": "",
+            },
+            {
+                "id": 1001,
+                "title": "Majid",
+                "type": "private",
+                "username": "majiddarvishan",
+            },
+        ]
+
+        self.assertEqual(
+            _default_chat_id(dialogs, {"id": 1001}),
+            1001,
+        )
+        self.assertEqual(
+            _chat_label(dialogs[1], 1001),
+            "Saved Messages · Private",
+        )
+
+    def test_default_chat_falls_back_to_first_dialog(self):
+        dialogs = [
+            {
+                "id": -100,
+                "title": "Operations",
+                "type": "group",
+                "username": "",
+            }
+        ]
+
+        self.assertEqual(
+            _default_chat_id(dialogs, {"id": 1001}),
+            -100,
+        )
 
 
 class UiMessageSmokeTests(unittest.TestCase):
@@ -292,6 +334,9 @@ class SidebarHierarchySmokeTests(unittest.TestCase):
         self.assertIn("Account actions", actions_source)
         self.assertIn("Log out & remove", actions_source)
         self.assertIn("Sign out", web_source)
+        self.assertIn("st.sidebar.container", web_source)
+        self.assertIn("WEB_ACCOUNT_CARD_KEY", web_source)
+        self.assertEqual(WEB_ACCOUNT_CARD_KEY, "web-account-card")
 
 
 class UiAccountSelectionSmokeTests(unittest.TestCase):
