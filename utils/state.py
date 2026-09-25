@@ -23,6 +23,7 @@ def initialize_state():
         "message_range_signature": None,
         "message_result_limit": None,
         "message_fetch_error": None,
+        "message_auto_latest_chat_id": None,
         "media_files": {},
         "pending_delete_message": None,
         "use_proxy": True,
