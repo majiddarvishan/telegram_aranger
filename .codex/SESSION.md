@@ -2112,3 +2112,21 @@ Automated checkpoint:
 
 Manual item still open:
 - validate one real authenticated Inspect and one real authenticated Download with a YouTube `cookies.txt` from a session the user controls.
+
+
+## 2026-09-26 — YouTube cookie-auth full-green checkpoint
+
+GitHub Actions run `36201744180` completed successfully on commit `bfc5fef7960e96563d2ddf4a3a3870d37886f49d`.
+
+Validated:
+- Linux unittest: success;
+- Windows/Python 3.14: success;
+- Docker build/preflight/health: success;
+- ephemeral cookie authentication service tests: success;
+- authenticated download cookie routing tests: success;
+- session-only UI contract tests: success;
+- manual-runner auth evidence tests: success;
+- validation-summary authenticated Inspect/Download release-evidence tests: success;
+- anti-bot error guidance now points to fresh `youtube.com cookies.txt` as an optional recovery path instead of incorrectly claiming auth is unsupported.
+
+The remaining authentication item is real/manual validation with a fresh YouTube cookie export from a session the user controls.
