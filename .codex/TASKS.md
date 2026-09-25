@@ -376,6 +376,8 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Include subtitle language in `DownloadResult` and verify it matches the selected language.
 - [x] Add `--expect-collision` so the intentional second live run can self-validate that a numeric suffix was actually used.
 - [x] Keep subtitle language/format/source visible in the persisted `Last completed output` UI after reruns.
+- [x] Add an offline validation-report aggregator for core runner scenarios, Windows/Docker live evidence, mixed-commit detection, and structured failures.
+- [x] Add `--require-core` summary mode without treating visual/manual-only checks as automated.
 
 - [ ] Public test video.
 - [ ] Video + audio.
