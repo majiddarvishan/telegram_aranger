@@ -765,7 +765,6 @@ class YouTubeErrorNormalizationTests(unittest.TestCase):
             "This video is private": "private_content",
             "This is members-only content": "members_only",
             "This video is DRM protected": "drm_protected",
-            "Sign in to confirm your age": "login_required",
             "This video is not available in your country": "geo_restricted",
         }
         for message, code in cases.items():
@@ -773,6 +772,15 @@ class YouTubeErrorNormalizationTests(unittest.TestCase):
                 error = normalize_downloader_error(RuntimeError(message))
                 self.assertEqual(error.code, code)
                 self.assertTrue(error.access_restricted)
+
+    def test_login_required_is_retryable_with_supported_auth(self):
+        error = normalize_downloader_error(
+            RuntimeError("Sign in to confirm your age")
+        )
+        self.assertEqual(error.code, "login_required")
+        self.assertFalse(error.access_restricted)
+        self.assertIn("Browser session", error.message)
+        self.assertNotIn("outside Telegram Harbor V1", error.message)
 
     def test_maps_youtube_bot_verification_separately_from_content_auth(self):
         messages = (
