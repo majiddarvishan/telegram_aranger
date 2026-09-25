@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from scripts.youtube_manual_validate import (
+    _auth_from_args,
     _binary_runtime_available,
     _detect_commit_sha,
     _environment_summary,
@@ -42,6 +43,31 @@ class ManualValidationHelperTests(unittest.TestCase):
             self.assertFalse(_binary_runtime_available("/ffmpeg"))
 
         self.assertFalse(_binary_runtime_available(None))
+
+    def test_auth_from_args_reads_cookie_file_without_reporting_contents(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "cookies.txt"
+            path.write_bytes(
+                b"# Netscape HTTP Cookie File\n"
+                b".youtube.com\tTRUE\t/\tTRUE\t0\tSID\tsecret-value\n"
+            )
+            args = SimpleNamespace(cookies_file=str(path))
+            auth = _auth_from_args(args)
+
+        self.assertIsNotNone(auth)
+        self.assertIn(
+            b".youtube.com",
+            auth.normalized_cookie_bytes(),
+        )
+        self.assertNotIn(
+            "secret-value",
+            str(auth.as_safe_dict()),
+        )
+
+    def test_auth_from_args_is_disabled_without_cookie_file(self):
+        self.assertIsNone(
+            _auth_from_args(SimpleNamespace(cookies_file=None))
+        )
 
     def test_proxy_from_args_uses_password_environment_without_reporting_secret(self):
         args = SimpleNamespace(
@@ -96,6 +122,7 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(summary["subtitle_source"], "manual")
         self.assertTrue(summary["acknowledged"])
         self.assertFalse(summary["proxy"]["enabled"])
+        self.assertFalse(summary["auth"]["enabled"])
         self.assertNotIn("url", summary)
 
     def test_native_git_head_overrides_stale_build_sha_environment(self):
@@ -227,12 +254,18 @@ class ManualValidationHelperTests(unittest.TestCase):
                 "1081",
                 "--proxy-user",
                 "proxy-user",
+                "--cookies-file",
+                "/tmp/youtube-cookies.txt",
             ]
         )
         self.assertTrue(collision.expect_collision)
         self.assertEqual(collision.proxy_host, "127.0.0.1")
         self.assertEqual(collision.proxy_port, 1081)
         self.assertEqual(collision.proxy_user, "proxy-user")
+        self.assertEqual(
+            collision.cookies_file,
+            "/tmp/youtube-cookies.txt",
+        )
 
     def test_missing_url_returns_structured_failure_report(self):
         args = SimpleNamespace(
@@ -494,6 +527,63 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(report["request"]["mode"], "inspect")
         self.assertNotIn("url", report["request"])
         self.assertNotIn(args.url, str(report))
+
+    def test_run_inspect_passes_auth_without_reporting_cookie_contents(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            cookie_path = Path(tmp) / "cookies.txt"
+            cookie_path.write_bytes(
+                b"# Netscape HTTP Cookie File\n"
+                b".youtube.com\tTRUE\t/\tTRUE\t0\tSID\tsecret-value\n"
+            )
+            args = SimpleNamespace(
+                url="https://youtu.be/BaW_jenozKc",
+                mode="inspect",
+                quality="best",
+                save_directory=None,
+                create_directory=False,
+                allowed_root=[],
+                subtitle_language=None,
+                subtitle_source=None,
+                acknowledge=False,
+                expect_collision=False,
+                report_file=None,
+                cookies_file=str(cookie_path),
+            )
+            metadata = {
+                "video_id": "BaW_jenozKc",
+                "title": "Test Video",
+                "availability": "public",
+                "age_limit": 0,
+                "has_drm": False,
+                "formats": [{"format_id": "18"}],
+                "subtitles": [],
+            }
+            with (
+                patch(
+                    "scripts.youtube_manual_validate.inspect_video",
+                    return_value=metadata,
+                ) as inspect_mock,
+                patch(
+                    "scripts.youtube_manual_validate.detect_ffmpeg",
+                    return_value=FFmpegCapability("/ffmpeg", "/ffprobe"),
+                ),
+            ):
+                report, code = run(args)
+
+        self.assertEqual(code, 0)
+        auth = inspect_mock.call_args.kwargs["auth"]
+        self.assertIsNotNone(auth)
+        self.assertIn(
+            b".youtube.com",
+            auth.normalized_cookie_bytes(),
+        )
+        self.assertTrue(report["request"]["auth"]["enabled"])
+        self.assertEqual(
+            report["request"]["auth"]["source"],
+            "cookies_file",
+        )
+        self.assertNotIn("secret-value", str(report))
+        self.assertNotIn(str(cookie_path), str(report))
 
     def test_run_inspect_passes_socks5_proxy_without_reporting_password(self):
         args = SimpleNamespace(
