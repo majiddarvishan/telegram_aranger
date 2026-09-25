@@ -16,6 +16,7 @@ from services.youtube_policy import (
     evaluate_download_policy,
 )
 from services.youtube_service import (
+    YouTubeProxyConfig,
     YouTubeServiceError,
     detect_ffmpeg,
     inspect_video,
@@ -24,6 +25,65 @@ from utils.download_paths import DownloadPathError, validate_save_directory
 
 
 WORKSPACE_TITLE = "YouTube Download"
+
+
+def _invalidate_youtube_inspection() -> None:
+    st.session_state.youtube_metadata = None
+    st.session_state.youtube_error = None
+    st.session_state.youtube_download_result = None
+    st.session_state.youtube_acknowledged = False
+    st.session_state.youtube_inspected_url = ""
+
+
+def _youtube_proxy_config() -> YouTubeProxyConfig | None:
+    if not st.session_state.get("youtube_use_proxy", False):
+        return None
+    return YouTubeProxyConfig(
+        enabled=True,
+        host=str(st.session_state.get("youtube_proxy_host", "")).strip(),
+        port=int(st.session_state.get("youtube_proxy_port", 1080)),
+        username=str(st.session_state.get("youtube_proxy_user", "")),
+        password=str(st.session_state.get("youtube_proxy_pass", "")),
+    )
+
+
+def _render_youtube_proxy_settings() -> None:
+    with st.expander("YouTube network / SOCKS5", expanded=False):
+        st.checkbox(
+            "Use SOCKS5 proxy for YouTube",
+            key="youtube_use_proxy",
+            on_change=_invalidate_youtube_inspection,
+        )
+        st.caption(
+            "This proxy is used only by YouTube Inspect/Download. "
+            "Telegram proxy settings are not reused automatically."
+        )
+
+        if st.session_state.get("youtube_use_proxy", False):
+            st.text_input(
+                "SOCKS5 host / IP",
+                key="youtube_proxy_host",
+                on_change=_invalidate_youtube_inspection,
+            )
+            st.number_input(
+                "SOCKS5 port",
+                min_value=1,
+                max_value=65535,
+                step=1,
+                key="youtube_proxy_port",
+                on_change=_invalidate_youtube_inspection,
+            )
+            st.text_input(
+                "SOCKS5 username (optional)",
+                key="youtube_proxy_user",
+                on_change=_invalidate_youtube_inspection,
+            )
+            st.text_input(
+                "SOCKS5 password (optional)",
+                type="password",
+                key="youtube_proxy_pass",
+                on_change=_invalidate_youtube_inspection,
+            )
 
 
 def _format_bytes(size: int | float | None) -> str:
@@ -254,6 +314,7 @@ def _run_download(settings, metadata: Mapping[str, Any]) -> None:
         quality=quality,
         subtitle=subtitle,
         acknowledged=bool(st.session_state.get("youtube_acknowledged", False)),
+        proxy=_youtube_proxy_config(),
     )
 
     try:
@@ -312,6 +373,8 @@ def render_youtube(settings) -> None:
             "extraction. Install them on the machine running Telegram Harbor."
         )
 
+    _render_youtube_proxy_settings()
+
     url = st.text_input(
         "YouTube URL",
         key="youtube_url",
@@ -324,7 +387,10 @@ def render_youtube(settings) -> None:
         st.session_state.youtube_acknowledged = False
         try:
             with st.spinner("Inspecting YouTube metadata…"):
-                metadata = inspect_video(url)
+                metadata = inspect_video(
+                    url,
+                    proxy=_youtube_proxy_config(),
+                )
         except YouTubeServiceError as exc:
             st.session_state.youtube_error = exc.as_dict()
         except Exception:
