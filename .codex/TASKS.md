@@ -338,12 +338,12 @@ Planning source:
 - [ ] Light/Dark/responsive review.
 
 ### YT-P6 — Platform / docs
-- [ ] Windows FFmpeg setup.
-- [ ] Docker FFmpeg setup.
-- [ ] Deployment documentation.
-- [ ] README update.
-- [ ] Manual testing checklist.
-- [ ] CI tests with no live YouTube dependency.
+- [x] Windows FFmpeg setup.
+- [x] Docker FFmpeg setup.
+- [x] Deployment documentation.
+- [x] README update.
+- [x] Manual testing checklist.
+- [x] CI tests with no live YouTube dependency.
 
 ### YT-P7 — Manual validation
 - [ ] Public test video.
