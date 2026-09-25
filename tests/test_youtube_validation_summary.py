@@ -100,6 +100,8 @@ class YouTubeValidationSummaryTests(unittest.TestCase):
         summary = summarize_reports(reports)
 
         self.assertTrue(summary["core_runner_coverage_complete"])
+        self.assertFalse(summary["release_runner_coverage_complete"])
+        self.assertFalse(summary["release_runner_evidence_ready"])
         self.assertTrue(summary["coverage"]["preflight"])
         self.assertTrue(summary["coverage"]["public_inspect"])
         self.assertTrue(summary["coverage"]["video_audio"])
@@ -112,6 +114,74 @@ class YouTubeValidationSummaryTests(unittest.TestCase):
         self.assertTrue(summary["single_source_commit"])
         self.assertEqual(summary["reports_missing_source_commit"], 0)
         self.assertEqual(summary["source_commits"], ["abc123"])
+
+    def test_release_runner_evidence_requires_all_platform_policy_and_single_commit(self):
+        reports = [
+            report(mode="preflight"),
+            report(mode="inspect"),
+            report(mode="video_audio"),
+            report(mode="audio_only"),
+            report(
+                mode="video_audio",
+                request={
+                    "acknowledged": True,
+                    "subtitle_source": "manual",
+                    "expect_collision": False,
+                },
+            ),
+            report(
+                mode="video_audio",
+                request={
+                    "acknowledged": True,
+                    "subtitle_source": "automatic",
+                    "expect_collision": False,
+                },
+            ),
+            report(
+                mode="video_audio",
+                request={
+                    "acknowledged": True,
+                    "subtitle_source": "manual",
+                    "expect_collision": True,
+                },
+                checks={
+                    "all_passed": True,
+                    "media_within_save_directory": True,
+                    "subtitle_presence_matches_request": True,
+                    "subtitle_source_matches_request": True,
+                    "subtitle_language_matches_request": True,
+                    "collision_expectation_met": True,
+                    "collision_number": 2,
+                },
+            ),
+            report(
+                mode="video_audio",
+                platform="Windows",
+            ),
+            report(
+                mode="audio_only",
+                docker=True,
+            ),
+        ]
+        failed = report(mode="inspect", status="failed")
+        failed["error"] = {
+            "code": "unsupported_url",
+            "message": "Unsupported URL.",
+        }
+        reports.append(failed)
+
+        summary = summarize_reports(reports)
+
+        self.assertTrue(summary["release_runner_coverage_complete"])
+        self.assertTrue(summary["source_commit_complete"])
+        self.assertTrue(summary["single_source_commit"])
+        self.assertTrue(summary["release_runner_evidence_ready"])
+
+        reports[-1]["environment"]["commit_sha"] = "different"
+        mixed = summarize_reports(reports)
+        self.assertTrue(mixed["release_runner_coverage_complete"])
+        self.assertFalse(mixed["single_source_commit"])
+        self.assertFalse(mixed["release_runner_evidence_ready"])
 
     def test_windows_and_docker_require_successful_live_downloads(self):
         reports = [
