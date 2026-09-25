@@ -257,3 +257,21 @@ To verify grouped collision behavior with a real output:
 5. record both filenames in the validation evidence.
 
 Do not delete/rename the first pair until the second run has completed.
+
+
+## Release-readiness automated hardening
+
+The following code-level checks have been completed while manual/live acceptance remains open:
+
+- confirmed YouTube workspace routing is not blocked by missing/disconnected Telegram account state;
+- added responsive container keys and design-system rules for metadata, thumbnail and output controls;
+- narrow layout now structurally collapses YouTube metadata/output controls to full-width columns;
+- YouTube UI continues to inherit adaptive Light/Dark design tokens and does not introduce a fixed light-only surface;
+- unknown downloader exceptions are normalized to a generic safe message;
+- unexpected UI exceptions no longer expose raw exception text;
+- validation-runner unexpected failures expose only a generic message plus exception type;
+- regression tests include synthetic signed/query-token strings and assert they do not reach user-visible/report output;
+- rights/service notice and stronger restriction warnings are rendered before the acknowledgement control;
+- blocked content does not present a meaningless acknowledgement path.
+
+These are automated/code-review findings only. They do not complete the manual Light/Dark/narrow screenshot review or any live YouTube download case.
