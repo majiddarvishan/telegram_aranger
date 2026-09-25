@@ -1685,3 +1685,15 @@ Added offline unit tests for complete core coverage, Windows/Docker live require
 ## 2026-09-26 — Strict validation source identity
 
 The report aggregator now treats missing/unknown/local source SHA as incomplete evidence. `single_source_commit` is true only when every loaded report carries one concrete identical source SHA. The summary also reports `reports_missing_source_commit` and `source_commit_complete` so mixed or untraceable acceptance evidence cannot look complete.
+
+
+## 2026-09-26 — Windows validation-summary coverage
+
+Expanded the Windows/Python 3.14 CI job to run `tests/test_youtube_validation_summary.py`.
+
+Purpose:
+- exercise report loading/globbing/path handling on Windows;
+- verify mixed/missing commit logic cross-platform;
+- verify scenario coverage aggregation on the same OS where native Windows manual reports will be generated.
+
+This remains fully offline and does not replace a real Windows YouTube download.
