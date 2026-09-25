@@ -151,6 +151,37 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn("subtitle_format", source)
         self.assertIn("subtitle_source", source)
 
+    def test_ui_exposes_independent_youtube_socks5_controls(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+        sidebar_source = Path("ui/sidebar.py").read_text(encoding="utf-8")
+        state_source = Path("utils/state.py").read_text(encoding="utf-8")
+
+        self.assertIn("Use SOCKS5 proxy for YouTube", source)
+        self.assertIn("youtube_proxy_host", source)
+        self.assertIn("youtube_proxy_port", source)
+        self.assertIn("youtube_proxy_user", source)
+        self.assertIn("youtube_proxy_pass", source)
+        self.assertIn('type="password"', source)
+        self.assertIn("proxy=_youtube_proxy_config()", source)
+        self.assertIn(
+            "Telegram proxy settings are not reused automatically.",
+            source,
+        )
+        self.assertIn(
+            "Telegram SOCKS5 proxy settings are not reused automatically.",
+            sidebar_source,
+        )
+        self.assertIn('"youtube_use_proxy": False', state_source)
+
+    def test_proxy_changes_invalidate_previous_inspection(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+        self.assertIn("def _invalidate_youtube_inspection()", source)
+        self.assertIn("youtube_inspected_url = \"\"", source)
+        self.assertGreaterEqual(
+            source.count("on_change=_invalidate_youtube_inspection"),
+            5,
+        )
+
     def test_ui_contains_v1_safety_and_progress_contract(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         self.assertIn("Save directory", source)
