@@ -1976,3 +1976,20 @@ GitHub Actions run `36197766755` on commit `9bb8695f61e246cc96340f378413add67d29
 - Docker build/preflight/health: success.
 
 This commit is the latest confirmed full-green automated YouTube checkpoint recorded in the handoff. Manual/live YT-P5/YT-P7 acceptance remains open.
+
+
+## 2026-09-26 — YT-P7 live candidate correction
+
+Started the real YT-P7 acceptance step by checking the previously documented smoke-test candidate.
+
+Finding:
+- `BaW_jenozKc` is no longer a valid live acceptance candidate; yt-dlp issue #12263 documents that the video became unavailable.
+
+Replaced it in `.codex/YOUTUBE_VALIDATION.md` with:
+- `w2S5Ov-7Mzo` — `Open Culture Voices Vlog Series "Introduction"`;
+- Wikimedia Commons records the source as a Creative Commons YouTube upload and preserves a 2m13s archived copy.
+
+Important:
+- this establishes a better rights/licensing candidate, not a completed Telegram Harbor live test;
+- the current chat web environment cannot fetch the YouTube watch page directly, so Streamlit/yt-dlp runtime accessibility still must be confirmed on a machine/container running Telegram Harbor;
+- no YT-P7 live checkbox was marked complete.
