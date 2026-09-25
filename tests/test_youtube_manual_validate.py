@@ -128,6 +128,84 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(preflight.mode, "preflight")
         self.assertIsNone(preflight.url)
 
+    def test_missing_url_returns_structured_failure_report(self):
+        args = SimpleNamespace(
+            url=None,
+            mode="inspect",
+            quality="best",
+            save_directory=None,
+            create_directory=False,
+            allowed_root=[],
+            subtitle_language=None,
+            subtitle_source=None,
+            acknowledge=False,
+            report_file=None,
+        )
+        with patch(
+            "scripts.youtube_manual_validate.detect_ffmpeg",
+            return_value=FFmpegCapability("/ffmpeg", "/ffprobe"),
+        ):
+            report, code = run(args)
+
+        self.assertEqual(code, 2)
+        self.assertEqual(report["status"], "failed")
+        self.assertEqual(report["error"]["code"], "invalid_url")
+        self.assertIn("finished_at", report)
+
+    def test_download_without_acknowledgement_returns_structured_failure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = SimpleNamespace(
+                url="https://youtu.be/BaW_jenozKc",
+                mode="video_audio",
+                quality="best",
+                save_directory=tmp,
+                create_directory=False,
+                allowed_root=[],
+                subtitle_language=None,
+                subtitle_source=None,
+                acknowledge=False,
+                report_file=None,
+            )
+            metadata = {
+                "video_id": "BaW_jenozKc",
+                "title": "Test Video",
+                "availability": "public",
+                "age_limit": 0,
+                "is_live": False,
+                "live_status": "not_live",
+                "has_drm": False,
+                "formats": [
+                    {"format_id": "18", "has_video": True, "has_audio": True}
+                ],
+                "subtitles": [],
+            }
+            with (
+                patch(
+                    "scripts.youtube_manual_validate.inspect_video",
+                    return_value=metadata,
+                ),
+                patch(
+                    "scripts.youtube_manual_validate.detect_ffmpeg",
+                    return_value=FFmpegCapability("/ffmpeg", "/ffprobe"),
+                ),
+                patch(
+                    "scripts.youtube_manual_validate.download_video",
+                    side_effect=YouTubeServiceError(
+                        "acknowledgement_required",
+                        "You must acknowledge the rights/service notice before downloading.",
+                    ),
+                ),
+            ):
+                report, code = run(args)
+
+        self.assertEqual(code, 2)
+        self.assertEqual(report["status"], "failed")
+        self.assertEqual(
+            report["error"]["code"],
+            "acknowledgement_required",
+        )
+        self.assertFalse(report["request"]["acknowledged"])
+
     def test_invalid_url_returns_structured_failure_report(self):
         args = SimpleNamespace(
             url="https://example.com/not-youtube",
