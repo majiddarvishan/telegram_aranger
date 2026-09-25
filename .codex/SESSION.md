@@ -1040,3 +1040,32 @@ Regression coverage added for:
 - Saved Messages default selection;
 - refresh-once behavior for a peer-aware cache missing Saved Messages;
 - no-network behavior once Saved Messages is present in the cache.
+
+
+## 2026-09-25 — Auto-show latest messages for empty chat ranges
+
+User requested:
+- when switching to a group/chat that has no messages in the currently selected date range, automatically show its latest messages;
+- synchronize the Date range control to the dates of those latest messages.
+
+Implemented:
+- added bounded `latest_history(...)` service retrieval using the existing Telegram peer-recovery path;
+- latest fallback requests only `default_message_limit` newest messages rather than scanning the complete chat history;
+- added a one-shot per-chat session marker;
+- after selecting a new/default chat, Telegram Harbor first tries the current date range;
+- if that fetch succeeds but returns zero messages, the latest-message batch is loaded;
+- the date span is calculated from the oldest/newest dates in that batch;
+- `message_date_range` and `message_date_range_picker` are synchronized through the pending-date mechanism;
+- query/range signatures are updated before rerun so the same latest batch does not require an unnecessary second Telegram fetch;
+- if the user later manually chooses an empty date range, no automatic jump occurs;
+- fetch errors do not trigger the latest fallback.
+
+Related existing behavior confirmed:
+- Saved Messages remains the default startup chat when available.
+
+Regression coverage:
+- bounded latest-history retrieval;
+- latest batch date-span calculation;
+- empty batch handling;
+- one-shot auto-latest fallback wiring;
+- account switch clears the fallback marker.
