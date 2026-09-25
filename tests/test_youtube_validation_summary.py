@@ -1,10 +1,14 @@
+from contextlib import redirect_stdout
+from io import StringIO
 import json
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 from scripts.youtube_validation_summary import (
     load_reports,
+    main,
     summarize_reports,
 )
 
@@ -343,6 +347,29 @@ class YouTubeValidationSummaryTests(unittest.TestCase):
         self.assertEqual(summary["reports_failed"], 1)
         self.assertTrue(summary["coverage"]["structured_failure_report"])
         self.assertFalse(summary["coverage"]["video_audio"])
+
+    def test_cli_read_error_forces_release_ready_false(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = Path(tmp) / "bad.json"
+            bad.write_text("{not-json", encoding="utf-8")
+            output = StringIO()
+            old_argv = sys.argv
+            try:
+                sys.argv = [
+                    "youtube_validation_summary.py",
+                    "--require-release-ready",
+                    str(bad),
+                ]
+                with redirect_stdout(output):
+                    code = main()
+            finally:
+                sys.argv = old_argv
+
+        payload = json.loads(output.getvalue())
+        self.assertEqual(code, 2)
+        self.assertFalse(payload["report_set_readable"])
+        self.assertFalse(payload["release_runner_evidence_ready"])
+        self.assertEqual(len(payload["read_errors"]), 1)
 
     def test_load_reports_surfaces_invalid_json(self):
         with tempfile.TemporaryDirectory() as tmp:
