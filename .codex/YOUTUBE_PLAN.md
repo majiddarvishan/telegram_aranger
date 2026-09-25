@@ -159,12 +159,12 @@ Names may change during implementation if the existing project structure suggest
 - [ ] Light/Dark/responsive behavior.
 
 ### YT-P6 — Platform/docs
-- [ ] Windows FFmpeg setup.
-- [ ] Docker FFmpeg setup.
-- [ ] Deployment documentation.
-- [ ] README update.
-- [ ] Manual testing checklist.
-- [ ] CI without live YouTube calls.
+- [x] Windows FFmpeg setup.
+- [x] Docker FFmpeg setup.
+- [x] Deployment documentation.
+- [x] README update.
+- [x] Manual testing checklist.
+- [x] CI without live YouTube calls.
 
 ### YT-P7 — Manual validation
 - [ ] Public test video.
