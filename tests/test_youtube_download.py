@@ -172,6 +172,29 @@ class DownloadOptionTests(unittest.TestCase):
         self.assertNotIn("proxy", options)
         self.assertNotIn("cookiefile", options)
 
+    def test_download_options_include_browser_session(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            options = build_download_options(
+                temp_directory=Path(tmp),
+                basename="My Video",
+                mode="video_audio",
+                quality="best",
+                subtitle_plan=None,
+                progress_callback=None,
+                cookies_from_browser=(
+                    "chrome",
+                    "Profile 1",
+                    None,
+                    None,
+                ),
+            )
+
+        self.assertEqual(
+            options["cookiesfrombrowser"],
+            ("chrome", "Profile 1", None, None),
+        )
+        self.assertNotIn("cookiefile", options)
+
     def test_download_options_include_materialized_cookiefile(self):
         with tempfile.TemporaryDirectory() as tmp:
             cookiefile = str(Path(tmp) / "cookies.txt")
@@ -353,6 +376,32 @@ class DownloadExecutionTests(unittest.TestCase):
                 backend.options["proxy"],
                 "socks5://127.0.0.1:1080",
             )
+
+    def test_download_request_routes_browser_session_to_backend(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            backend = FakeDownloadBackend()
+            download_video(
+                DownloadRequest(
+                    url="https://youtu.be/BaW_jenozKc",
+                    save_directory=tmp,
+                    acknowledged=True,
+                    auth=YouTubeAuthConfig(
+                        enabled=True,
+                        source="browser",
+                        browser="edge",
+                        profile="Default",
+                    ),
+                ),
+                metadata(),
+                backend=backend,
+                ffmpeg=FFMPEG,
+            )
+
+            self.assertEqual(
+                backend.options["cookiesfrombrowser"],
+                ("edge", "Default", None, None),
+            )
+            self.assertNotIn("cookiefile", backend.options)
 
     def test_audio_only_output_is_mp3(self):
         with tempfile.TemporaryDirectory() as tmp:
