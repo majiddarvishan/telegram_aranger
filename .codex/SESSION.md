@@ -1715,3 +1715,15 @@ Forbidden options raise normalized `downloader_option_not_allowed` without expos
 Safe operational options such as socket timeout/retry settings remain allowed.
 
 Regression tests cover both forbidden and allowed cases.
+
+
+## 2026-09-26 — Locked YouTube Inspect invariants
+
+Found that `YtDlpBackend.extra_options` was merged after the mandatory Inspect options. A caller could therefore override `skip_download`, `noplaylist`, quiet/warning behavior or the logger, violating the V1 service contract even without using authentication/bypass options.
+
+Changed:
+- safe extra options are applied first;
+- mandatory Inspect invariants are applied last and always win;
+- `download=False` remains enforced at `extract_info`.
+
+Regression coverage explicitly attempts to override these invariants and verifies they stay enabled.
