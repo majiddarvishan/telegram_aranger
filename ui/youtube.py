@@ -271,10 +271,10 @@ def _run_download(settings, metadata: Mapping[str, Any]) -> None:
         status.empty()
         st.error(exc.message)
         return
-    except Exception as exc:
+    except Exception:
         progress_bar.empty()
         status.empty()
-        st.error(f"YouTube download failed: {exc}")
+        st.error("YouTube download failed unexpectedly.")
         return
 
     progress_bar.progress(100, text="Completed")
@@ -323,10 +323,10 @@ def render_youtube(settings) -> None:
                 metadata = inspect_video(url)
         except YouTubeServiceError as exc:
             st.session_state.youtube_error = exc.as_dict()
-        except Exception as exc:
+        except Exception:
             st.session_state.youtube_error = {
                 "code": "inspect_failed",
-                "message": str(exc),
+                "message": "YouTube inspection failed unexpectedly.",
                 "access_restricted": False,
             }
         else:
