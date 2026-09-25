@@ -618,7 +618,12 @@ def try_convert_subtitle_to_srt(
     except OSError:
         process = None
 
-    if process is not None and process.returncode == 0 and target.is_file():
+    if (
+        process is not None
+        and process.returncode == 0
+        and target.is_file()
+        and target.stat().st_size > 0
+    ):
         emit_progress(
             progress_callback,
             DownloadProgress(
