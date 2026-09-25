@@ -191,6 +191,21 @@ Names may change during implementation if the existing project structure suggest
 - geo-bypass;
 - batch queues;
 - scheduled downloads;
-- subtitles;
+- multiple subtitle languages in one download job;
+- advanced subtitle management beyond the single selected track;
 - chapters;
 - SponsorBlock.
+
+
+## New-chat continuation contract
+
+When continuing this feature in another ChatGPT conversation:
+
+- Branch is `feature/youtube-download`.
+- This branch is still **planning-only**.
+- Do not implement YouTube production code until the user explicitly says to start implementation.
+- Read this file and `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md` before proposing changes.
+- Preserve existing Telegram Harbor behavior and architecture.
+- Start implementation from YT-P1 only after explicit approval.
+- Keep each YouTube phase separately reviewable and update `.codex/TASKS.md` / `.codex/SESSION.md` as work progresses.
+- Do not merge to `main` unless the user explicitly asks.
