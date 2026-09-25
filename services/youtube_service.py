@@ -20,6 +20,22 @@ YOUTUBE_HOSTS = {
 VIDEO_PATH_PREFIXES = {"shorts", "live", "embed", "v"}
 VIDEO_ID_RE = re.compile(r"^[A-Za-z0-9_-]{6,64}$")
 
+FORBIDDEN_V1_DOWNLOADER_OPTIONS = {
+    "cookiefile",
+    "cookiesfrombrowser",
+    "username",
+    "password",
+    "videopassword",
+    "usenetrc",
+    "netrc_location",
+    "proxy",
+    "geo_verification_proxy",
+    "geo_bypass",
+    "geo_bypass_country",
+    "geo_bypass_ip_block",
+    "http_headers",
+}
+
 
 class YouTubeServiceError(RuntimeError):
     """Normalized YouTube/downloader failure exposed to application code."""
@@ -89,6 +105,7 @@ class YtDlpBackend:
 
     def __init__(self, *, extra_options: Mapping[str, Any] | None = None) -> None:
         self.extra_options = dict(extra_options or {})
+        _validate_v1_downloader_options(self.extra_options)
 
     def inspect(self, url: str) -> Mapping[str, Any]:
         try:
@@ -120,6 +137,21 @@ class YtDlpBackend:
                 "YouTube metadata could not be read.",
             )
         return info
+
+
+def _validate_v1_downloader_options(options: Mapping[str, Any]) -> None:
+    forbidden = sorted(
+        key
+        for key in options
+        if str(key).lower() in FORBIDDEN_V1_DOWNLOADER_OPTIONS
+    )
+    if forbidden:
+        raise YouTubeServiceError(
+            "downloader_option_not_allowed",
+            "Authenticated, proxy, custom-header, and geo-bypass downloader "
+            "options are outside Telegram Harbor V1.",
+            access_restricted=True,
+        )
 
 
 def detect_ffmpeg() -> FFmpegCapability:
