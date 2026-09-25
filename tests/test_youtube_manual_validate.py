@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from scripts.youtube_manual_validate import (
+    _environment_summary,
     _result_checks,
     _safe_metadata_summary,
     _subtitle_selection,
@@ -16,6 +17,25 @@ from services.youtube_service import FFmpegCapability, YouTubeServiceError
 
 
 class ManualValidationHelperTests(unittest.TestCase):
+    def test_environment_summary_records_build_identity_without_hostname(self):
+        with patch.dict(
+            "os.environ",
+            {"TELEGRAM_HARBOR_BUILD_SHA": "abc123def456"},
+            clear=False,
+        ):
+            summary = _environment_summary()
+
+        self.assertEqual(summary["commit_sha"], "abc123def456")
+        self.assertIn("python_version", summary)
+        self.assertIn("platform", summary)
+        self.assertIn("platform_release", summary)
+        self.assertIn("machine", summary)
+        self.assertIn("docker", summary)
+        self.assertIn("app_version", summary)
+        self.assertNotIn("hostname", summary)
+        self.assertNotIn("username", summary)
+        self.assertNotIn("environment", summary)
+
     def test_safe_metadata_summary_excludes_thumbnail_and_raw_urls(self):
         summary = _safe_metadata_summary(
             {
@@ -117,6 +137,8 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(report["status"], "passed")
         self.assertEqual(report["video_id"], "BaW_jenozKc")
+        self.assertIn("environment", report)
+        self.assertIn("commit_sha", report["environment"])
         self.assertNotIn(args.url, str(report))
 
     def test_unexpected_runner_error_does_not_expose_raw_message(self):
