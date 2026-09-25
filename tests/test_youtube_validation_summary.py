@@ -39,6 +39,7 @@ def report(
             "subtitle_source": None,
             "expect_collision": False,
             "proxy": {"enabled": False},
+            "auth": {"enabled": False},
         },
         "checks": checks or (
             {
@@ -183,6 +184,27 @@ class YouTubeValidationSummaryTests(unittest.TestCase):
                     "subtitle_source": None,
                     "expect_collision": False,
                     "proxy": {"enabled": True},
+                    "auth": {"enabled": False},
+                },
+            ),
+            report(
+                mode="inspect",
+                request={
+                    "acknowledged": False,
+                    "subtitle_source": None,
+                    "expect_collision": False,
+                    "proxy": {"enabled": False},
+                    "auth": {"enabled": True},
+                },
+            ),
+            report(
+                mode="video_audio",
+                request={
+                    "acknowledged": True,
+                    "subtitle_source": None,
+                    "expect_collision": False,
+                    "proxy": {"enabled": False},
+                    "auth": {"enabled": True},
                 },
             ),
         ]
@@ -201,6 +223,8 @@ class YouTubeValidationSummaryTests(unittest.TestCase):
         self.assertTrue(summary["release_runner_evidence_ready"])
         self.assertTrue(summary["coverage"]["socks5_inspect"])
         self.assertTrue(summary["coverage"]["socks5_live_download"])
+        self.assertTrue(summary["coverage"]["authenticated_inspect"])
+        self.assertTrue(summary["coverage"]["authenticated_live_download"])
         self.assertTrue(summary["manual_acceptance_required"])
         self.assertFalse(summary["full_release_ready"])
         self.assertIn(
@@ -244,6 +268,35 @@ class YouTubeValidationSummaryTests(unittest.TestCase):
         summary = summarize_reports([download_only])
         self.assertFalse(summary["coverage"]["socks5_inspect"])
         self.assertTrue(summary["coverage"]["socks5_live_download"])
+
+    def test_authenticated_release_evidence_requires_inspect_and_download(self):
+        inspect_only = report(
+            mode="inspect",
+            request={
+                "acknowledged": False,
+                "subtitle_source": None,
+                "expect_collision": False,
+                "proxy": {"enabled": False},
+                "auth": {"enabled": True},
+            },
+        )
+        summary = summarize_reports([inspect_only])
+        self.assertTrue(summary["coverage"]["authenticated_inspect"])
+        self.assertFalse(summary["coverage"]["authenticated_live_download"])
+
+        download_only = report(
+            mode="video_audio",
+            request={
+                "acknowledged": True,
+                "subtitle_source": None,
+                "expect_collision": False,
+                "proxy": {"enabled": False},
+                "auth": {"enabled": True},
+            },
+        )
+        summary = summarize_reports([download_only])
+        self.assertFalse(summary["coverage"]["authenticated_inspect"])
+        self.assertTrue(summary["coverage"]["authenticated_live_download"])
 
     def test_windows_container_does_not_count_as_native_windows(self):
         container_report = report(
