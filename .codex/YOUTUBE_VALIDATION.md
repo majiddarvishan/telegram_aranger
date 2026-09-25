@@ -275,3 +275,19 @@ The following code-level checks have been completed while manual/live acceptance
 - blocked content does not present a meaningless acknowledgement path.
 
 These are automated/code-review findings only. They do not complete the manual Light/Dark/narrow screenshot review or any live YouTube download case.
+
+
+## Post-download report checks
+
+For download modes, `scripts/youtube_manual_validate.py` now adds a `checks` object to the JSON report and returns a non-zero exit code if the checks fail.
+
+Checks include:
+- final media file exists;
+- final media remains under the selected Save directory;
+- completion progress event was observed;
+- when subtitle/caption is enabled:
+  - subtitle file exists;
+  - subtitle remains under the selected Save directory;
+  - media and subtitle have exactly the same basename.
+
+This makes the manual evidence self-validating for the matched-basename and final-path parts of YT-P7. Collision validation still requires a second real run with the first output pair left in place.
