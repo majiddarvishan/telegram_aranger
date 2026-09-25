@@ -116,3 +116,25 @@ Restart the shell and Telegram Harbor after changing `PATH`. The YouTube workspa
 ## YouTube access boundary
 
 YouTube V1 supports ordinarily accessible public content only. It does not import browser cookies, authenticate to private/member-only content, bypass DRM/paywalls/access controls or automatically perform geo-bypass. The Telegram SOCKS5 proxy is not reused automatically for YouTube.
+
+
+## Build identity
+
+Docker images support the optional build argument `TELEGRAM_HARBOR_BUILD_SHA`. It is used by the YouTube manual-validation report to identify the exact source revision inside an image where `.git` is intentionally excluded.
+
+Recommended direct build:
+
+```bash
+docker build \
+  --build-arg TELEGRAM_HARBOR_BUILD_SHA="$(git rev-parse HEAD)" \
+  -t telegram-harbor:local .
+```
+
+Recommended Compose build:
+
+```bash
+export TELEGRAM_HARBOR_BUILD_SHA="$(git rev-parse HEAD)"
+docker compose build
+```
+
+This value is source identity only; do not put secrets in the build argument.
