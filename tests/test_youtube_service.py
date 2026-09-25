@@ -262,6 +262,45 @@ class YtDlpBackendTests(unittest.TestCase):
                 )
                 self.assertTrue(caught.exception.access_restricted)
 
+    def test_backend_extra_options_cannot_override_inspect_invariants(self):
+        seen = {}
+
+        class FakeYoutubeDL:
+            def __init__(self, options):
+                seen["options"] = options
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, exc_type, exc, tb):
+                return False
+
+            def extract_info(self, _url, download):
+                seen["download"] = download
+                return {"id": "BaW_jenozKc", "title": "Test"}
+
+        fake_module = SimpleNamespace(YoutubeDL=FakeYoutubeDL)
+        with patch.dict(sys.modules, {"yt_dlp": fake_module}):
+            YtDlpBackend(
+                extra_options={
+                    "skip_download": False,
+                    "noplaylist": False,
+                    "quiet": False,
+                    "no_warnings": False,
+                    "logger": object(),
+                }
+            ).inspect("https://youtu.be/BaW_jenozKc")
+
+        self.assertTrue(seen["options"]["skip_download"])
+        self.assertTrue(seen["options"]["noplaylist"])
+        self.assertTrue(seen["options"]["quiet"])
+        self.assertTrue(seen["options"]["no_warnings"])
+        self.assertFalse(seen["download"])
+        self.assertNotEqual(
+            type(seen["options"]["logger"]),
+            object,
+        )
+
     def test_backend_allows_safe_operational_extra_options(self):
         seen = {}
 
