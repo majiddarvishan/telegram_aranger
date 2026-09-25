@@ -419,3 +419,16 @@ YT-P7 validation now requires:
 - requested subtitle/caption size > 0 bytes.
 
 The download engine rejects zero-byte media/subtitle outputs before final acceptance. A zero-byte SRT created by FFmpeg is not treated as a successful conversion; Telegram Harbor falls back to the original non-empty subtitle format instead.
+
+
+### Canonical YouTube URL boundary
+
+Accepted public video URL shapes are reduced to one canonical form before Inspect or Download reaches the downloader:
+
+`https://www.youtube.com/watch?v=<VIDEO_ID>`
+
+This strips incidental share/tracking/playlist query parameters and URL fragments from the downloader request.
+
+V1 also rejects YouTube URLs containing embedded username/password userinfo or an explicit TCP port.
+
+The original user URL continues to stay out of validation reports; only the normalized video ID is retained.
