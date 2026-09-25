@@ -289,7 +289,8 @@ def _run_download(settings, metadata: Mapping[str, Any]) -> None:
     if result.subtitle_path:
         st.caption(
             f"Subtitle: {result.subtitle_path} "
-            f"({(result.subtitle_format or 'unknown').upper()}, "
+            f"({result.subtitle_language or 'unknown'}, "
+            f"{(result.subtitle_format or 'unknown').upper()}, "
             f"{result.subtitle_source or 'unknown'})"
         )
 
