@@ -915,3 +915,44 @@ Manual status:
 - desktop Light and Dark modes are already reviewed;
 - the top-safe-area/header edge is fixed and guarded;
 - only a narrow-viewport screenshot review remains before treating the visual redesign as fully closed.
+
+
+## 2026-09-25 — Narrow viewport validation and compact workspace fix
+
+User supplied a real narrow-width screenshot with the Sidebar left open.
+
+Observed:
+- the page remained usable overall;
+- the previous <=700px breakpoint did not activate because it was based on the full browser width, while the Sidebar consumed a large part of that width;
+- the main workspace was therefore much narrower than the viewport;
+- Refresh and Load more collapsed visually to `R` and `L…`;
+- Edit tags / Delete in message footers collapsed toward single-letter controls;
+- the header filters were compressed even though there was enough vertical room to wrap them.
+
+Responsive architecture fix:
+- introduced explicit keyed regions for:
+  - message filters;
+  - date navigation;
+  - message action bar;
+  - normal/edit/delete footer actions;
+  - media preview/play actions;
+  - media download actions;
+- added a new compact-workspace breakpoint at <=1100px, intentionally earlier than the mobile breakpoint because an open Sidebar reduces actual content width;
+- at compact width:
+  - Chat selector receives a full row;
+  - Search and Tag can share the next row;
+  - Date input remains flexible while previous/next controls keep fixed usable widths;
+  - Refresh/Load more retain minimum readable widths and the count summary flexes separately;
+  - message tags get their own row while Edit tags/Delete keep readable minimum widths;
+  - Save/Cancel/Delete-message confirmation controls receive explicit compact widths;
+  - media actions wrap rather than truncating;
+- <=700px keeps the tighter spacing rules and additionally lets the action summary move to a full row.
+
+Regression coverage:
+- responsive region keys are asserted;
+- message/media/footer action groups are asserted;
+- the <=1100px wrapping rules are guarded by theme tests.
+
+Manual status:
+- the pre-fix narrow screenshot has been reviewed;
+- one post-fix narrow screenshot remains required to close responsive validation.
