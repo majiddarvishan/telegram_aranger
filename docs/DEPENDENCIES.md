@@ -26,6 +26,7 @@ Before replacing Pyrogram or moving to a fork:
 - cryptography
 - python-dotenv
 - extra-streamlit-components
+- yt-dlp
 
 For bounded dependencies:
 - review updates at least monthly;
@@ -56,3 +57,17 @@ Because Pyrogram upstream is archived, dependency review must include:
 - maintained fork/replacement options.
 
 Do not silently switch Telegram client libraries merely to receive updates. Session migration and behavior compatibility must be designed and tested explicitly.
+
+
+## YouTube downloader and FFmpeg
+
+Telegram Harbor uses `yt-dlp` only behind the YouTube service abstraction. Streamlit UI code must not depend on yt-dlp internals.
+
+The Python dependency is kept inside the bounded 2026 major range in `requirements.txt`. Downloader updates can change extractor behavior, metadata fields, format selection and error text, so update it through the normal dependency-review flow and run the YouTube service/download regression suite.
+
+FFmpeg and FFprobe are operational dependencies for:
+- merging video and audio streams;
+- audio-only extraction;
+- subtitle conversion to SRT where supported.
+
+The Docker image installs FFmpeg directly. Native Windows/Linux installations must provide `ffmpeg` and `ffprobe` on `PATH`.
