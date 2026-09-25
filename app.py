@@ -18,6 +18,7 @@ from ui.auth import render_web_auth, restore_remembered_user
 from ui.main import render_main
 from ui.sidebar import render_sidebar
 from ui.theme import apply_theme
+from ui.youtube import render_youtube
 from utils.logging import configure_logging, log_event
 from utils.state import initialize_state
 
@@ -50,4 +51,16 @@ if st.session_state.web_user is None:
     st.stop()
 
 render_sidebar(settings)
-render_main(settings)
+
+st.sidebar.markdown("### Workspace")
+workspace = st.sidebar.radio(
+    "Workspace",
+    ("Telegram Messages", "YouTube Download"),
+    key="workspace",
+    label_visibility="collapsed",
+)
+
+if workspace == "YouTube Download":
+    render_youtube(settings)
+else:
+    render_main(settings)
