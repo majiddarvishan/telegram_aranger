@@ -254,3 +254,91 @@ Planning source:
 - [x] Remove the unsupported Voice preview notice.
 - [x] Compact Sign out inside the Web Account card and remove its internal divider.
 - [x] Add regression coverage for voice/audio rendering and compact Sign out.
+
+
+## YouTube download feature
+
+Planning source:
+- `.codex/YOUTUBE_PLAN.md`
+- `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
+
+### YT-P0 — Planning
+- [x] Create `feature/youtube-download` from current `main`.
+- [x] Keep this phase documentation-only; no production code yet.
+- [x] Define V1 as single public YouTube video download.
+- [x] Require a user-supplied Save directory.
+- [x] Define local-vs-hosted save-path semantics.
+- [x] Define general copyright/service notice plus stronger restriction warning.
+- [x] Keep warning non-blocking for ordinarily accessible public content after user acknowledgement.
+- [x] Do not design DRM/paywall/private/member-only/access-control bypass.
+- [x] Keep YouTube downloader behind a service abstraction.
+- [x] Record FFmpeg as an operational dependency.
+- [x] Keep playlists/channels/batch/authenticated content out of V1.
+
+### YT-P1 — Service foundation
+- [ ] Add downloader dependency behind `services/youtube_service.py`.
+- [ ] Add FFmpeg capability detection.
+- [ ] Validate supported YouTube URLs.
+- [ ] Inspect metadata without downloading media.
+- [ ] Normalize quality/format information.
+- [ ] Normalize downloader failures.
+- [ ] Unit-test service behavior without live YouTube.
+
+### YT-P2 — Save path / filesystem safety
+- [ ] Add required Save directory input.
+- [ ] Normalize and resolve user path.
+- [ ] Verify writable directory.
+- [ ] Confirm before creating missing directories.
+- [ ] Sanitize output filenames.
+- [ ] Prevent output path escape.
+- [ ] Add safe collision policy.
+- [ ] Add optional allowed-root configuration for hosted/multi-user mode.
+- [ ] Test Windows and Linux path handling.
+
+### YT-P3 — Warning / acknowledgement
+- [ ] Always show concise rights/service notice.
+- [ ] Surface stronger warning signals from metadata/downloader state.
+- [ ] Require explicit acknowledgement before download.
+- [ ] Do not block normally accessible public content solely because a warning exists.
+- [ ] Do not bypass technical access controls.
+- [ ] Add warning-state tests.
+
+### YT-P4 — Download engine
+- [ ] Video + audio mode.
+- [ ] Audio-only mode.
+- [ ] Quality presets.
+- [ ] Progress-hook normalization.
+- [ ] FFmpeg merge/extract state.
+- [ ] Partial-download cleanup/recovery.
+- [ ] Safe final filename/path reporting.
+- [ ] Error handling and cleanup.
+
+### YT-P5 — Streamlit UI
+- [ ] Add independent YouTube workspace.
+- [ ] URL input + Inspect action.
+- [ ] Metadata/thumbnail preview.
+- [ ] Mode and quality controls.
+- [ ] Save directory control.
+- [ ] Warning/acknowledgement UI.
+- [ ] Download progress/status.
+- [ ] Completed/failure states.
+- [ ] Light/Dark/responsive review.
+
+### YT-P6 — Platform / docs
+- [ ] Windows FFmpeg setup.
+- [ ] Docker FFmpeg setup.
+- [ ] Deployment documentation.
+- [ ] README update.
+- [ ] Manual testing checklist.
+- [ ] CI tests with no live YouTube dependency.
+
+### YT-P7 — Manual validation
+- [ ] Public test video.
+- [ ] Video + audio.
+- [ ] Audio only.
+- [ ] Save-directory behavior.
+- [ ] Windows path.
+- [ ] Docker.
+- [ ] Warning flow.
+- [ ] Failure paths.
+- [ ] Final merge/release review.
