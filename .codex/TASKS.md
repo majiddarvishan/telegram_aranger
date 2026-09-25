@@ -382,6 +382,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Run validation-summary tests on Windows/Python 3.14 in addition to Linux CI.
 - [x] Enforce V1 downloader-option boundary in the service layer: reject cookie/browser-auth, credentials, explicit proxy/custom headers, and geo-bypass options while allowing safe operational options.
 - [x] Prevent safe extra options from overriding Inspect invariants (`skip_download`, `noplaylist`, quiet/no-warning logger behavior).
+- [x] Fail closed on unknown non-public availability states; only public/unlisted/unspecified states remain non-blocked before acknowledgement.
 
 - [ ] Public test video.
 - [ ] Video + audio.
