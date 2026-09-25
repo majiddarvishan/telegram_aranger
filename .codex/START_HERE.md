@@ -3,7 +3,7 @@
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
 - Current working branch: `feature/youtube-download`
-- Current phase status: YT-P7 validation has started. YT-P1 through YT-P6 are implemented; automated CI baseline is green; YT-P5 Light/Dark/responsive review and YT-P7 live/manual acceptance remain open.
+- Current phase status: YT-P7 validation/readiness review is active. YT-P1 through YT-P6 are implemented. Responsive structure, error-disclosure safety, warning order, offline-CI enforcement, downloader temp-output containment and expanded Windows offline coverage have been added. Manual Light/Dark/narrow review and YT-P7 live downloads remain open.
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
 - The completed `gui` branch is already merged into `main`.
 
