@@ -6,6 +6,8 @@ All notable Telegram Harbor changes are recorded here.
 
 ## 1.1.0 - 2026-09-25
 
+- Keep the Web Account sign-out action inside the account card so the sidebar identity block has a single coherent boundary.
+- Always include Saved Messages in the Telegram dialog snapshot and select it as the default startup chat for the active Telegram account.
 - Redesign the Telegram Harbor interface with centralized theme tokens, compact sidebar/navigation, content-first message cards, tag chips, refined media actions, branded auth/empty states, and responsive layouts.
 - Verify the redesigned interface in Light, Dark, wide desktop, and narrow desktop layouts.
 - Render message text with direction-aware RTL/LTR handling and compact message footers.
