@@ -82,6 +82,7 @@ def evaluate_download_policy(
     *,
     error: YouTubeServiceError | None = None,
     acknowledged: bool = False,
+    authenticated_session: bool = False,
 ) -> DownloadPolicy:
     """Classify product warnings without making a copyright/legal determination."""
     if error is not None:
@@ -103,6 +104,28 @@ def evaluate_download_policy(
             acknowledged,
             "drm_protected",
             "This video is DRM-protected and cannot be downloaded by Telegram Harbor.",
+        )
+
+    if availability == "needs_auth" and authenticated_session:
+        warnings = _restriction_warnings(info, availability)
+        warnings.insert(
+            0,
+            RestrictionWarning(
+                code="signed_in_access",
+                message=(
+                    "YouTube reports that this video requires a signed-in session. "
+                    "Telegram Harbor is using the configured Browser session/cookies "
+                    "for this request."
+                ),
+                signal="availability",
+            ),
+        )
+        return DownloadPolicy(
+            notice=GENERAL_RIGHTS_NOTICE,
+            warnings=tuple(warnings),
+            requires_acknowledgement=True,
+            acknowledged=acknowledged,
+            blocked=False,
         )
 
     if availability in _BLOCKED_AVAILABILITY:
