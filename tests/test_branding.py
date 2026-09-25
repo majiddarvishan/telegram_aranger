@@ -9,7 +9,7 @@ class BrandingTests(unittest.TestCase):
         self.assertEqual(PRODUCT_SLUG, "telegram-harbor")
         self.assertIn("Telegram", PRODUCT_TAGLINE)
         self.assertIn("media", PRODUCT_TAGLINE.lower())
-        self.assertEqual(PRODUCT_VERSION, "1.0.4")
+        self.assertEqual(PRODUCT_VERSION, "1.1.0")
 
 
 if __name__ == "__main__":
