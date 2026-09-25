@@ -27,6 +27,28 @@ _COOKIE_HEADERS = {
     "# HTTP Cookie File",
     "# Netscape HTTP Cookie File",
 }
+SUPPORTED_BROWSER_COOKIE_SOURCES = {
+    "brave",
+    "chrome",
+    "chromium",
+    "edge",
+    "firefox",
+    "opera",
+    "safari",
+    "vivaldi",
+    "whale",
+}
+_BROWSER_AUTO_ORDER = (
+    "chrome",
+    "firefox",
+    "edge",
+    "brave",
+    "chromium",
+    "vivaldi",
+    "opera",
+    "safari",
+    "whale",
+)
 
 FORBIDDEN_V1_DOWNLOADER_OPTIONS = {
     "cookiefile",
@@ -70,13 +92,62 @@ class YouTubeServiceError(RuntimeError):
 
 @dataclass(frozen=True)
 class YouTubeAuthConfig:
-    """Ephemeral authenticated YouTube session backed by Netscape cookies."""
+    """Ephemeral YouTube auth from a local browser session or cookies.txt."""
 
     enabled: bool = False
+    source: str = "cookies_file"  # browser | cookies_file
     cookie_data: bytes = b""
+    browser: str = "auto"
+    profile: str = ""
+
+    def normalized_source(self) -> str | None:
+        if not self.enabled:
+            return None
+        source = str(self.source or "").strip().lower()
+        if source not in {"browser", "cookies_file"}:
+            raise YouTubeServiceError(
+                "youtube_auth_invalid",
+                "YouTube authentication source is invalid.",
+            )
+        return source
+
+    def resolved_browser(self) -> str | None:
+        if self.normalized_source() != "browser":
+            return None
+
+        browser = str(self.browser or "auto").strip().lower()
+        if browser == "auto":
+            browser = detect_local_browser_cookie_source()
+            if not browser:
+                raise YouTubeServiceError(
+                    "youtube_browser_session_unavailable",
+                    "No supported local browser profile was detected on this host. "
+                    "Choose a browser explicitly or use cookies.txt fallback.",
+                )
+        if browser not in SUPPORTED_BROWSER_COOKIE_SOURCES:
+            raise YouTubeServiceError(
+                "youtube_auth_invalid",
+                "Selected browser is not supported for YouTube session cookies.",
+            )
+        return browser
+
+    def cookies_from_browser_spec(
+        self,
+    ) -> tuple[str, str | None, None, None] | None:
+        browser = self.resolved_browser()
+        if browser is None:
+            return None
+
+        profile = str(self.profile or "").strip()
+        if "\x00" in profile or len(profile) > 1024:
+            raise YouTubeServiceError(
+                "youtube_auth_invalid",
+                "YouTube browser profile value is invalid.",
+            )
+        return (browser, profile or None, None, None)
 
     def normalized_cookie_bytes(self) -> bytes | None:
-        if not self.enabled:
+        if self.normalized_source() != "cookies_file":
             return None
         data = bytes(self.cookie_data or b"")
         if not data:
@@ -148,26 +219,96 @@ class YouTubeAuthConfig:
         return normalized.encode("utf-8")
 
     def as_safe_dict(self) -> dict[str, Any]:
-        if not self.enabled:
+        source = self.normalized_source()
+        if source is None:
             return {
                 "enabled": False,
-                "format": None,
-                "size_bytes": 0,
+                "source": None,
             }
+        if source == "browser":
+            return {
+                "enabled": True,
+                "source": "browser",
+                "browser": str(self.browser or "auto").strip().lower(),
+                "profile_configured": bool(str(self.profile or "").strip()),
+            }
+
         normalized = self.normalized_cookie_bytes()
         return {
             "enabled": True,
+            "source": "cookies_file",
             "format": "netscape",
             "size_bytes": len(normalized or b""),
         }
+
+
+def detect_local_browser_cookie_source() -> str | None:
+    """Best-effort local browser detection without reading cookie contents."""
+    home = os.path.expanduser("~")
+    local_app_data = os.getenv("LOCALAPPDATA", "")
+    app_data = os.getenv("APPDATA", "")
+
+    candidate_roots: dict[str, tuple[str, ...]] = {
+        "chrome": (
+            os.path.join(local_app_data, "Google", "Chrome", "User Data"),
+            os.path.join(home, ".config", "google-chrome"),
+            os.path.join(home, "Library", "Application Support", "Google", "Chrome"),
+        ),
+        "firefox": (
+            os.path.join(app_data, "Mozilla", "Firefox"),
+            os.path.join(home, ".mozilla", "firefox"),
+            os.path.join(home, "Library", "Application Support", "Firefox"),
+        ),
+        "edge": (
+            os.path.join(local_app_data, "Microsoft", "Edge", "User Data"),
+            os.path.join(home, ".config", "microsoft-edge"),
+            os.path.join(home, "Library", "Application Support", "Microsoft Edge"),
+        ),
+        "brave": (
+            os.path.join(local_app_data, "BraveSoftware", "Brave-Browser", "User Data"),
+            os.path.join(home, ".config", "BraveSoftware", "Brave-Browser"),
+            os.path.join(home, "Library", "Application Support", "BraveSoftware", "Brave-Browser"),
+        ),
+        "chromium": (
+            os.path.join(local_app_data, "Chromium", "User Data"),
+            os.path.join(home, ".config", "chromium"),
+            os.path.join(home, "Library", "Application Support", "Chromium"),
+        ),
+        "vivaldi": (
+            os.path.join(local_app_data, "Vivaldi", "User Data"),
+            os.path.join(home, ".config", "vivaldi"),
+            os.path.join(home, "Library", "Application Support", "Vivaldi"),
+        ),
+        "opera": (
+            os.path.join(app_data, "Opera Software", "Opera Stable"),
+            os.path.join(home, ".config", "opera"),
+            os.path.join(home, "Library", "Application Support", "com.operasoftware.Opera"),
+        ),
+        "safari": (
+            os.path.join(home, "Library", "Cookies"),
+        ),
+        "whale": (
+            os.path.join(local_app_data, "Naver", "Naver Whale", "User Data"),
+            os.path.join(home, ".config", "naver-whale"),
+        ),
+    }
+
+    for browser in _BROWSER_AUTO_ORDER:
+        if any(path and os.path.exists(path) for path in candidate_roots[browser]):
+            return browser
+    return None
 
 
 @contextmanager
 def materialize_youtube_cookie_file(
     auth: YouTubeAuthConfig | None,
 ) -> Iterator[str | None]:
-    """Materialize session cookies only for the lifetime of one yt-dlp operation."""
-    if auth is None or not auth.enabled:
+    """Materialize cookies.txt only for one operation; browser auth needs no file."""
+    if (
+        auth is None
+        or not auth.enabled
+        or auth.normalized_source() != "cookies_file"
+    ):
         yield None
         return
 
@@ -349,6 +490,13 @@ class YtDlpBackend:
         )
 
         try:
+            browser_spec = (
+                self.auth.cookies_from_browser_spec()
+                if self.auth is not None
+                else None
+            )
+            if browser_spec:
+                options["cookiesfrombrowser"] = browser_spec
             with materialize_youtube_cookie_file(self.auth) as cookiefile:
                 if cookiefile:
                     options["cookiefile"] = cookiefile
@@ -709,6 +857,23 @@ def normalize_downloader_error(error: Exception) -> YouTubeServiceError:
 
     rules = (
         (
+            (
+                "failed to load cookies",
+                "failed to decrypt with dpapi",
+                "could not find chrome cookies database",
+                "could not find chromium cookies database",
+                "could not find firefox cookies database",
+                "could not find edge cookies database",
+                "could not find brave cookies database",
+            ),
+            "youtube_browser_session_unavailable",
+            (
+                "Browser session cookies could not be read on this host. "
+                "Select the correct local browser/profile or use cookies.txt fallback."
+            ),
+            False,
+        ),
+        (
             ("unsupported url", "no suitable extractor"),
             "unsupported_url",
             "This YouTube URL is not supported.",
@@ -756,8 +921,11 @@ def normalize_downloader_error(error: Exception) -> YouTubeServiceError:
                 "authentication required",
             ),
             "login_required",
-            "This video requires authenticated access and is outside Telegram Harbor V1.",
-            True,
+            (
+                "YouTube requires a signed-in session for this video. "
+                "Enable Browser session or cookies.txt fallback and Inspect again."
+            ),
+            False,
         ),
         (
             (
