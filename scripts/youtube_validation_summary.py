@@ -18,6 +18,7 @@ YOUTUBE_FAILURE_CODES = {
     "members_only",
     "login_required",
     "bot_verification_required",
+    "youtube_auth_invalid",
     "geo_restricted",
     "drm_protected",
     "restricted_availability",
@@ -213,6 +214,21 @@ def summarize_reports(reports: list[dict[str, Any]]) -> dict[str, Any]:
             and _request(report)["proxy"].get("enabled") is True
             for report in reports
         ),
+        "authenticated_inspect": any(
+            _passed(report)
+            and _mode(report) == "inspect"
+            and isinstance(_request(report).get("auth"), dict)
+            and _request(report)["auth"].get("enabled") is True
+            and _policy(report).get("blocked") is False
+            and bool(report.get("video_id"))
+            for report in reports
+        ),
+        "authenticated_live_download": any(
+            _is_successful_live(report)
+            and isinstance(_request(report).get("auth"), dict)
+            and _request(report)["auth"].get("enabled") is True
+            for report in reports
+        ),
         "structured_failure_report": any(
             report.get("status") == "failed"
             and _mode(report) in {"inspect", *LIVE_MODES}
@@ -239,6 +255,8 @@ def summarize_reports(reports: list[dict[str, Any]]) -> dict[str, Any]:
         "public_acknowledged_download",
         "socks5_inspect",
         "socks5_live_download",
+        "authenticated_inspect",
+        "authenticated_live_download",
         "structured_failure_report",
     )
     core_runner_coverage_complete = all(
