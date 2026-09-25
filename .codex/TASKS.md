@@ -393,6 +393,8 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Canonicalize accepted YouTube URLs before Inspect/Download, strip incidental query/fragment data, and reject embedded credentials/explicit ports.
 - [x] Require native Windows live evidence to have `platform=Windows` and `docker=false`; keep Docker evidence separate.
 - [x] Force release evidence readiness false when any supplied validation report is unreadable/invalid.
+- [x] Truncate sanitized YouTube titles by UTF-16 code units so supplementary Unicode remains within a conservative Windows filename-component budget.
+- [x] Re-check Windows reserved device names after truncation.
 
 - [ ] Public test video.
 - [ ] Video + audio.
