@@ -908,9 +908,10 @@ def normalize_downloader_error(error: Exception) -> YouTubeServiceError:
             "bot_verification_required",
             (
                 "YouTube is asking this connection/IP to complete bot verification. "
-                "This is not a copyright determination. Try another trusted IP/SOCKS5 "
-                "route, or enable Telegram Harbor's authenticated YouTube session with "
-                "a fresh youtube.com cookies.txt from a session you control."
+                "This is not a copyright determination. Enable Browser session and "
+                "Inspect again. If SOCKS5 is enabled and the challenge continues, try "
+                "the direct connection or another trusted proxy/IP. cookies.txt remains "
+                "available as a fallback for remote/Docker installs."
             ),
             False,
         ),
