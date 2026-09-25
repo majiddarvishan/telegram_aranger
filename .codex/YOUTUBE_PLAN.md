@@ -74,6 +74,8 @@ V1 behavior:
 - Save-path handling must be isolated in filesystem utilities.
 - No cookies/authentication import in V1.
 - Support an optional independent YouTube SOCKS5 proxy.
+- Support optional cookie-session authentication using a user-supplied YouTube `cookies.txt`.
+- Do not collect Google username/password or use YouTube OAuth.
 - Do not automatically reuse the Telegram SOCKS5 proxy.
 - No playlist/channel/batch download in V1.
 - Production implementation is now present on `feature/youtube-download`; preserve the service/UI boundary and completed phase behavior.
@@ -138,6 +140,7 @@ Names may change during implementation if the existing project structure suggest
 
 ### YT-P4 — Download engine
 - [x] Optional independent SOCKS5 proxy for Inspect and Download.
+- [x] Optional ephemeral cookie-session authentication for Inspect and Download.
 - [x] Video + audio.
 - [x] Audio only.
 - [x] Quality presets.
