@@ -181,6 +181,25 @@ def validate_youtube_url(url: str) -> dict[str, str]:
             "YouTube URL must use http or https.",
         )
 
+    if parsed.username is not None or parsed.password is not None:
+        raise YouTubeServiceError(
+            "invalid_url",
+            "YouTube URL must not contain embedded credentials.",
+        )
+
+    try:
+        explicit_port = parsed.port
+    except ValueError as exc:
+        raise YouTubeServiceError(
+            "invalid_url",
+            "YouTube URL contains an invalid port.",
+        ) from exc
+    if explicit_port is not None:
+        raise YouTubeServiceError(
+            "invalid_url",
+            "YouTube URL must not contain an explicit port.",
+        )
+
     host = (parsed.hostname or "").lower().rstrip(".")
     if host not in YOUTUBE_HOSTS:
         raise YouTubeServiceError(
@@ -196,7 +215,7 @@ def validate_youtube_url(url: str) -> dict[str, str]:
         )
 
     return {
-        "url": candidate,
+        "url": f"https://www.youtube.com/watch?v={video_id}",
         "video_id": video_id,
     }
 
