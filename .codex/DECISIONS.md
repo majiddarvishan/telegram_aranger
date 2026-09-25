@@ -231,3 +231,28 @@ The YouTube proxy is intentionally independent from Telegram networking:
 Raw `proxy` values remain forbidden through generic yt-dlp `extra_options`; only the validated `YouTubeProxyConfig` path may set yt-dlp's proxy option.
 
 This proxy support is ordinary network routing only. It does not enable cookies, login-protected/private content, DRM bypass, geo-bypass flags, or other access-control circumvention.
+
+
+## D-035 — YouTube authentication uses ephemeral cookies
+Status: implemented on `feature/youtube-download`
+
+YouTube authenticated access is implemented with a user-supplied Netscape-format `cookies.txt`, not Google username/password and not OAuth.
+
+Rationale:
+- yt-dlp no longer supports YouTube OAuth login;
+- cookie authentication is the supported yt-dlp mechanism when YouTube requires a signed-in session;
+- Telegram Harbor should never collect or store the user's Google password.
+
+Security contract:
+- authentication is optional and disabled by default;
+- UI upload is scoped to the active Streamlit session;
+- Telegram Harbor does not persist cookie contents to SQLite, logs, or validation JSON;
+- cookie bytes are materialized to a restrictive temporary file only for the lifetime of one Inspect/Download operation and are deleted afterward;
+- the accepted cookie file must be Mozilla/Netscape format and contain only `youtube.com` cookie rows;
+- validation reports record only whether authenticated mode was enabled, never the cookie path, cookie names, or cookie values;
+- raw `cookiefile` / `cookiesfrombrowser` injection through generic yt-dlp options remains blocked.
+
+Scope guard:
+- authenticated cookies may help with YouTube anti-bot/sign-in challenges and account-required ordinary access;
+- private/member-only/premium/DRM states remain blocked by product policy even if the account itself could access them;
+- no browser-profile scraping or OAuth flow is added in this version.
