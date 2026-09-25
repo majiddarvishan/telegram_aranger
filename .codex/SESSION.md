@@ -1475,3 +1475,22 @@ The guard asserts:
 - the manual-validation helper is exercised only through its fake/offline unit test module.
 
 The CI workflow now runs this network-policy test explicitly.
+
+
+## 2026-09-26 — YouTube downloader output containment hardening
+
+Release-readiness review found a defense-in-depth gap: downloader-returned `filepath` values were accepted if they existed and had the expected extension, without independently proving they resolved inside the per-job temporary directory.
+
+Changed:
+- media source paths are now resolved and accepted only when the real file remains under the job temp directory;
+- subtitle `requested_subtitles[*].filepath` values are subject to the same containment rule;
+- glob/expected-path fallback is also resolved through the same helper;
+- symlinks resolving outside the temp directory are rejected;
+- outside files are never moved/deleted as final job output.
+
+Regression coverage:
+- direct media path outside temp is rejected;
+- direct subtitle path outside temp is rejected;
+- symlink inside temp pointing outside is rejected when symlinks are available.
+
+This complements the existing final Save-directory / allowed-root containment and no-overwrite logic.
