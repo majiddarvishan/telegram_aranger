@@ -1766,3 +1766,17 @@ The summary exposes both:
 - `release_runner_evidence_ready`.
 
 This prevents mixed-commit or platform-incomplete report sets from looking release-ready. Visual UI acceptance and final merge/release review remain manual-only.
+
+
+## 2026-09-26 — YouTube video identity invariants
+
+Hardened the Inspect/download boundary so all stages refer to the same YouTube video ID.
+
+Rules:
+- normalized Inspect metadata ID must match the ID extracted from the requested URL;
+- the download request's inspected metadata ID must match the URL before backend execution;
+- if downloader output reports an ID, it must also match the requested URL;
+- mismatches are normalized as `metadata_video_mismatch` / `download_video_mismatch`;
+- a mismatched backend output is rejected before final-file acceptance and temporary output is cleaned.
+
+This prevents stale/mismatched metadata from being used for policy, title/filename, subtitle choice, or result identity.
