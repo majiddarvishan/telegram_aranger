@@ -1447,3 +1447,18 @@ Error-disclosure hardening:
 - regression tests explicitly ensure a synthetic signed URL/query token does not appear in normalized error messages or validation reports.
 
 A transient CSS f-string escaping issue introduced during the responsive edit was caught immediately during review and corrected before considering the change ready for CI.
+
+
+## 2026-09-26 — YouTube warning-flow UX hardening
+
+Release-readiness review found that the acknowledgement checkbox was rendered before the notice it referred to.
+
+Changed:
+- rights/service notice and restriction warnings are now rendered first;
+- acknowledgement is offered only after those messages;
+- blocked content does not expose an acknowledgement path that could imply the block can be overridden;
+- final policy is recomputed with the actual acknowledgement state before enabling Download.
+
+Regression coverage asserts the notice-rendering call appears before the acknowledgement control and that blocked state forces acknowledgement false.
+
+Manual warning-flow validation remains open until exercised in the real Streamlit UI.
