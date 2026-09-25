@@ -1016,3 +1016,27 @@ Included release scope:
 Tag note:
 - the connected GitHub tools can move branch refs but do not expose creation of Git tag refs;
 - create `v1.1.0` manually on the exact release checkpoint SHA unless a tag is already created externally.
+
+
+## 2026-09-25 — Web Account card and Saved Messages startup default
+
+User reported two follow-up requirements after the GUI redesign:
+1. the Web Account card boundary looked broken because Sign out rendered outside the identity card;
+2. startup should open Saved Messages by default.
+
+Implemented on `main`:
+- Web Account now uses one keyed bordered Streamlit container containing both identity and Sign out.
+- The old standalone account-card border was removed to avoid nested/double card boundaries.
+- Sign out now has an internal top divider and remains visually secondary inside the card.
+- Telegram dialog retrieval explicitly ensures the account's own Saved Messages peer is present even when it is outside the bounded GetDialogs result.
+- Saved Messages is normalized to the label `Saved Messages · Private`.
+- A peer-aware cached dialog snapshot missing the account's own Saved Messages entry is refreshed once, then future startups use the updated SQLite cache.
+- On fresh account/session startup, the own Telegram user ID is preferred as `selected_chat_id`; only if unavailable does the UI fall back to the first dialog.
+- Existing user selection is preserved across ordinary Streamlit reruns and Refresh Chats as long as that selected chat still exists.
+
+Regression coverage added for:
+- integrated Web Account / Sign out card layout;
+- Saved Messages inclusion in service dialog retrieval;
+- Saved Messages default selection;
+- refresh-once behavior for a peer-aware cache missing Saved Messages;
+- no-network behavior once Saved Messages is present in the cache.
