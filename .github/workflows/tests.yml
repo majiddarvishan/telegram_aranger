@@ -63,6 +63,9 @@ jobs:
       - name: YouTube manual-runner offline tests
         run: python -m unittest discover -s tests -p "test_youtube_manual_validate.py" -v
 
+      - name: YouTube CI network-policy tests
+        run: python -m unittest discover -s tests -p "test_youtube_ci_policy.py" -v
+
       - name: Import Telegram service
         run: python -c "import services.telegram_service"
 
