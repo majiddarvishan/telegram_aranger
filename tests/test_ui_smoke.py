@@ -400,7 +400,11 @@ class WorkspaceSidebarSmokeTests(unittest.TestCase):
 
         self.assertLess(youtube_branch, proxy_render)
         self.assertIn(
-            "Telegram SOCKS5 proxy settings are not reused.",
+            "YouTube can use its own optional SOCKS5 proxy settings.",
+            source,
+        )
+        self.assertIn(
+            "Telegram SOCKS5 proxy settings are not reused automatically.",
             source,
         )
         self.assertIn("return workspace", source)
