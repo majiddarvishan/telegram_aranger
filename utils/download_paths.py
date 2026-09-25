@@ -58,12 +58,28 @@ def sanitize_youtube_title(title: str | None, *, max_length: int = 160) -> str:
     if not candidate:
         candidate = "YouTube Video"
 
-    stem = candidate.split(".", 1)[0].upper()
-    if stem in _WINDOWS_RESERVED:
-        candidate = f"_{candidate}"
-
-    candidate = candidate[:max_length].rstrip(" .")
+    candidate = _avoid_windows_reserved_name(candidate)
+    candidate = _truncate_utf16_units(candidate, max_length).rstrip(" .")
+    candidate = _avoid_windows_reserved_name(candidate)
     return candidate or "YouTube Video"
+
+
+def _avoid_windows_reserved_name(value: str) -> str:
+    stem = value.split(".", 1)[0].upper()
+    return f"_{value}" if stem in _WINDOWS_RESERVED else value
+
+
+def _truncate_utf16_units(value: str, max_units: int) -> str:
+    """Truncate without splitting characters that use two UTF-16 code units."""
+    used = 0
+    out: list[str] = []
+    for char in value:
+        units = len(char.encode("utf-16-le")) // 2
+        if used + units > max_units:
+            break
+        out.append(char)
+        used += units
+    return "".join(out)
 
 
 def validate_save_directory(
