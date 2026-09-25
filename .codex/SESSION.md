@@ -1922,3 +1922,24 @@ Adjusted the sanitizer to enforce both:
 The output-group regression now checks both UTF-16 units and UTF-8 bytes remain below the common 255-unit/byte component limits.
 
 This corrected the Linux CI failure from the initial Windows-only Unicode budget.
+
+
+## 2026-09-26 — Runner evidence explicitly separated from full release readiness
+
+Clarified the YT-P7 aggregation contract to prevent a service-level evidence set from being mistaken for complete product acceptance.
+
+The summary now always exposes:
+- `runner_evidence_scope = service-level/manual-runner evidence only`;
+- `manual_acceptance_required = true`;
+- `full_release_ready = false`.
+
+Even a passing `release_runner_evidence_ready` still leaves actual Streamlit acceptance open:
+- public Inspect UI;
+- Video + Audio UI/progress/completion;
+- Audio-only UI/progress/completion;
+- Save-directory UI behavior;
+- Light/Dark/narrow visual review;
+- warning/error presentation;
+- final merge/release review.
+
+This is intentional; the aggregator cannot manufacture evidence for UI/manual checks it did not observe.
