@@ -204,10 +204,12 @@ Planning source:
 - [ ] Manual screenshot validation at multiple viewport widths.
 
 ### GUI-P6 — Polish
-- [ ] Consistent icon treatment.
-- [ ] Subtle hover/transition behavior.
-- [ ] Active/selected state polish.
-- [ ] Microcopy cleanup.
+- [x] Consistent application icon treatment; decorative chat-type emoji removed while the anchor remains a brand mark.
+- [x] Subtle hover/transition behavior for cards, controls, tags and expanders.
+- [x] Active/selected state polish for workspace and selectors.
+- [x] Microcopy cleanup for loading, navigation and destructive actions.
+- [x] Compact <=700px spacing refinement.
+- [ ] Final narrow-viewport screenshot review.
 
 ### GUI guardrails
 - [ ] Do not change Telegram runtime/service behavior as part of visual-only phases.
