@@ -48,15 +48,16 @@ Validation status:
 `docs/MANUAL_TESTING.md` remains the repeatable acceptance checklist for future regressions.
 
 ## Read order for future work
-1. `.codex/YOUTUBE_PLAN.md`
-2. `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
-3. `.codex/PROJECT_CONTEXT.md`
-4. `.codex/ARCHITECTURE.md`
-5. `.codex/DECISIONS.md`
-6. `.codex/TASKS.md`
-7. `.codex/SESSION.md`
-8. `docs/MANUAL_TESTING.md`
-9. `.codex/GUI_PLAN.md`
+1. `.codex/NEXT_CHAT_PROMPT.md`
+2. `.codex/YOUTUBE_PLAN.md`
+3. `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
+4. `.codex/PROJECT_CONTEXT.md`
+5. `.codex/ARCHITECTURE.md`
+6. `.codex/DECISIONS.md`
+7. `.codex/TASKS.md`
+8. `.codex/SESSION.md`
+9. `docs/MANUAL_TESTING.md`
+10. `.codex/GUI_PLAN.md`
 
 ## Important rules
 - Work on `feature/youtube-download` for this feature until the user explicitly requests merge/switch.
