@@ -22,6 +22,7 @@ YOUTUBE_FAILURE_CODES = {
     "restricted_availability",
     "video_unavailable",
     "network_error",
+    "proxy_invalid",
     "downloader_error",
     "metadata_video_mismatch",
     "download_video_mismatch",
@@ -196,6 +197,21 @@ def summarize_reports(reports: list[dict[str, Any]]) -> dict[str, Any]:
             and _policy(report).get("requires_acknowledgement") is True
             for report in reports
         ),
+        "socks5_inspect": any(
+            _passed(report)
+            and _mode(report) == "inspect"
+            and isinstance(_request(report).get("proxy"), dict)
+            and _request(report)["proxy"].get("enabled") is True
+            and _policy(report).get("blocked") is False
+            and bool(report.get("video_id"))
+            for report in reports
+        ),
+        "socks5_live_download": any(
+            _is_successful_live(report)
+            and isinstance(_request(report).get("proxy"), dict)
+            and _request(report)["proxy"].get("enabled") is True
+            for report in reports
+        ),
         "structured_failure_report": any(
             report.get("status") == "failed"
             and _mode(report) in {"inspect", *LIVE_MODES}
@@ -220,6 +236,8 @@ def summarize_reports(reports: list[dict[str, Any]]) -> dict[str, Any]:
         "windows_live_download",
         "docker_live_download",
         "public_acknowledged_download",
+        "socks5_inspect",
+        "socks5_live_download",
         "structured_failure_report",
     )
     core_runner_coverage_complete = all(
