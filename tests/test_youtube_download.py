@@ -601,6 +601,27 @@ class ProgressAndErrorTests(unittest.TestCase):
 
 
 class SubtitleConversionTests(unittest.TestCase):
+    def test_zero_byte_srt_conversion_falls_back_to_source(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "caption.vtt"
+            target = Path(tmp) / "caption.srt"
+            source.write_text("WEBVTT\n\n00:00.000 --> 00:01.000\nHi", encoding="utf-8")
+            target.write_bytes(b"")
+            fake_process = SimpleNamespace(returncode=0)
+
+            with patch(
+                "services.youtube_download.subprocess.run",
+                return_value=fake_process,
+            ):
+                path, output_format = try_convert_subtitle_to_srt(
+                    source,
+                    target,
+                    "/fake/ffmpeg",
+                )
+
+            self.assertEqual(path, source)
+            self.assertEqual(output_format, "vtt")
+
     def test_srt_conversion_failure_reports_real_fallback_format(self):
         with tempfile.TemporaryDirectory() as tmp:
             source = Path(tmp) / "caption.vtt"
