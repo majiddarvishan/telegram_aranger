@@ -78,7 +78,7 @@ Target style:
 - [x] Re-verified Dark mode after the adaptive-surface fix; custom surfaces and text contrast are correct.
 - [x] Desktop screenshot review completed for the light theme.
 - [x] First narrow-viewport screenshot reviewed; it exposed truncated action/footer buttons with Sidebar open.
-- [ ] Re-review narrow viewport after the compact-workspace wrapping fix.
+- [x] Re-reviewed narrow viewport after compact-workspace wrapping; controls remain readable and wrap correctly with the Sidebar open.
 
 ### GUI-P6 — Polish
 - [x] Subtle hover/transition behavior for buttons, cards, tags, links and expanders.
@@ -87,7 +87,7 @@ Target style:
 - [x] Selected/active state polish for the active chat workspace and account/chat selectors.
 - [x] Add compact <=700px spacing refinement without overriding Streamlit's native stacking behavior.
 - [x] First narrow-viewport screenshot identified remaining truncation issues.
-- [ ] Final narrow-viewport re-review after responsive region wrapping.
+- [x] Final narrow-viewport re-review passed.
 
 ## Implementation order
 
