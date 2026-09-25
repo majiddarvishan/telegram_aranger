@@ -2,9 +2,10 @@
 
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
-- Current working branch: `main`
-- Current phase status: GUI redesign, peer persistence, responsive validation, and v1.1.0 release preparation are complete.
-- The completed `gui` branch was fast-forward merged into `main`; `main` is the source of truth.
+- Current working branch: `feature/youtube-download`
+- Current phase status: YouTube download feature planning is complete; implementation has not started.
+- Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
+- The completed `gui` branch is already merged into `main`.
 
 ## What the project is
 **Telegram Harbor** is a modular Streamlit Telegram message and media manager using Pyrogram.
@@ -47,17 +48,19 @@ Validation status:
 `docs/MANUAL_TESTING.md` remains the repeatable acceptance checklist for future regressions.
 
 ## Read order for future work
-1. `.codex/GUI_PLAN.md`
-2. `.codex/PROJECT_CONTEXT.md`
-3. `.codex/ARCHITECTURE.md`
-4. `.codex/DECISIONS.md`
-5. `.codex/TASKS.md`
-6. `.codex/SESSION.md`
-7. `docs/MANUAL_TESTING.md`
-8. `docs/GUI_DESIGN_PLAN_FA.md`
+1. `.codex/YOUTUBE_PLAN.md`
+2. `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
+3. `.codex/PROJECT_CONTEXT.md`
+4. `.codex/ARCHITECTURE.md`
+5. `.codex/DECISIONS.md`
+6. `.codex/TASKS.md`
+7. `.codex/SESSION.md`
+8. `docs/MANUAL_TESTING.md`
+9. `.codex/GUI_PLAN.md`
 
 ## Important rules
-- Work on `main` unless the user explicitly requests a new branch.
+- Work on `feature/youtube-download` for this feature until the user explicitly requests merge/switch.
+- This branch is planning-only until the user explicitly asks to start implementation.
 - Re-fetch branch HEAD before editing; do not assume these notes are newer than Git.
 - Never commit Telegram API credentials, Fernet keys, session strings, phone codes, 2FA passwords, proxy passwords, browser remember tokens, SQLite data files, downloaded media, or backup artifacts.
 - Preserve Web-user ownership checks for Telegram accounts and chat-scoped identity for tags/media.
@@ -68,7 +71,7 @@ Validation status:
 ## Local run
 
 ```bash
-git checkout main
+git checkout feature/youtube-download
 python -m venv .venv
 # activate the virtual environment
 pip install -r requirements.txt
