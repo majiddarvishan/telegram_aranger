@@ -26,6 +26,8 @@ class ThemeFoundationTests(unittest.TestCase):
         self.assertEqual(DESIGN_TOKENS["radius_panel"], "12px")
         self.assertEqual(DESIGN_TOKENS["control_height"], "40px")
         self.assertEqual(DESIGN_TOKENS["top_safe_area"], "48px")
+        self.assertEqual(DESIGN_TOKENS["motion_fast"], "120ms")
+        self.assertEqual(DESIGN_TOKENS["motion_normal"], "180ms")
 
     def test_theme_uses_streamlit_accent_and_transparent_surfaces(self):
         self.assertIn("var(--primary-color", APP_CSS)
@@ -68,6 +70,31 @@ class ThemeFoundationTests(unittest.TestCase):
         self.assertIn(".st-key-message-scroll-area", MESSAGE_HEADER_CSS)
         self.assertIn("position: relative", MESSAGE_HEADER_CSS)
         self.assertNotIn("position: fixed", MESSAGE_HEADER_CSS)
+
+    def test_polish_states_cover_hover_focus_and_active_context(self):
+        self.assertIn(
+            ".st-key-chat_selector [data-baseweb=\"select\"] > div",
+            APP_CSS,
+        )
+        self.assertIn(
+            '[data-testid="stSidebar"] [data-testid="stSelectbox"]',
+            APP_CSS,
+        )
+        self.assertIn(":focus-within", APP_CSS)
+        self.assertIn(":active", APP_CSS)
+        self.assertIn(
+            '[data-testid="stVerticalBlockBorderWrapper"]:hover',
+            APP_CSS,
+        )
+        self.assertIn(".th-tag-chip:hover", APP_CSS)
+        self.assertIn(
+            ".st-key-message-header::before",
+            MESSAGE_HEADER_CSS,
+        )
+
+    def test_compact_viewport_polish_is_defined(self):
+        self.assertIn("@media (max-width: 700px)", APP_CSS)
+        self.assertIn("padding-top: 36px", APP_CSS)
 
     def test_reduced_motion_is_respected(self):
         self.assertIn("@media (prefers-reduced-motion: reduce)", APP_CSS)
