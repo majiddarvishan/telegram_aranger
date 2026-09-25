@@ -357,6 +357,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Add offline unit coverage for the manual runner and gitignore `validation-reports/`.
 - [x] Sanitize unexpected YouTube/downloader errors so raw exception text, signed URLs or query tokens are not surfaced to UI/manual reports.
 - [x] Add regression coverage for unknown downloader/UI/manual-runner error sanitization.
+- [x] Guard GitHub Actions against live YouTube URLs/direct manual-runner execution with `tests/test_youtube_ci_policy.py`.
 
 - [ ] Public test video.
 - [ ] Video + audio.
