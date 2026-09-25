@@ -380,6 +380,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Add `--require-core` summary mode without treating visual/manual-only checks as automated.
 - [x] Treat missing/unknown source commit identity as incomplete evidence; `single_source_commit` is true only when every report has one identical concrete SHA.
 - [x] Run validation-summary tests on Windows/Python 3.14 in addition to Linux CI.
+- [x] Enforce V1 downloader-option boundary in the service layer: reject cookie/browser-auth, credentials, explicit proxy/custom headers, and geo-bypass options while allowing safe operational options.
 
 - [ ] Public test video.
 - [ ] Video + audio.
