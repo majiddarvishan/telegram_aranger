@@ -225,6 +225,11 @@ def download_video(
                 temp_basename,
                 media_extension,
             )
+            if media_source.stat().st_size <= 0:
+                raise YouTubeServiceError(
+                    "output_empty",
+                    "Downloader produced an empty media file.",
+                )
 
             subtitle_source_path: Path | None = None
             actual_subtitle_format: str | None = None
@@ -235,6 +240,11 @@ def download_video(
                     temp_basename,
                     subtitle_plan,
                 )
+                if subtitle_source_path.stat().st_size <= 0:
+                    raise YouTubeServiceError(
+                        "subtitle_output_empty",
+                        "Downloader produced an empty subtitle file.",
+                    )
                 actual_subtitle_format = subtitle_source_path.suffix.lstrip(".").lower()
 
                 if (
