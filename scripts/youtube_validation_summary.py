@@ -10,6 +10,27 @@ from typing import Any, Iterable
 
 LIVE_MODES = {"video_audio", "audio_only"}
 
+YOUTUBE_FAILURE_CODES = {
+    "invalid_url",
+    "unsupported_url",
+    "private_content",
+    "premium_only",
+    "members_only",
+    "login_required",
+    "geo_restricted",
+    "drm_protected",
+    "restricted_availability",
+    "video_unavailable",
+    "network_error",
+    "downloader_error",
+    "format_unavailable",
+    "post_processing_failed",
+    "subtitle_unavailable",
+    "subtitle_format_unavailable",
+    "output_missing",
+    "subtitle_output_missing",
+}
+
 
 def load_reports(paths: Iterable[str]) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
     reports: list[dict[str, Any]] = []
@@ -172,8 +193,9 @@ def summarize_reports(reports: list[dict[str, Any]]) -> dict[str, Any]:
         ),
         "structured_failure_report": any(
             report.get("status") == "failed"
+            and _mode(report) in {"inspect", *LIVE_MODES}
             and isinstance(report.get("error"), dict)
-            and bool(report["error"].get("code"))
+            and report["error"].get("code") in YOUTUBE_FAILURE_CODES
             for report in reports
         ),
     }
