@@ -48,6 +48,11 @@ def initialize_state():
         "youtube_save_directory": "",
         "youtube_create_directory": False,
         "youtube_acknowledged": False,
+        "youtube_use_proxy": False,
+        "youtube_proxy_host": "127.0.0.1",
+        "youtube_proxy_port": 1080,
+        "youtube_proxy_user": "",
+        "youtube_proxy_pass": "",
     }
     for key, value in defaults.items():
         if key not in st.session_state:
