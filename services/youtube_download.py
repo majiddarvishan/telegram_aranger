@@ -139,6 +139,16 @@ def download_video(
 ) -> DownloadResult:
     """Execute one validated V1 download job."""
     validated = validate_youtube_url(request.url)
+    metadata_video_id = str(metadata.get("video_id") or "").strip()
+    if (
+        metadata_video_id
+        and metadata_video_id != validated["video_id"]
+    ):
+        raise YouTubeServiceError(
+            "metadata_video_mismatch",
+            "Inspected YouTube metadata does not match the requested video.",
+        )
+
     mode = validate_mode(request.mode)
     quality = validate_quality(request.quality)
     save_directory = validate_save_directory(
@@ -198,6 +208,16 @@ def download_video(
                 raise
             except Exception as exc:
                 raise normalize_download_error(exc) from exc
+
+            downloaded_video_id = str(info.get("id") or "").strip()
+            if (
+                downloaded_video_id
+                and downloaded_video_id != validated["video_id"]
+            ):
+                raise YouTubeServiceError(
+                    "download_video_mismatch",
+                    "Downloader output does not match the requested YouTube video.",
+                )
 
             media_source = resolve_media_source(
                 info,
