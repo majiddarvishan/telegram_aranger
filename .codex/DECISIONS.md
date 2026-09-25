@@ -126,7 +126,7 @@ Tags remain comma-separated SQLite text for the current feature scope. Values ar
 
 
 ## D-024 — YouTube download is an independent workspace
-Status: planned on `feature/youtube-download`
+Status: implemented on `feature/youtube-download`
 
 YouTube functionality is isolated from Telegram message browsing. The Streamlit UI should expose a separate workspace/tool rather than embedding YouTube download controls inside Telegram message cards.
 
@@ -136,7 +136,7 @@ Status: implemented on `feature/youtube-download`
 The UI must not call the downloader library directly. URL validation, metadata inspection, format selection, download execution, progress hooks, post-processing, and error normalization belong behind a dedicated service layer.
 
 ## D-026 — Save directory is user-supplied
-Status: filesystem layer implemented on `feature/youtube-download`; UI pending YT-P5
+Status: implemented on `feature/youtube-download`
 
 V1 requires the user to provide a filesystem save directory before download.
 
@@ -161,18 +161,18 @@ V1 must not introduce mechanisms that bypass DRM, paywalls, private/member-only 
 The baseline scope is public content that the downloader can access normally without bypass behavior.
 
 ## D-029 — YouTube V1 is single-video, unauthenticated, and non-batch
-Status: planned
+Status: implemented/enforced on `feature/youtube-download`
 
 V1 intentionally excludes playlists, full channels, browser-cookie import, authenticated/private content, batch queues, scheduling, and automatic geo-bypass.
 
 ## D-030 — FFmpeg is an operational dependency for full YouTube output support
-Status: enforced by YT-P4 engine; platform installation/docs pending YT-P6
+Status: implemented on `feature/youtube-download`; Docker/Windows platform setup documented
 
 FFmpeg must be treated as a platform dependency for video/audio merging and audio extraction where required. Windows and Docker setup, capability detection, and user-facing failure messages are part of the feature definition.
 
 
 ## D-031 — YouTube V1 includes one optional subtitle track
-Status: implemented in YT-P4 engine on `feature/youtube-download`
+Status: implemented in engine and UI on `feature/youtube-download`
 
 V1 includes optional subtitle download for a single selected language/track per download job.
 
