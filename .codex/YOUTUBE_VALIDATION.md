@@ -398,6 +398,8 @@ The release-ready gate additionally requires:
 - a successful acknowledged ordinary-public download;
 - one successful SOCKS5 Inspect report;
 - one successful SOCKS5 live-download report;
+- one successful authenticated-session Inspect report;
+- one successful authenticated-session live-download report;
 - at least one structured failure report;
 - every loaded report to carry the same concrete source commit SHA.
 
@@ -515,3 +517,40 @@ Acceptance:
 - report contains `request.proxy.enabled=true`;
 - password value is absent from report/log/UI output;
 - Telegram proxy state is not modified or reused automatically.
+
+
+### Authenticated-session live validation
+
+YouTube login in Telegram Harbor is cookie-session based. Do not provide Google username/password credentials.
+
+Prepare a Netscape-format `cookies.txt` containing only `youtube.com` cookies from a YouTube session you control.
+
+Inspect:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --cookies-file "/absolute/path/to/youtube-cookies.txt" \
+  --report-file validation-reports/auth-inspect.json
+```
+
+Download:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode video_audio \
+  --quality max_720p \
+  --save-directory "/absolute/path/to/output" \
+  --cookies-file "/absolute/path/to/youtube-cookies.txt" \
+  --acknowledge \
+  --report-file validation-reports/auth-download.json
+```
+
+Acceptance:
+- both reports pass;
+- both report `request.auth.enabled=true`;
+- cookie path, names and values are absent from reports;
+- the UI does not request username/password;
+- private/member-only/premium/DRM blocks remain effective.
