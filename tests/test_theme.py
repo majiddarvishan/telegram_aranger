@@ -152,6 +152,21 @@ class ThemeFoundationTests(unittest.TestCase):
         self.assertIn("&lt;b&gt;سلام&lt;/b&gt;", markup)
         self.assertNotIn("<b>سلام</b>", markup)
 
+    def test_web_account_card_owns_sign_out_layout(self):
+        self.assertIn(".st-key-web-account-card", APP_CSS)
+        self.assertIn(
+            ".st-key-sidebar-web-logout",
+            APP_CSS,
+        )
+        self.assertIn(
+            "border-top: 1px solid var(--th-border)",
+            APP_CSS,
+        )
+        self.assertNotIn(
+            "margin-top: calc(var(--th-space-1) * -1)",
+            APP_CSS,
+        )
+
     def test_sidebar_brand_and_account_markup_are_safe(self):
         brand = sidebar_brand_html("<Harbor>", "1.0.4")
         account = account_card_html("<Admin>", "user<1>")
