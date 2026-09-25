@@ -4,6 +4,9 @@ All notable Telegram Harbor changes are recorded here.
 
 ## Unreleased
 
+- Automatically fall back to the latest messages when a newly selected chat has no messages in the current date range, and synchronize the Date range control to the returned message dates.
+- Keep this fallback one-shot per chat selection so manually choosing an empty historical range remains respected.
+
 ## 1.1.0 - 2026-09-25
 
 - Keep the Web Account sign-out action inside the account card so the sidebar identity block has a single coherent boundary.
