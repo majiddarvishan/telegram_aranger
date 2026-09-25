@@ -690,6 +690,7 @@ def run(args) -> tuple[dict[str, Any], int]:
         policy = evaluate_download_policy(
             metadata,
             acknowledged=bool(args.acknowledge),
+            authenticated_session=bool(auth and auth.enabled),
         )
         report["policy"] = policy.as_dict()
 
