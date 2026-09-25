@@ -273,6 +273,8 @@ Planning source:
 - [x] Do not design DRM/paywall/private/member-only/access-control bypass.
 - [x] Keep YouTube downloader behind a service abstraction.
 - [x] Record FFmpeg as an operational dependency.
+- [x] Include optional single-track subtitle download in V1.
+- [x] Define matched title-based filenames for media and subtitles.
 - [x] Keep playlists/channels/batch/authenticated content out of V1.
 
 ### YT-P1 — Service foundation
@@ -280,6 +282,9 @@ Planning source:
 - [ ] Add FFmpeg capability detection.
 - [ ] Validate supported YouTube URLs.
 - [ ] Inspect metadata without downloading media.
+- [ ] Inspect available subtitle/caption tracks.
+- [ ] Distinguish manual subtitles from auto-generated captions.
+- [ ] Normalize subtitle language/type/format information.
 - [ ] Normalize quality/format information.
 - [ ] Normalize downloader failures.
 - [ ] Unit-test service behavior without live YouTube.
@@ -289,9 +294,11 @@ Planning source:
 - [ ] Normalize and resolve user path.
 - [ ] Verify writable directory.
 - [ ] Confirm before creating missing directories.
-- [ ] Sanitize output filenames.
+- [ ] Sanitize the YouTube title into a shared output basename.
+- [ ] Save media using `<sanitized-title>.<media-ext>`.
+- [ ] Save the selected subtitle using the exact same basename.
 - [ ] Prevent output path escape.
-- [ ] Add safe collision policy.
+- [ ] Add grouped collision policy so media/subtitle suffixes stay aligned.
 - [ ] Add optional allowed-root configuration for hosted/multi-user mode.
 - [ ] Test Windows and Linux path handling.
 
@@ -307,6 +314,9 @@ Planning source:
 - [ ] Video + audio mode.
 - [ ] Audio-only mode.
 - [ ] Quality presets.
+- [ ] Optional single subtitle-track download.
+- [ ] Prefer SRT subtitle output and report VTT/original fallback explicitly.
+- [ ] Preserve Manual vs Auto-generated provenance in the normalized result.
 - [ ] Progress-hook normalization.
 - [ ] FFmpeg merge/extract state.
 - [ ] Partial-download cleanup/recovery.
@@ -318,6 +328,9 @@ Planning source:
 - [ ] URL input + Inspect action.
 - [ ] Metadata/thumbnail preview.
 - [ ] Mode and quality controls.
+- [ ] Subtitle enable/disable control.
+- [ ] Subtitle language selector with Manual / Auto-generated labeling.
+- [ ] Subtitle output-format indication.
 - [ ] Save directory control.
 - [ ] Warning/acknowledgement UI.
 - [ ] Download progress/status.
@@ -336,6 +349,10 @@ Planning source:
 - [ ] Public test video.
 - [ ] Video + audio.
 - [ ] Audio only.
+- [ ] Manual subtitle download.
+- [ ] Auto-generated caption download.
+- [ ] Verify media/subtitle share the same basename.
+- [ ] Verify collision suffix is shared by the complete output group.
 - [ ] Save-directory behavior.
 - [ ] Windows path.
 - [ ] Docker.
