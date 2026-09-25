@@ -48,6 +48,7 @@ def initialize_state():
         "youtube_save_directory": "",
         "youtube_create_directory": False,
         "youtube_acknowledged": False,
+        "youtube_use_auth": False,
         "youtube_use_proxy": False,
         "youtube_proxy_host": "127.0.0.1",
         "youtube_proxy_port": 1080,
