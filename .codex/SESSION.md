@@ -1792,3 +1792,25 @@ Changed:
 - acknowledgement still appears only after metadata/restriction evaluation.
 
 Regression coverage verifies the notice appears before the Inspect control in `render_youtube()`.
+
+
+## 2026-09-26 — Non-empty YouTube output invariant
+
+Release-readiness review found that file existence alone could allow a zero-byte media/subtitle artifact to look successful.
+
+Engine hardening:
+- media output must have size > 0 before final reservation/move;
+- requested subtitle/caption must have size > 0;
+- zero-byte failures are normalized as `output_empty` / `subtitle_output_empty`;
+- temporary/final placeholders are cleaned by the existing failure path.
+
+Subtitle conversion:
+- FFmpeg return code 0 is no longer sufficient for SRT conversion success;
+- converted SRT must also exist and contain at least one byte;
+- a zero-byte converted SRT falls back to the original non-empty subtitle format.
+
+Manual evidence:
+- JSON checks now record `media_size_bytes` / `subtitle_size_bytes`;
+- `media_nonempty` and `subtitle_nonempty` participate in `all_passed`.
+
+Regression tests cover empty media, empty subtitle, and zero-byte SRT conversion fallback.
