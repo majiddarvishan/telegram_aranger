@@ -26,7 +26,7 @@ Before doing anything:
 7. Read `.codex/SESSION.md`.
 8. Re-check the current Git branch HEAD before making changes.
 
-Important: implementation has been explicitly approved. YT-P1 through YT-P6 and extensive automated YT-P7 readiness hardening are already implemented. Latest confirmed full-green checkpoint in this handoff is `3b3ebf4b0cebbb8c842da8ba88c41c65c5c6350f`; newer commits may exist, so re-check branch HEAD and CI first. Do not repeat completed hardening. Prioritize YT-P5 manual Light/Dark/narrow review and YT-P7 real YouTube/Windows/Docker/UI acceptance. Only change code when current CI/review/manual evidence exposes a concrete defect. Do not merge to main unless I explicitly ask.
+Important: implementation has been explicitly approved. YT-P1 through YT-P6 and extensive automated YT-P7 readiness hardening are already implemented. Latest confirmed full-green checkpoint in this handoff is `9bb8695f61e246cc96340f378413add67d298b50`; newer commits may exist, so re-check branch HEAD and CI first. Do not repeat completed hardening. Prioritize YT-P5 manual Light/Dark/narrow review and YT-P7 real YouTube/Windows/Docker/UI acceptance. Only change code when current CI/review/manual evidence exposes a concrete defect. Do not merge to main unless I explicitly ask.
 
 Confirmed YouTube V1 requirements:
 
