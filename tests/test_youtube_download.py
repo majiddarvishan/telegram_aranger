@@ -242,6 +242,25 @@ class DownloadExecutionTests(unittest.TestCase):
             self.assertEqual(events[-1].phase, "completed")
             self.assertEqual(events[-1].final_output_path, result.media_path)
 
+    def test_download_backend_receives_canonical_video_url(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            backend = FakeDownloadBackend()
+            download_video(
+                DownloadRequest(
+                    url="https://youtu.be/BaW_jenozKc?si=tracking-value",
+                    save_directory=tmp,
+                    acknowledged=True,
+                ),
+                metadata(),
+                backend=backend,
+                ffmpeg=FFMPEG,
+            )
+
+            self.assertEqual(
+                backend.url,
+                "https://www.youtube.com/watch?v=BaW_jenozKc",
+            )
+
     def test_audio_only_output_is_mp3(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = download_video(
