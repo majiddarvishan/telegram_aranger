@@ -360,6 +360,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Guard GitHub Actions against live YouTube URLs/direct manual-runner execution with `tests/test_youtube_ci_policy.py`.
 - [x] Contain downloader-returned media/subtitle paths to the per-job temporary directory before moving final outputs.
 - [x] Reject direct outside paths and symlink escapes with regression coverage.
+- [x] Expand Windows/Python 3.14 offline coverage to run YouTube download-engine and manual-runner tests in addition to path tests.
 
 - [ ] Public test video.
 - [ ] Video + audio.
