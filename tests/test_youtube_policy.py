@@ -96,6 +96,16 @@ class YouTubePolicyTests(unittest.TestCase):
                 self.assertFalse(policy.can_download)
                 self.assertEqual(policy.block_code, expected_code)
 
+    def test_needs_auth_message_points_to_supported_sign_in_flow(self):
+        policy = evaluate_download_policy(
+            public_metadata(availability="needs_auth"),
+            acknowledged=True,
+        )
+        self.assertTrue(policy.blocked)
+        self.assertEqual(policy.block_code, "login_required")
+        self.assertIn("Browser session", policy.block_message)
+        self.assertNotIn("outside Telegram Harbor V1", policy.block_message)
+
     def test_unknown_non_public_availability_fails_closed(self):
         policy = evaluate_download_policy(
             public_metadata(availability="needs_subscription"),
