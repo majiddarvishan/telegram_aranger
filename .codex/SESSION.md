@@ -1550,3 +1550,35 @@ Offline tests cover:
 - normal download wiring with a simulated completion event.
 
 Real collision suffix acceptance still requires two live runs with the first output group retained.
+
+
+## 2026-09-26 — Traceable/reproducible YT-P7 evidence
+
+Enhanced manual validation reports so a future acceptance artifact can be tied to an exact implementation and reproduced without persisting the original YouTube URL.
+
+Environment evidence now records:
+- OS family/release and architecture;
+- Python version;
+- Docker detection;
+- Telegram Harbor VERSION;
+- source commit SHA when available.
+
+Privacy guard:
+- hostname, username and environment-variable dumps are not recorded.
+
+Source identity:
+- native source-tree runs attempt to resolve Git HEAD;
+- Docker accepts `TELEGRAM_HARBOR_BUILD_SHA` as a build argument/environment value;
+- GitHub Actions now builds the Docker image with `$GITHUB_SHA` and verifies the value inside the image;
+- Compose exposes the same build argument.
+
+Request evidence now records:
+- mode;
+- effective quality;
+- Save directory;
+- explicit create-directory choice;
+- allowed roots;
+- subtitle language/source;
+- acknowledgement flag.
+
+The original YouTube URL remains intentionally excluded from report storage; video ID is already recorded separately.
