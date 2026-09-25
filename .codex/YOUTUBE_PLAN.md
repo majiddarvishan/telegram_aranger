@@ -73,7 +73,8 @@ V1 behavior:
 - Existing Telegram media cache must not be silently reused for YouTube downloads.
 - Save-path handling must be isolated in filesystem utilities.
 - No cookies/authentication import in V1.
-- No automatic reuse of the Telegram SOCKS5 proxy.
+- Support an optional independent YouTube SOCKS5 proxy.
+- Do not automatically reuse the Telegram SOCKS5 proxy.
 - No playlist/channel/batch download in V1.
 - Production implementation is now present on `feature/youtube-download`; preserve the service/UI boundary and completed phase behavior.
 
@@ -136,6 +137,7 @@ Names may change during implementation if the existing project structure suggest
 - [x] Tests for warning states.
 
 ### YT-P4 — Download engine
+- [x] Optional independent SOCKS5 proxy for Inspect and Download.
 - [x] Video + audio.
 - [x] Audio only.
 - [x] Quality presets.
