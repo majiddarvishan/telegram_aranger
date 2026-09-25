@@ -3,14 +3,14 @@
 Branch: `feature/youtube-download`
 Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`
 
-Status: YT-P1 through YT-P6 plus extensive automated YT-P7 readiness hardening are implemented. Latest confirmed full-green checkpoint in this handoff is `9bb8695f61e246cc96340f378413add67d298b50`; newer commits may exist and must be checked directly. Remaining acceptance is manual Light/Dark/narrow review, real YouTube/Windows/Docker/UI validation, and final merge/release review.
+Status: YT-P1 through YT-P6 plus extensive automated YT-P7 readiness hardening are implemented. Latest confirmed full-green checkpoint in this handoff is `c33bb39ebfd46cd06065a6653e0b1714da7624b3`; newer commits may exist and must be checked directly. Remaining acceptance is manual Light/Dark/narrow review, real YouTube/Windows/Docker/UI validation, and final merge/release review.
 
 Primary Persian design document:
 `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
 
 Validation matrix: `.codex/YOUTUBE_VALIDATION.md`
 
-Latest confirmed full-green readiness checkpoint in this handoff: `47b11460dd407e475a84495e8f92d37d8cbeae8c`
+Latest confirmed full-green readiness checkpoint in this handoff: `c33bb39ebfd46cd06065a6653e0b1714da7624b3`
 
 ## Confirmed user requirements
 
