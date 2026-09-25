@@ -181,6 +181,7 @@ def summarize_reports(reports: list[dict[str, Any]]) -> dict[str, Any]:
             _is_successful_live(report)
             and str(_environment(report).get("platform") or "").lower()
             == "windows"
+            and _environment(report).get("docker") is False
             for report in reports
         ),
         "docker_live_download": any(
@@ -301,6 +302,9 @@ def main() -> int:
     reports, errors = load_reports(paths)
     summary = summarize_reports(reports)
     summary["read_errors"] = errors
+    summary["report_set_readable"] = not errors
+    if errors:
+        summary["release_runner_evidence_ready"] = False
 
     print(
         json.dumps(
