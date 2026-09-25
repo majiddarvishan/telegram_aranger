@@ -401,6 +401,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Add optional independent YouTube SOCKS5 routing for both Inspect and Download; keep it disabled by default and never auto-reuse Telegram proxy state.
 - [x] Support optional SOCKS5 username/password while keeping password out of logs and validation reports.
 - [x] Keep generic yt-dlp `extra_options["proxy"]` forbidden; proxy must enter through validated `YouTubeProxyConfig`.
+- [x] Require SOCKS5 Inspect + live Download in the strict validation-summary release gate.
 - [ ] Manually validate YouTube Inspect and one download through a real SOCKS5 endpoint.
 
 - [ ] Public test video.
