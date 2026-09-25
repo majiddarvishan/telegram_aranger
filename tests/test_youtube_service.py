@@ -197,6 +197,22 @@ class YouTubeMetadataNormalizationTests(unittest.TestCase):
         result = normalize_metadata(raw)
         self.assertEqual(result["thumbnail"], "https://img.example/large.jpg")
 
+    def test_rejects_metadata_for_a_different_video_id(self):
+        raw = dict(self.raw)
+        raw["id"] = "Different123"
+        backend = FakeBackend(raw)
+
+        with self.assertRaises(YouTubeServiceError) as caught:
+            inspect_video(
+                "https://www.youtube.com/watch?v=BaW_jenozKc",
+                backend=backend,
+            )
+
+        self.assertEqual(
+            caught.exception.code,
+            "metadata_video_mismatch",
+        )
+
     def test_rejects_playlist_metadata_even_if_url_contains_video(self):
         backend = FakeBackend(
             {"_type": "playlist", "id": "PL123", "entries": []}
