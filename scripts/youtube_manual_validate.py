@@ -100,7 +100,27 @@ def _environment_summary() -> dict[str, Any]:
 
 
 def _auth_from_args(args) -> YouTubeAuthConfig | None:
+    browser = str(
+        getattr(args, "browser_session", "") or ""
+    ).strip().lower()
     raw_path = str(getattr(args, "cookies_file", "") or "").strip()
+
+    if browser and raw_path:
+        raise YouTubeServiceError(
+            "youtube_auth_invalid",
+            "Choose either browser-session authentication or cookies.txt, not both.",
+        )
+
+    if browser:
+        return YouTubeAuthConfig(
+            enabled=True,
+            source="browser",
+            browser=browser,
+            profile=str(
+                getattr(args, "browser_profile", "") or ""
+            ).strip(),
+        )
+
     if not raw_path:
         return None
 
@@ -115,6 +135,7 @@ def _auth_from_args(args) -> YouTubeAuthConfig | None:
 
     return YouTubeAuthConfig(
         enabled=True,
+        source="cookies_file",
         cookie_data=data,
     )
 
@@ -145,7 +166,12 @@ def _proxy_from_args(args) -> YouTubeProxyConfig | None:
 
 def _request_summary(args) -> dict[str, Any]:
     proxy = _proxy_from_args(args)
-    auth_enabled = bool(str(getattr(args, "cookies_file", "") or "").strip())
+    browser_auth = str(
+        getattr(args, "browser_session", "") or ""
+    ).strip().lower()
+    cookies_file_auth = bool(
+        str(getattr(args, "cookies_file", "") or "").strip()
+    )
     return {
         "mode": args.mode,
         "quality": (
@@ -173,10 +199,21 @@ def _request_summary(args) -> dict[str, Any]:
                 "password_configured": False,
             }
         ),
-        "auth": {
-            "enabled": auth_enabled,
-            "source": "cookies_file" if auth_enabled else None,
-        },
+        "auth": (
+            {
+                "enabled": True,
+                "source": "browser",
+                "browser": browser_auth,
+                "profile_configured": bool(
+                    str(getattr(args, "browser_profile", "") or "").strip()
+                ),
+            }
+            if browser_auth
+            else {
+                "enabled": cookies_file_auth,
+                "source": "cookies_file" if cookies_file_auth else None,
+            }
+        ),
     }
 
 
@@ -512,6 +549,32 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--browser-session",
+        choices=(
+            "auto",
+            "brave",
+            "chrome",
+            "chromium",
+            "edge",
+            "firefox",
+            "opera",
+            "safari",
+            "vivaldi",
+            "whale",
+        ),
+        help=(
+            "Use a signed-in browser session from the same host/user account. "
+            "Use 'auto' for standard local browser-profile detection."
+        ),
+    )
+    parser.add_argument(
+        "--browser-profile",
+        help=(
+            "Optional browser profile name/path for --browser-session. "
+            "The profile value is not written to validation reports."
+        ),
+    )
+    parser.add_argument(
         "--cookies-file",
         help=(
             "Optional Netscape-format youtube.com cookies.txt for an authenticated "
@@ -551,7 +614,10 @@ def run(args) -> tuple[dict[str, Any], int]:
 
         auth = _auth_from_args(args)
         if auth is not None:
-            auth.normalized_cookie_bytes()
+            if auth.normalized_source() == "browser":
+                auth.cookies_from_browser_spec()
+            else:
+                auth.normalized_cookie_bytes()
 
         if args.mode == "preflight":
             if not args.save_directory:
