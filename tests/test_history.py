@@ -5,7 +5,11 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
 import services.telegram_service as telegram_service
-from services.telegram_service import _history, _history_with_peer_recovery
+from services.telegram_service import (
+    _history,
+    _history_with_peer_recovery,
+    _latest_history,
+)
 
 
 class FakeHistoryClient:
@@ -91,6 +95,41 @@ class TelegramHistoryTests(unittest.TestCase):
         )
 
         self.assertEqual([item["id"] for item in result], [5, 4])
+
+    def test_latest_history_uses_bounded_newest_message_fetch(self):
+        messages = [
+            make_message(
+                3,
+                datetime(2026, 9, 18, 12, 0),
+                "latest",
+            ),
+            make_message(
+                2,
+                datetime(2026, 9, 17, 12, 0),
+                "older",
+            ),
+        ]
+        client = FakeHistoryClient(messages)
+
+        result = asyncio.run(
+            _latest_history(
+                chat_id=-100,
+                limit=25,
+                client=client,
+            )
+        )
+
+        self.assertEqual([item["id"] for item in result], [3, 2])
+        self.assertEqual(
+            client.calls,
+            [
+                {
+                    "chat_id": -100,
+                    "limit": 25,
+                    "offset_date": None,
+                }
+            ],
+        )
 
     def test_peer_warm_prefers_username_without_dialog_refresh(self):
         class Client:
