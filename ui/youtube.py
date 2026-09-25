@@ -16,6 +16,7 @@ from services.youtube_policy import (
     evaluate_download_policy,
 )
 from services.youtube_service import (
+    YouTubeAuthConfig,
     YouTubeProxyConfig,
     YouTubeServiceError,
     detect_ffmpeg,
@@ -33,6 +34,57 @@ def _invalidate_youtube_inspection() -> None:
     st.session_state.youtube_download_result = None
     st.session_state.youtube_acknowledged = False
     st.session_state.youtube_inspected_url = ""
+
+
+def _youtube_auth_config() -> YouTubeAuthConfig | None:
+    if not st.session_state.get("youtube_use_auth", False):
+        return None
+
+    uploaded = st.session_state.get("youtube_cookie_upload")
+    cookie_data = uploaded.getvalue() if uploaded is not None else b""
+    return YouTubeAuthConfig(
+        enabled=True,
+        cookie_data=cookie_data,
+    )
+
+
+def _render_youtube_auth_settings() -> None:
+    with st.expander("YouTube sign-in / cookies", expanded=False):
+        st.checkbox(
+            "Use authenticated YouTube session",
+            key="youtube_use_auth",
+            on_change=_invalidate_youtube_inspection,
+        )
+        st.caption(
+            "YouTube login is cookie-based. Telegram Harbor does not ask for "
+            "your Google username/password and does not persist the cookie file."
+        )
+        st.warning(
+            "Account cookies are sensitive. Use this only when needed and "
+            "prefer a dedicated YouTube account/session."
+        )
+
+        if st.session_state.get("youtube_use_auth", False):
+            st.file_uploader(
+                "YouTube cookies.txt",
+                type=("txt",),
+                key="youtube_cookie_upload",
+                on_change=_invalidate_youtube_inspection,
+                help=(
+                    "Mozilla/Netscape cookies.txt exported for youtube.com only. "
+                    "The file is held in this Streamlit session and materialized "
+                    "temporarily only while Inspect/Download is running."
+                ),
+            )
+            uploaded = st.session_state.get("youtube_cookie_upload")
+            if uploaded is None:
+                st.info(
+                    "Upload a YouTube cookies.txt file before Inspect."
+                )
+            else:
+                st.caption(
+                    "Authenticated session cookie loaded for this Streamlit session."
+                )
 
 
 def _youtube_proxy_config() -> YouTubeProxyConfig | None:
@@ -315,6 +367,7 @@ def _run_download(settings, metadata: Mapping[str, Any]) -> None:
         subtitle=subtitle,
         acknowledged=bool(st.session_state.get("youtube_acknowledged", False)),
         proxy=_youtube_proxy_config(),
+        auth=_youtube_auth_config(),
     )
 
     try:
@@ -374,6 +427,7 @@ def render_youtube(settings) -> None:
         )
 
     _render_youtube_proxy_settings()
+    _render_youtube_auth_settings()
 
     url = st.text_input(
         "YouTube URL",
@@ -390,6 +444,7 @@ def render_youtube(settings) -> None:
                 metadata = inspect_video(
                     url,
                     proxy=_youtube_proxy_config(),
+                    auth=_youtube_auth_config(),
                 )
         except YouTubeServiceError as exc:
             st.session_state.youtube_error = exc.as_dict()
