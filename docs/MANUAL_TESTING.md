@@ -4,7 +4,7 @@ This checklist covers behavior that automated tests cannot fully prove because i
 
 ## Preconditions
 
-- Work from branch `main`.
+- For YouTube feature validation before merge, work from branch `feature/youtube-download`; otherwise use `main`.
 - Use a non-production Telegram account for validation.
 - Configure valid `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, and `TELEGRAM_SESSION_ENCRYPTION_KEY`.
 - If a SOCKS5 proxy is not required, disable it in the sidebar.
@@ -169,3 +169,105 @@ Only mark the remaining media-validation task complete after:
 - inline video playback works for small and large videos;
 - browser video download produces a playable file;
 - interrupted-download recovery has been reproduced successfully at least once.
+
+
+## 11. YouTube Download V1
+
+Use only public content that you are permitted to save for this validation.
+
+### Inspect
+
+1. Open the **YouTube Download** workspace.
+2. Enter one public YouTube video URL.
+3. Click **Inspect**.
+
+Expected:
+- no media file is downloaded during Inspect;
+- title, channel/uploader, thumbnail, duration, video ID and availability are shown;
+- format/quality information is available;
+- subtitle/caption tracks are visible and Manual vs Auto-generated is distinguishable;
+- estimated size is shown when downloader metadata provides one;
+- a rights/service notice is shown.
+
+### Video + Audio
+
+1. Select **Video + Audio**.
+2. Test Best, max 1080p, max 720p and max 480p where the source supports them.
+3. Enter a writable absolute Save directory.
+4. Acknowledge the rights/service notice.
+5. Start the download.
+
+Expected:
+- progress exposes phase, percentage where known, bytes, speed and ETA where available;
+- merge/post-processing state is visible;
+- final media path is shown;
+- output basename is the sanitized YouTube title;
+- an existing file is not overwritten and receives a grouped numeric suffix.
+
+### Audio only
+
+Repeat with **Audio only**.
+
+Expected:
+- output is an extracted audio file;
+- FFmpeg/FFprobe absence is reported clearly instead of starting an invalid job.
+
+### Manual subtitle
+
+Use a video with a manual subtitle track.
+
+Expected:
+- selector labels the track as **Manual**;
+- one selected track is downloaded;
+- SRT is preferred;
+- media and subtitle share exactly the same basename.
+
+### Auto-generated caption
+
+Use a video with auto-generated captions.
+
+Expected:
+- selector labels the track as **Auto-generated**;
+- only the selected track is downloaded;
+- if SRT conversion is unavailable, the actual fallback format such as VTT is reported and the file extension remains truthful.
+
+### Save-directory safety
+
+Validate:
+- empty path;
+- relative path;
+- missing path without create confirmation;
+- missing path with explicit create confirmation;
+- non-writable directory;
+- path outside configured `YOUTUBE_DOWNLOAD_ROOTS`;
+- filename collision with both media and subtitle present.
+
+Expected:
+- invalid paths are rejected before downloader execution;
+- output cannot escape the configured root;
+- paired media/subtitle collision suffixes remain aligned.
+
+### Docker
+
+Build and run the container, then verify:
+
+```bash
+docker run --rm --entrypoint ffmpeg telegram-harbor:test -version
+docker run --rm --entrypoint ffprobe telegram-harbor:test -version
+```
+
+Inside the application use `/data/youtube` as the Save directory.
+
+### Windows
+
+Verify `ffmpeg -version` and `ffprobe -version` from the same terminal, then run one Video + Audio, one Audio-only and one subtitle download using a native Windows absolute path.
+
+### Restriction/error paths
+
+Check representative unavailable/restricted metadata when safely reproducible.
+
+Expected:
+- stronger warning/error state is shown;
+- ordinarily accessible public content remains downloadable after acknowledgement;
+- private/member-only/login-protected/DRM/paywalled content is not bypassed;
+- no browser-cookie import or automatic Telegram proxy reuse occurs.
