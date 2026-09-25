@@ -1205,3 +1205,25 @@ Critical continuation constraints:
 - service abstraction separates Streamlit UI from downloader library;
 - FFmpeg is part of the deployment/platform plan;
 - no live YouTube dependency in CI.
+
+## 2026-09-25 — YT-P1 service foundation implementation
+
+User explicitly approved starting implementation on `feature/youtube-download`.
+
+Completed:
+- added the yt-dlp dependency behind `services/youtube_service.py`;
+- added offline validation for supported single-video YouTube URL shapes;
+- added metadata-only inspection with media downloading disabled;
+- normalized title/channel/thumbnail/duration/video ID, format/quality/size data, manual subtitles and automatic captions;
+- added FFmpeg/FFprobe capability detection;
+- added normalized downloader failure categories;
+- kept downloader details out of Streamlit/UI code.
+
+Testing / CI:
+- added `tests/test_youtube_service.py` using fake downloader metadata only;
+- the isolated local unit run passed 15 tests;
+- CI now includes the YouTube service tests and runs on `feature/youtube-download`;
+- no live YouTube calls are used by CI.
+
+Next:
+- YT-P2 — Save path / filesystem safety.

@@ -3,7 +3,7 @@
 Branch: `feature/youtube-download`
 Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`
 
-Status: planning only. No implementation code has been added in this phase.
+Status: implementation active. YT-P1 service foundation is complete; YT-P2 filesystem safety is next.
 
 Primary Persian design document:
 `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
@@ -100,15 +100,15 @@ Names may change during implementation if the existing project structure suggest
 - [x] Create implementation backlog.
 
 ### YT-P1 — Service foundation
-- [ ] Add downloader dependency behind a service abstraction.
-- [ ] Detect FFmpeg capability.
-- [ ] Validate supported YouTube URLs.
-- [ ] Inspect metadata without downloading media.
-- [ ] Inspect manual subtitle and auto-caption tracks without downloading them.
-- [ ] Normalize subtitle language/type/format information.
-- [ ] Normalize formats/quality presets.
-- [ ] Normalize downloader errors.
-- [ ] Add unit tests.
+- [x] Add downloader dependency behind a service abstraction.
+- [x] Detect FFmpeg capability.
+- [x] Validate supported YouTube URLs.
+- [x] Inspect metadata without downloading media.
+- [x] Inspect manual subtitle and auto-caption tracks without downloading them.
+- [x] Normalize subtitle language/type/format information.
+- [x] Normalize formats/quality presets.
+- [x] Normalize downloader errors.
+- [x] Add unit tests.
 
 ### YT-P2 — Filesystem safety
 - [ ] Require Save directory input.
@@ -202,10 +202,10 @@ Names may change during implementation if the existing project structure suggest
 When continuing this feature in another ChatGPT conversation:
 
 - Branch is `feature/youtube-download`.
-- This branch is still **planning-only**.
-- Do not implement YouTube production code until the user explicitly says to start implementation.
+- Implementation is active on this branch after explicit user approval.
+- YT-P1 is complete; continue from YT-P2 unless the user changes priority.
 - Read this file and `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md` before proposing changes.
 - Preserve existing Telegram Harbor behavior and architecture.
-- Start implementation from YT-P1 only after explicit approval.
+- Continue implementation phase-by-phase from the next incomplete YouTube phase.
 - Keep each YouTube phase separately reviewable and update `.codex/TASKS.md` / `.codex/SESSION.md` as work progresses.
 - Do not merge to `main` unless the user explicitly asks.

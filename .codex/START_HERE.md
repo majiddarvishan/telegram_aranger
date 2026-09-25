@@ -3,7 +3,7 @@
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
 - Current working branch: `feature/youtube-download`
-- Current phase status: YouTube download planning is complete, including save-path, warning, subtitle and matched-filename requirements; implementation has not started.
+- Current phase status: YouTube implementation is active. YT-P1 service foundation is complete; YT-P2 filesystem safety is next.
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
 - The completed `gui` branch is already merged into `main`.
 
@@ -61,7 +61,7 @@ Validation status:
 
 ## Important rules
 - Work on `feature/youtube-download` for this feature until the user explicitly requests merge/switch.
-- This branch is planning-only until the user explicitly asks to start implementation.
+- The user explicitly approved implementation. Continue phase-by-phase; YT-P1 is complete and YT-P2 is next.
 - Re-fetch branch HEAD before editing; do not assume these notes are newer than Git.
 - Never commit Telegram API credentials, Fernet keys, session strings, phone codes, 2FA passwords, proxy passwords, browser remember tokens, SQLite data files, downloaded media, or backup artifacts.
 - Preserve Web-user ownership checks for Telegram accounts and chat-scoped identity for tags/media.

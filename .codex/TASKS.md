@@ -278,16 +278,16 @@ Planning source:
 - [x] Keep playlists/channels/batch/authenticated content out of V1.
 
 ### YT-P1 — Service foundation
-- [ ] Add downloader dependency behind `services/youtube_service.py`.
-- [ ] Add FFmpeg capability detection.
-- [ ] Validate supported YouTube URLs.
-- [ ] Inspect metadata without downloading media.
-- [ ] Inspect available subtitle/caption tracks.
-- [ ] Distinguish manual subtitles from auto-generated captions.
-- [ ] Normalize subtitle language/type/format information.
-- [ ] Normalize quality/format information.
-- [ ] Normalize downloader failures.
-- [ ] Unit-test service behavior without live YouTube.
+- [x] Add downloader dependency behind `services/youtube_service.py`.
+- [x] Add FFmpeg capability detection.
+- [x] Validate supported YouTube URLs.
+- [x] Inspect metadata without downloading media.
+- [x] Inspect available subtitle/caption tracks.
+- [x] Distinguish manual subtitles from auto-generated captions.
+- [x] Normalize subtitle language/type/format information.
+- [x] Normalize quality/format information.
+- [x] Normalize downloader failures.
+- [x] Unit-test service behavior without live YouTube.
 
 ### YT-P2 — Save path / filesystem safety
 - [ ] Add required Save directory input.

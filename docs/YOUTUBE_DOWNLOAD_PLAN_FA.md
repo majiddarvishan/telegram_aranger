@@ -4,8 +4,8 @@
 
 - Branch: `feature/youtube-download`
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`
-- این مرحله فقط تحلیل، تصمیم معماری و Task breakdown است.
-- در این مرحله هیچ کد اجرایی YouTube نوشته نمی‌شود.
+- برنامه‌ریزی کامل شده و implementation با تأیید صریح کاربر شروع شده است.
+- YT-P1 (Service foundation) تکمیل شده و YT-P2 (Filesystem safety) مرحله بعدی است.
 
 ---
 
@@ -554,15 +554,15 @@ CI نباید به YouTube live network وابسته باشد.
 
 ## YT-P1 — Dependency / service foundation
 
-- [ ] اضافه کردن downloader dependency.
-- [ ] اضافه کردن FFmpeg capability detection.
-- [ ] ایجاد service abstraction.
-- [ ] URL validation.
-- [ ] metadata inspection.
-- [ ] subtitle/caption metadata inspection.
-- [ ] manual-vs-auto subtitle classification.
-- [ ] normalized error model.
-- [ ] unit tests.
+- [x] اضافه کردن downloader dependency.
+- [x] اضافه کردن FFmpeg capability detection.
+- [x] ایجاد service abstraction.
+- [x] URL validation.
+- [x] metadata inspection.
+- [x] subtitle/caption metadata inspection.
+- [x] manual-vs-auto subtitle classification.
+- [x] normalized error model.
+- [x] unit tests.
 
 ## YT-P2 — Save path / filesystem safety
 

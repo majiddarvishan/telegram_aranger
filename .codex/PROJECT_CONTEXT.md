@@ -8,7 +8,7 @@ The product supports Saved Messages plus private chats, groups, supergroups, and
 ## Current branch
 - Working branch: `feature/youtube-download`
 - Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
-- This branch is currently documentation/planning only for the YouTube download feature.
+- YouTube implementation is active on this branch. YT-P1 service foundation is complete; YT-P2 filesystem safety is next.
 - The completed `gui` redesign is already merged into `main`.
 - Re-check GitHub branch HEAD before making future edits.
 
@@ -208,9 +208,9 @@ Real Telegram/browser validation has been completed successfully with no issues 
 - The startup/default chat remains Saved Messages when it is available.
 
 
-## Planned YouTube download capability
-- Planning branch: `feature/youtube-download`.
-- No implementation code has been added yet.
+## YouTube download implementation status
+- Working branch: `feature/youtube-download`.
+- YT-P1 service foundation is implemented with an isolated yt-dlp backend, offline URL validation/metadata normalization, subtitle/format normalization, FFmpeg detection, normalized downloader errors, and no-live-network unit tests.
 - V1 scope: single public YouTube video URL.
 - User must provide a Save directory.
 - On local installations the path is local to the user machine; on remote deployments it is a server-host path and must be labeled as such.
