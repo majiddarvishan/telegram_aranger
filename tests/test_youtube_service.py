@@ -571,6 +571,25 @@ class YouTubeErrorNormalizationTests(unittest.TestCase):
                 self.assertEqual(error.code, code)
                 self.assertTrue(error.access_restricted)
 
+    def test_maps_youtube_bot_verification_separately_from_content_auth(self):
+        messages = (
+            "Sign in to confirm you're not a bot. Use --cookies-from-browser or --cookies for the authentication.",
+            "Sign in to confirm you’re not a bot. This helps protect our community.",
+        )
+        for message in messages:
+            with self.subTest(message=message):
+                error = normalize_downloader_error(RuntimeError(message))
+                self.assertEqual(error.code, "bot_verification_required")
+                self.assertFalse(error.access_restricted)
+                self.assertIn("not a copyright determination", error.message)
+                self.assertIn("SOCKS5", error.message)
+
+    def test_generic_sign_in_to_confirm_is_not_misclassified_as_auth(self):
+        error = normalize_downloader_error(
+            RuntimeError("Sign in to confirm something unexpected")
+        )
+        self.assertEqual(error.code, "downloader_error")
+
     def test_unknown_downloader_error_does_not_expose_raw_message(self):
         raw = (
             "extractor failed for "
