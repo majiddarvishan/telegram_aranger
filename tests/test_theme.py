@@ -25,6 +25,7 @@ class ThemeFoundationTests(unittest.TestCase):
         self.assertEqual(DESIGN_TOKENS["radius_control"], "8px")
         self.assertEqual(DESIGN_TOKENS["radius_panel"], "12px")
         self.assertEqual(DESIGN_TOKENS["control_height"], "40px")
+        self.assertEqual(DESIGN_TOKENS["top_safe_area"], "48px")
 
     def test_theme_uses_streamlit_accent_and_transparent_surfaces(self):
         self.assertIn("var(--primary-color", APP_CSS)
@@ -45,6 +46,22 @@ class ThemeFoundationTests(unittest.TestCase):
         )
         self.assertIn("background: transparent", APP_CSS)
         self.assertIn("color: inherit", APP_CSS)
+
+    def test_main_content_keeps_safe_distance_from_streamlit_toolbar(self):
+        self.assertIn("--th-top-safe-area: 48px", APP_CSS)
+        self.assertIn(
+            "padding-top: var(--th-top-safe-area)",
+            APP_CSS,
+        )
+        self.assertIn(
+            '[data-testid="stMainBlockContainer"]',
+            APP_CSS,
+        )
+        self.assertIn("overflow: visible", APP_CSS)
+        self.assertIn(
+            "margin-top: var(--th-space-2)",
+            MESSAGE_HEADER_CSS,
+        )
 
     def test_message_layout_styles_are_centralized(self):
         self.assertIn(".st-key-message-header", MESSAGE_HEADER_CSS)
