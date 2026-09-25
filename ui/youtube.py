@@ -40,50 +40,124 @@ def _youtube_auth_config() -> YouTubeAuthConfig | None:
     if not st.session_state.get("youtube_use_auth", False):
         return None
 
+    source = st.session_state.get(
+        "youtube_auth_source",
+        "Browser session",
+    )
+    if source == "Browser session":
+        return YouTubeAuthConfig(
+            enabled=True,
+            source="browser",
+            browser=str(
+                st.session_state.get(
+                    "youtube_auth_browser",
+                    "Auto",
+                )
+            ).strip().lower(),
+            profile=str(
+                st.session_state.get(
+                    "youtube_auth_profile",
+                    "",
+                )
+            ).strip(),
+        )
+
     uploaded = st.session_state.get("youtube_cookie_upload")
     cookie_data = uploaded.getvalue() if uploaded is not None else b""
     return YouTubeAuthConfig(
         enabled=True,
+        source="cookies_file",
         cookie_data=cookie_data,
     )
 
 
 def _render_youtube_auth_settings() -> None:
-    with st.expander("YouTube sign-in / cookies", expanded=False):
+    with st.expander("YouTube sign-in", expanded=False):
         st.checkbox(
             "Use authenticated YouTube session",
             key="youtube_use_auth",
             on_change=_invalidate_youtube_inspection,
         )
         st.caption(
-            "YouTube login is cookie-based. Telegram Harbor does not ask for "
-            "your Google username/password and does not persist the cookie file."
-        )
-        st.warning(
-            "Account cookies are sensitive. Use this only when needed and "
-            "prefer a dedicated YouTube account/session."
+            "No Google username/password is requested. For local installs, "
+            "Telegram Harbor can use the signed-in session from a browser on "
+            "the same host. cookies.txt remains a fallback for Docker/servers."
         )
 
-        if st.session_state.get("youtube_use_auth", False):
+        if not st.session_state.get("youtube_use_auth", False):
+            return
+
+        st.warning(
+            "Browser/account cookies are sensitive and YouTube may rotate them. "
+            "Use authentication only when needed. Telegram Harbor does not store "
+            "the cookie values in its database or validation reports."
+        )
+
+        source = st.selectbox(
+            "Authentication source",
+            ("Browser session", "cookies.txt fallback"),
+            key="youtube_auth_source",
+            on_change=_invalidate_youtube_inspection,
+        )
+
+        if source == "Browser session":
+            st.selectbox(
+                "Browser",
+                (
+                    "Auto",
+                    "Chrome",
+                    "Firefox",
+                    "Edge",
+                    "Brave",
+                    "Chromium",
+                    "Vivaldi",
+                    "Opera",
+                    "Safari",
+                    "Whale",
+                ),
+                key="youtube_auth_browser",
+                on_change=_invalidate_youtube_inspection,
+                help=(
+                    "Auto checks standard local browser-profile locations without "
+                    "reading cookie contents. The selected browser must exist on "
+                    "the same machine/user account that runs Telegram Harbor."
+                ),
+            )
+            st.text_input(
+                "Browser profile (optional)",
+                key="youtube_auth_profile",
+                on_change=_invalidate_youtube_inspection,
+                help=(
+                    "Leave empty to use yt-dlp's default/most recently accessed "
+                    "profile. You can provide a profile name or path when needed."
+                ),
+            )
+            st.caption(
+                "Local installs: this can reuse your existing signed-in browser "
+                "session without exporting cookies. Remote/Docker deployments "
+                "cannot read cookies from a browser running on your own PC."
+            )
+        else:
             st.file_uploader(
                 "YouTube cookies.txt",
                 type=("txt",),
                 key="youtube_cookie_upload",
                 on_change=_invalidate_youtube_inspection,
                 help=(
-                    "Mozilla/Netscape cookies.txt exported for youtube.com only. "
-                    "The file is held in this Streamlit session and materialized "
-                    "temporarily only while Inspect/Download is running."
+                    "Fallback for remote/Docker installs. Use Mozilla/Netscape "
+                    "cookies.txt exported for youtube.com only. The upload stays "
+                    "in this Streamlit session and is materialized temporarily "
+                    "only while Inspect/Download is running."
                 ),
             )
             uploaded = st.session_state.get("youtube_cookie_upload")
             if uploaded is None:
                 st.info(
-                    "Upload a YouTube cookies.txt file before Inspect."
+                    "Upload a youtube.com-only cookies.txt file before Inspect."
                 )
             else:
                 st.caption(
-                    "Authenticated session cookie loaded for this Streamlit session."
+                    "Authenticated cookies.txt loaded for this Streamlit session."
                 )
 
 
