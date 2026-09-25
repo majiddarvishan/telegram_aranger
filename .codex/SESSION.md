@@ -2077,3 +2077,38 @@ Fix:
 - removed the overly broad generic `sign in to confirm` match to prevent future false positives.
 
 Validation-summary structured failure evidence now recognizes `bot_verification_required`.
+
+
+## 2026-09-26 — Optional YouTube authenticated cookie session
+
+User requested YouTube login if required.
+
+Current yt-dlp/YouTube constraint:
+- direct username/password login is not the supported path;
+- YouTube OAuth login is no longer supported by yt-dlp;
+- yt-dlp recommends authenticated cookies when a signed-in session is required.
+
+Implemented:
+- `YouTubeAuthConfig` accepts only a Mozilla/Netscape-format `cookies.txt`;
+- accepted cookie rows are restricted to `youtube.com` domains;
+- maximum cookie upload size is bounded;
+- cookie data is not persisted to SQLite/logs/reports;
+- each Inspect/Download materializes a restrictive temporary cookie file, passes it to yt-dlp as `cookiefile`, then removes it;
+- generic `extra_options["cookiefile"]` / `cookiesfrombrowser` remain forbidden;
+- UI adds **YouTube sign-in / cookies** and **Use authenticated YouTube session**;
+- uploaded cookies are scoped to the active Streamlit session;
+- changing the auth state/file invalidates previously inspected metadata;
+- Inspect and Download use the same authenticated-session contract;
+- CLI validation supports `--cookies-file` and does not record its path or contents;
+- validation summary tracks authenticated Inspect and authenticated live Download and requires both for strict runner release evidence;
+- authenticated cookies do not override private/member-only/premium/DRM product blocks.
+
+Automated checkpoint:
+- commit `f95ac4bfe04a933f600848119ad0b3ad57ca14c8`;
+- Linux unittest: success;
+- Windows/Python 3.14: success;
+- Docker build/preflight/health: success;
+- service/download/UI/manual-runner/validation-summary auth tests: success.
+
+Manual item still open:
+- validate one real authenticated Inspect and one real authenticated Download with a YouTube `cookies.txt` from a session the user controls.
