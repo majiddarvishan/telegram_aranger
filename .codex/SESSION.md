@@ -1909,3 +1909,16 @@ Regression coverage:
 - supplementary Unicode is truncated by UTF-16 units;
 - truncation cannot create a reserved Windows device name;
 - long emoji titles plus media/subtitle extensions remain below the Windows filename-component limit.
+
+
+## 2026-09-26 — Cross-platform Unicode filename budget
+
+The first Unicode hardening used a Windows-oriented UTF-16 budget. Linux CI exposed an important cross-platform difference: ext4/common Linux filesystems also impose a byte-oriented filename-component limit, and emoji consume four UTF-8 bytes each.
+
+Adjusted the sanitizer to enforce both:
+- existing conservative UTF-16-unit budget for Windows;
+- 230-byte UTF-8 basename budget for Linux/common filesystems, reserving room for the largest supported extension and collision suffix.
+
+The output-group regression now checks both UTF-16 units and UTF-8 bytes remain below the common 255-unit/byte component limits.
+
+This corrected the Linux CI failure from the initial Windows-only Unicode budget.
