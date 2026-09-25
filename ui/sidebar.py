@@ -63,6 +63,7 @@ def _apply_account_selection(
     state["selected_chat_id"] = None
     state["messages"] = []
     state["message_fetch_error"] = None
+    state["message_auto_latest_chat_id"] = None
     state["dialogs"] = []
     state["force_refresh_dialogs"] = False
     state["telegram_user"] = None
