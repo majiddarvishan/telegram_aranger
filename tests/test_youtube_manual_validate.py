@@ -128,6 +128,17 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(preflight.mode, "preflight")
         self.assertIsNone(preflight.url)
 
+        collision = build_parser().parse_args(
+            [
+                "--url",
+                "https://youtu.be/BaW_jenozKc",
+                "--mode",
+                "video_audio",
+                "--expect-collision",
+            ]
+        )
+        self.assertTrue(collision.expect_collision)
+
     def test_missing_url_returns_structured_failure_report(self):
         args = SimpleNamespace(
             url=None,
@@ -429,6 +440,111 @@ class ManualValidationHelperTests(unittest.TestCase):
             )
             self.assertFalse(checks["media_subtitle_basename_match"])
             self.assertFalse(checks["all_passed"])
+
+    def test_result_checks_fail_when_requested_subtitle_is_missing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            media = root / "My Video.mp4"
+            media.write_bytes(b"media")
+            result = DownloadResult(
+                video_id="BaW_jenozKc",
+                title="My Video",
+                mode="video_audio",
+                quality="best",
+                media_path=str(media),
+                subtitle_path=None,
+                subtitle_format=None,
+                subtitle_source=None,
+            )
+
+            checks = _result_checks(
+                result,
+                tmp,
+                [{"phase": "completed", "status": "finished"}],
+                subtitle_expected=True,
+                expected_subtitle_source="manual",
+            )
+
+            self.assertFalse(checks["subtitle_exists"])
+            self.assertFalse(checks["subtitle_presence_matches_request"])
+            self.assertFalse(checks["subtitle_source_matches_request"])
+            self.assertFalse(checks["all_passed"])
+
+    def test_result_checks_fail_when_subtitle_source_does_not_match_request(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            media = root / "My Video.mp4"
+            subtitle = root / "My Video.srt"
+            media.write_bytes(b"media")
+            subtitle.write_text("subtitle", encoding="utf-8")
+            result = DownloadResult(
+                video_id="BaW_jenozKc",
+                title="My Video",
+                mode="video_audio",
+                quality="best",
+                media_path=str(media),
+                subtitle_path=str(subtitle),
+                subtitle_format="srt",
+                subtitle_source="automatic",
+            )
+
+            checks = _result_checks(
+                result,
+                tmp,
+                [{"phase": "completed", "status": "finished"}],
+                subtitle_expected=True,
+                expected_subtitle_source="manual",
+            )
+
+            self.assertTrue(checks["subtitle_presence_matches_request"])
+            self.assertFalse(checks["subtitle_source_matches_request"])
+            self.assertFalse(checks["all_passed"])
+
+    def test_collision_expectation_requires_numeric_suffix(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            plain = root / "Human Readable Title.mp4"
+            plain.write_bytes(b"media")
+            plain_result = DownloadResult(
+                video_id="BaW_jenozKc",
+                title="Human Readable Title",
+                mode="video_audio",
+                quality="best",
+                media_path=str(plain),
+                subtitle_path=None,
+                subtitle_format=None,
+                subtitle_source=None,
+            )
+            checks = _result_checks(
+                plain_result,
+                tmp,
+                [{"phase": "completed", "status": "finished"}],
+                expect_collision=True,
+            )
+            self.assertFalse(checks["collision_expectation_met"])
+            self.assertFalse(checks["all_passed"])
+
+            collided = root / "Human Readable Title (2).mp4"
+            plain.replace(collided)
+            collided_result = DownloadResult(
+                video_id=plain_result.video_id,
+                title=plain_result.title,
+                mode=plain_result.mode,
+                quality=plain_result.quality,
+                media_path=str(collided),
+                subtitle_path=None,
+                subtitle_format=None,
+                subtitle_source=None,
+            )
+            checks = _result_checks(
+                collided_result,
+                tmp,
+                [{"phase": "completed", "status": "finished"}],
+                expect_collision=True,
+            )
+            self.assertEqual(checks["collision_number"], 2)
+            self.assertTrue(checks["collision_expectation_met"])
+            self.assertTrue(checks["all_passed"])
 
     def test_result_checks_reject_non_title_based_or_wrong_extension_output(self):
         with tempfile.TemporaryDirectory() as tmp:
