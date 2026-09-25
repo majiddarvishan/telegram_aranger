@@ -59,7 +59,7 @@ Confirmed YouTube V1 requirements:
 - These warnings are informational and acknowledgement-oriented, not a legal determination.
 - For ordinarily accessible public content, warning alone must **not block download** after explicit acknowledgement.
 - Do not implement DRM bypass, paywall bypass, private/member-only/login-protection bypass, or comparable technical access-control circumvention.
-- No browser-cookie import or authenticated private-content support in V1.
+- Browser Session authentication is supported for otherwise in-scope videos that require sign-in; authenticated private/member-only/premium content remains out of scope.
 - No automatic geo-bypass in V1.
 - YouTube supports optional Browser Session authentication for local installs, with cookies.txt fallback for Docker/remote installs.
 - YouTube supports an optional independent SOCKS5 proxy for Inspect and Download.
@@ -83,8 +83,8 @@ Confirmed YouTube V1 requirements:
 Explicitly deferred from V1:
 - playlists;
 - full channels;
-- browser-cookie import;
-- authenticated/private/member-only content;
+- authenticated private/member-only/premium content;
+- browser-cookie access outside the explicit Browser Session/cookies.txt auth flow;
 - DRM/access-control bypass;
 - automatic geo-bypass;
 - batch queues;
