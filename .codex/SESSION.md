@@ -1697,3 +1697,21 @@ Purpose:
 - verify scenario coverage aggregation on the same OS where native Windows manual reports will be generated.
 
 This remains fully offline and does not replace a real Windows YouTube download.
+
+
+## 2026-09-26 — Enforced YouTube V1 downloader option boundary
+
+Hardened `YtDlpBackend(extra_options=...)` so V1 restrictions are enforced in the service adapter itself rather than only by the current UI.
+
+Rejected option families include:
+- cookie files / browser-cookie import;
+- username/password/video-password/netrc authentication;
+- explicit downloader proxy / geo-verification proxy;
+- geo-bypass options;
+- custom HTTP headers that could carry authentication/cookies.
+
+Forbidden options raise normalized `downloader_option_not_allowed` without exposing option values.
+
+Safe operational options such as socket timeout/retry settings remain allowed.
+
+Regression tests cover both forbidden and allowed cases.
