@@ -353,6 +353,8 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Windows/Python 3.14 YouTube path tests pass.
 - [x] Docker image builds, contains FFmpeg/FFprobe, starts Streamlit and passes health check.
 - [x] Create `.codex/YOUTUBE_VALIDATION.md` to track automated evidence separately from live/manual acceptance.
+- [x] Add `scripts/youtube_manual_validate.py` as an explicit manual live-validation runner; keep it out of CI network execution.
+- [x] Add offline unit coverage for the manual runner and gitignore `validation-reports/`.
 
 - [ ] Public test video.
 - [ ] Video + audio.
