@@ -35,6 +35,7 @@ It provides one central place to connect multiple Telegram accounts, browse priv
 - Optional one-track subtitle/caption download with Manual / Auto-generated labeling.
 - Title-based non-overwriting output naming with matched media/subtitle basenames.
 - Host save-directory validation, optional allowed roots, and FFmpeg capability checks.
+- Optional independent SOCKS5 routing for YouTube Inspect and Download, with optional proxy authentication.
 
 ## Project layout
 
@@ -193,6 +194,7 @@ The YouTube workspace is separate from Telegram message cards.
 
 V1:
 - accepts one public YouTube video URL per job;
+- can optionally route YouTube Inspect and Download through an independent SOCKS5 proxy;
 - performs an Inspect step before downloading media;
 - supports Video + Audio and Audio-only output;
 - offers Best, max 1080p, max 720p and max 480p quality presets;
@@ -215,6 +217,8 @@ Use the platform path separator for multiple roots. The Docker image defaults to
 Telegram Harbor shows a rights/service notice and stronger restriction warnings where metadata exposes them. The warning is informational and does not make a legal determination. V1 does not implement DRM bypass, paywall bypass, private/member-only/login-protected access, browser-cookie import, authenticated private-content support or automatic geo-bypass.
 
 FFmpeg and FFprobe are required for full output support.
+
+The YouTube SOCKS5 proxy is configured inside the YouTube workspace and is disabled by default. It does not automatically reuse the Telegram SOCKS5 settings. Proxy credentials remain session-only in the UI and are not persisted by Telegram Harbor.
 
 ## Security
 
