@@ -384,6 +384,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Enforce V1 downloader-option boundary in the service layer: reject cookie/browser-auth, credentials, explicit proxy/custom headers, and geo-bypass options while allowing safe operational options.
 - [x] Prevent safe extra options from overriding Inspect invariants (`skip_download`, `noplaylist`, quiet/no-warning logger behavior).
 - [x] Fail closed on unknown non-public availability states; only public/unlisted/unspecified states remain non-blocked before acknowledgement.
+- [x] Enforce video-ID identity across URL, Inspect metadata, and downloader result so stale/mismatched metadata cannot drive policy or output.
 
 - [ ] Public test video.
 - [ ] Video + audio.
