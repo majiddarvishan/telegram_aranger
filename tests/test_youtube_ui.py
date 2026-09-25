@@ -112,6 +112,19 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn('key="youtube-save-controls"', source)
         self.assertIn("use_container_width=True", source)
 
+    def test_rights_notice_is_visible_before_inspection(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+        render_start = source.index("def render_youtube(settings)")
+        inspect_control = source.index(
+            'st.button("Inspect"',
+            render_start,
+        )
+        notice = source.index(
+            "st.info(GENERAL_RIGHTS_NOTICE)",
+            render_start,
+        )
+        self.assertLess(notice, inspect_control)
+
     def test_notice_is_rendered_before_acknowledgement_control(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         notice_position = source.index(
