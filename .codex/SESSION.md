@@ -1746,3 +1746,23 @@ New rule:
 - unlisted remains allowed after acknowledgement.
 
 Regression tests cover both the fail-closed unknown state and the allowed unlisted case.
+
+
+## 2026-09-26 — Strict runner evidence gate
+
+Extended `scripts/youtube_validation_summary.py` with `--require-release-ready`.
+
+Unlike `--require-core`, the release-ready runner gate requires:
+- all core runner cases;
+- native Windows live download;
+- Docker live download;
+- acknowledged ordinary-public download evidence;
+- a structured failure report;
+- complete source-commit identity;
+- exactly one concrete source commit across all loaded reports.
+
+The summary exposes both:
+- `release_runner_coverage_complete`;
+- `release_runner_evidence_ready`.
+
+This prevents mixed-commit or platform-incomplete report sets from looking release-ready. Visual UI acceptance and final merge/release review remain manual-only.
