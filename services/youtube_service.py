@@ -588,13 +588,29 @@ def normalize_downloader_error(error: Exception) -> YouTubeServiceError:
         ),
         (
             (
+                "sign in to confirm you're not a bot",
+                "sign in to confirm you’re not a bot",
+                "confirm you're not a bot",
+                "confirm you’re not a bot",
+                "this helps protect our community",
+            ),
+            "bot_verification_required",
+            (
+                "YouTube is asking this connection/IP to complete bot verification. "
+                "This is not a copyright determination. If YouTube SOCKS5 is enabled, "
+                "try disabling it or using another trusted proxy/IP. Authenticated "
+                "cookie access is not enabled in Telegram Harbor V1."
+            ),
+            False,
+        ),
+        (
+            (
                 "sign in to confirm your age",
                 "login required",
-                "sign in to confirm",
                 "authentication required",
             ),
             "login_required",
-            "This video requires authentication and is outside Telegram Harbor V1.",
+            "This video requires authenticated access and is outside Telegram Harbor V1.",
             True,
         ),
         (
