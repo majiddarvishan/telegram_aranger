@@ -489,11 +489,6 @@ def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
 
-    if args.mode in {"video_audio", "audio_only"} and not args.acknowledge:
-        parser.error("--acknowledge is required for download modes.")
-    if args.mode != "preflight" and not args.url:
-        parser.error("--url is required unless --mode preflight is used.")
-
     report, exit_code = run(args)
     _write_report(report, args.report_file)
     return exit_code
