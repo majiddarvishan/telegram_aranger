@@ -430,3 +430,49 @@ python scripts/youtube_manual_validate.py \
 ```
 
 The report records only safe proxy metadata such as enabled state, host/port and whether credentials were configured. The password value is never written to the report.
+
+
+### YouTube authenticated session
+
+Use this only when YouTube requires a signed-in session or presents a bot-verification challenge that guest access cannot satisfy.
+
+UI:
+1. Export a Mozilla/Netscape `cookies.txt` containing only `youtube.com` cookies from a YouTube session you control.
+2. Open **YouTube Download**.
+3. Expand **YouTube sign-in / cookies**.
+4. Enable **Use authenticated YouTube session**.
+5. Upload the `cookies.txt`.
+6. Re-run **Inspect** and then one Download.
+
+Expected:
+- no Google username/password field exists;
+- Inspect and Download both use the same uploaded session;
+- changing/disabling authenticated-session state invalidates old Inspect metadata;
+- cookie values never appear in UI output, logs, or validation JSON;
+- temporary cookie materialization is removed after each operation;
+- private/member-only/premium/DRM policy blocks still apply.
+
+Manual validation CLI:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --cookies-file "/absolute/path/to/youtube-cookies.txt" \
+  --report-file validation-reports/auth-inspect.json
+```
+
+Authenticated download:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode video_audio \
+  --quality max_720p \
+  --save-directory "/absolute/path/to/output" \
+  --cookies-file "/absolute/path/to/youtube-cookies.txt" \
+  --acknowledge \
+  --report-file validation-reports/auth-download.json
+```
+
+The report must show `request.auth.enabled=true` but must not contain the cookie-file path or any cookie value.
