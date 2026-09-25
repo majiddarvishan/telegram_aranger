@@ -159,7 +159,7 @@ Planning source:
 - [x] Standardize baseline spacing, radius, borders, shadows and typography.
 - [x] Use Streamlit theme variables so the foundation adapts to light/dark mode.
 - [x] Add regression coverage for sensitive Streamlit CSS selectors and reusable markup helpers.
-- [ ] Manually verify the visual result in both Light and Dark themes.
+- [x] Manually verify the visual result in both Light and Dark themes.
 
 ### GUI-P1 — Sidebar
 - [x] Compact product branding.
@@ -168,7 +168,7 @@ Planning source:
 - [x] Move destructive Telegram-account actions into a lower-emphasis Account actions area.
 - [x] Collapse proxy/network configuration into an expander.
 - [x] Normalize sidebar spacing and action priorities.
-- [ ] Manually review expanded sidebar on desktop/narrow viewports.
+- [x] Manually review expanded sidebar on desktop/narrow viewports.
 
 ### GUI-P2 — Main toolbar/action bar
 - [x] Redesign Chat/Search/Tag hierarchy with cleaner labels.
@@ -191,7 +191,7 @@ Planning source:
 - [x] Branded centered auth card.
 - [x] Dedicated empty states for account/chat/message absence.
 - [x] Shared warning/success/error surface styling.
-- [ ] Review loading treatment after the next visual pass.
+- [x] Review loading treatment and standardize loading microcopy.
 
 ### GUI-P5 — Responsive/accessibility
 - [x] Add baseline responsive behavior around a 900px breakpoint.
@@ -224,4 +224,13 @@ Planning source:
 - [x] Upgrade dialog-cache schema to v4 and force one refresh of legacy peer-less cache rows.
 - [x] Keep username-first / bounded-dialog recovery as a fallback.
 - [x] Show fetch-failure state separately from a true empty-message state.
-- [ ] Backport the persisted-peer correctness fix to main before the next stable release if needed independently of GUI merge.
+- [x] Persisted-peer correctness fix is included in `main` via the GUI fast-forward merge.
+
+
+## Release checkpoint v1.1.0
+- [x] Fast-forward merge completed from `gui` into `main`.
+- [x] Telegram Harbor v1.1.0 release checkpoint recorded at `4b7325b06cb92c32b56fc8a9a82388f547492ae8`.
+- [x] VERSION / README / CHANGELOG / branding regression updated for 1.1.0.
+- [x] GUI redesign validation completed in Light, Dark, desktop and narrow layouts.
+- [x] SQLite schema v4 peer persistence is included in the release.
+- [ ] Create Git tag `v1.1.0` pointing exactly to `4b7325b06cb92c32b56fc8a9a82388f547492ae8`; current GitHub connector does not expose tag-ref creation.
