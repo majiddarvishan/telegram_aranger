@@ -169,3 +169,46 @@ V1 intentionally excludes playlists, full channels, browser-cookie import, authe
 Status: planned
 
 FFmpeg must be treated as a platform dependency for video/audio merging and audio extraction where required. Windows and Docker setup, capability detection, and user-facing failure messages are part of the feature definition.
+
+
+## D-031 — YouTube V1 includes one optional subtitle track
+Status: planned on `feature/youtube-download`
+
+V1 includes optional subtitle download for a single selected language/track per download job.
+
+The metadata model and UI must distinguish:
+- manual subtitles;
+- auto-generated captions.
+
+The user explicitly chooses whether to download subtitles and which available track to use.
+
+The preferred subtitle output is SRT. If conversion is unavailable, the actual fallback format (for example VTT/original) must be reported instead of silently renaming the content.
+
+Multiple subtitle languages in one job are deferred so the V1 filename requirement can remain deterministic.
+
+## D-032 — YouTube output basename comes from the video title
+Status: planned
+
+The default output basename is the sanitized YouTube video title, not the video ID.
+
+Examples:
+- `My Video.mp4`
+- `My Video.mp3`
+- `My Video.srt`
+
+When a subtitle is included, the media and subtitle files must use the same basename.
+
+Sanitization must preserve a readable title while producing valid Windows/Linux filenames.
+
+## D-033 — Filename collisions are resolved as one output group
+Status: planned
+
+Automatic overwrite is not the default.
+
+If the target basename already exists, Telegram Harbor chooses one collision suffix for the whole output group and applies it consistently.
+
+Example:
+- `My Video (2).mp4`
+- `My Video (2).srt`
+
+This preserves the requirement that media and subtitle files remain obviously paired.
