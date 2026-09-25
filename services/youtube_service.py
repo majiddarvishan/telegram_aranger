@@ -141,7 +141,7 @@ class YtDlpBackend:
 
 def _validate_v1_downloader_options(options: Mapping[str, Any]) -> None:
     forbidden = sorted(
-        key
+        str(key)
         for key in options
         if str(key).lower() in FORBIDDEN_V1_DOWNLOADER_OPTIONS
     )
