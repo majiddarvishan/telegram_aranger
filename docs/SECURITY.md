@@ -144,19 +144,32 @@ Security rules:
 Treat any proxy username/password as a secret and prefer a dedicated secret manager/environment injection for shared hosted deployments.
 
 
-## YouTube authenticated session cookies
+## YouTube authenticated sessions
 
-Telegram Harbor can optionally use a Netscape-format YouTube `cookies.txt` to establish an authenticated YouTube session for Inspect/Download.
+Telegram Harbor supports optional signed-in YouTube access without collecting Google credentials.
 
-Security rules:
-- do not enter a Google username/password into Telegram Harbor; the application does not request or store it;
-- OAuth is not used;
-- upload/export only `youtube.com` cookies;
-- cookie content is treated as a secret equivalent to an authenticated browser session;
-- Telegram Harbor does not persist cookie content to SQLite, structured logs, or validation reports;
-- the cookie file is materialized to a temporary file only while yt-dlp is running and is deleted afterward;
-- validation reports contain only `auth.enabled` and a non-secret source label;
-- generic yt-dlp cookie/browser-profile options remain blocked;
-- authenticated mode does not override product blocks for private, members-only, premium, or DRM-protected content.
+Preferred local mode — Browser session:
+- uses yt-dlp's supported browser-cookie integration;
+- reads cookies from a browser profile on the **same host and OS user** that runs Telegram Harbor;
+- supports an optional profile name/path;
+- does not copy browser cookie values into SQLite, structured logs, or validation reports;
+- validation reports record only the auth source, selected browser, and whether a profile was configured;
+- Auto detection checks standard browser-profile locations only; it does not read cookie contents until an authenticated Inspect/Download is explicitly started.
 
-Operationally, prefer a dedicated YouTube account/session and enable authenticated mode only when direct guest access is insufficient.
+Fallback mode — `cookies.txt`:
+- intended for Docker/remote installs where the browser is not on the backend host;
+- accepts only Mozilla/Netscape format with `youtube.com` cookie rows;
+- upload remains session-only;
+- cookie bytes are materialized to a restrictive temporary file only while yt-dlp runs and are deleted afterward;
+- cookie file path, names, and values are never written to validation reports.
+
+General rules:
+- no Google username/password fields;
+- no OAuth flow;
+- raw yt-dlp `cookiefile` / `cookiesfrombrowser` injection remains blocked through generic options;
+- authenticated mode does not override product blocks for private, members-only, premium, or DRM-protected content;
+- browser/account cookies are sensitive session credentials; enable this only when needed and prefer a dedicated YouTube account/session where practical.
+
+Operational limitation:
+- a Docker container or remote server cannot directly reuse cookies from a browser running on the user's laptop/desktop. In that topology use the `cookies.txt` fallback or run Telegram Harbor locally under the browser's OS user.
+
