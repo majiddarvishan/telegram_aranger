@@ -41,8 +41,11 @@ SUBTITLE_SOURCES = ("manual", "automatic")
 
 def _detect_commit_sha() -> str | None:
     configured = os.getenv("TELEGRAM_HARBOR_BUILD_SHA", "").strip()
-    if configured and configured.lower() not in {"unknown", "local"}:
-        return configured
+    configured = (
+        configured
+        if configured and configured.lower() not in {"unknown", "local"}
+        else ""
+    )
 
     try:
         completed = subprocess.run(
