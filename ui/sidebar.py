@@ -168,7 +168,7 @@ def _restore_selected_account(
         return
 
     try:
-        with st.spinner("Connecting to Telegram..."):
+        with st.spinner("Connecting to Telegram…"):
             st.session_state.telegram_user = restore(
                 settings,
                 account["encrypted_session"],
@@ -193,7 +193,7 @@ def _render_connected_account_actions(
     telegram_user = st.session_state.telegram_user
 
     st.sidebar.markdown(
-        badge_html("Telegram connected", "success"),
+        badge_html("Connected", "success"),
         unsafe_allow_html=True,
     )
 
@@ -308,6 +308,7 @@ def _render_account_selector(
         index=list(labels).index(current),
         format_func=lambda account_id: labels[account_id],
         label_visibility="collapsed",
+        key="sidebar-active-account",
     )
 
     if _apply_account_selection(
@@ -339,7 +340,7 @@ def _render_account_selector(
         )
     else:
         st.sidebar.markdown(
-            badge_html("Telegram disconnected", "warning"),
+            badge_html("Disconnected", "warning"),
             unsafe_allow_html=True,
         )
         if st.sidebar.button(
