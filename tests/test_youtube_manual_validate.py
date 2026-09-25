@@ -5,6 +5,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from scripts.youtube_manual_validate import (
+    _binary_runtime_available,
     _environment_summary,
     _request_summary,
     _result_checks,
@@ -18,6 +19,28 @@ from services.youtube_service import FFmpegCapability, YouTubeServiceError
 
 
 class ManualValidationHelperTests(unittest.TestCase):
+    def test_binary_runtime_available_requires_successful_execution(self):
+        with patch(
+            "scripts.youtube_manual_validate.subprocess.run",
+            return_value=SimpleNamespace(returncode=0),
+        ) as run_mock:
+            self.assertTrue(_binary_runtime_available("/ffmpeg"))
+        run_mock.assert_called_once()
+
+        with patch(
+            "scripts.youtube_manual_validate.subprocess.run",
+            return_value=SimpleNamespace(returncode=1),
+        ):
+            self.assertFalse(_binary_runtime_available("/ffmpeg"))
+
+        with patch(
+            "scripts.youtube_manual_validate.subprocess.run",
+            side_effect=OSError("broken"),
+        ):
+            self.assertFalse(_binary_runtime_available("/ffmpeg"))
+
+        self.assertFalse(_binary_runtime_available(None))
+
     def test_request_summary_records_safe_reproducible_inputs(self):
         args = SimpleNamespace(
             mode="video_audio",
@@ -267,6 +290,10 @@ class ManualValidationHelperTests(unittest.TestCase):
                 patch(
                     "scripts.youtube_manual_validate.download_video"
                 ) as download_mock,
+                patch(
+                    "scripts.youtube_manual_validate._binary_runtime_available",
+                    return_value=True,
+                ),
             ):
                 report, code = run(args)
 
@@ -274,6 +301,9 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(report["status"], "passed")
         self.assertTrue(report["preflight"]["save_directory_valid"])
         self.assertTrue(report["preflight"]["ffmpeg_fully_available"])
+        self.assertTrue(report["preflight"]["ffmpeg_runtime_ok"])
+        self.assertTrue(report["preflight"]["ffprobe_runtime_ok"])
+        self.assertTrue(report["preflight"]["ffmpeg_runtime_ready"])
         self.assertIsNone(report["video_id"])
         inspect_mock.assert_not_called()
         download_mock.assert_not_called()
@@ -292,9 +322,15 @@ class ManualValidationHelperTests(unittest.TestCase):
                 acknowledge=False,
                 report_file=None,
             )
-            with patch(
-                "scripts.youtube_manual_validate.detect_ffmpeg",
-                return_value=FFmpegCapability("/ffmpeg", None),
+            with (
+                patch(
+                    "scripts.youtube_manual_validate.detect_ffmpeg",
+                    return_value=FFmpegCapability("/ffmpeg", None),
+                ),
+                patch(
+                    "scripts.youtube_manual_validate._binary_runtime_available",
+                    side_effect=lambda path: bool(path),
+                ),
             ):
                 report, code = run(args)
 
@@ -302,6 +338,40 @@ class ManualValidationHelperTests(unittest.TestCase):
         self.assertEqual(report["status"], "failed")
         self.assertEqual(report["error"]["code"], "ffmpeg_unavailable")
         self.assertFalse(report["preflight"]["ffmpeg_fully_available"])
+
+    def test_preflight_fails_when_ffmpeg_binary_cannot_execute(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            args = SimpleNamespace(
+                url=None,
+                mode="preflight",
+                quality="best",
+                save_directory=tmp,
+                create_directory=False,
+                allowed_root=[],
+                subtitle_language=None,
+                subtitle_source=None,
+                acknowledge=False,
+                report_file=None,
+            )
+            with (
+                patch(
+                    "scripts.youtube_manual_validate.detect_ffmpeg",
+                    return_value=FFmpegCapability("/ffmpeg", "/ffprobe"),
+                ),
+                patch(
+                    "scripts.youtube_manual_validate._binary_runtime_available",
+                    side_effect=[False, True],
+                ),
+            ):
+                report, code = run(args)
+
+        self.assertEqual(code, 4)
+        self.assertEqual(report["status"], "failed")
+        self.assertEqual(
+            report["error"]["code"],
+            "ffmpeg_runtime_unavailable",
+        )
+        self.assertFalse(report["preflight"]["ffmpeg_runtime_ready"])
 
     def test_run_inspect_uses_normalized_safe_report(self):
         args = SimpleNamespace(
