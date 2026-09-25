@@ -81,6 +81,63 @@ def _progress_record(event: DownloadProgress) -> dict[str, Any]:
     }
 
 
+def _result_checks(
+    result,
+    save_directory: str,
+    progress_events: list[dict[str, Any]],
+) -> dict[str, Any]:
+    root = Path(save_directory).expanduser().resolve(strict=True)
+    media = Path(result.media_path).resolve(strict=False)
+    subtitle = (
+        Path(result.subtitle_path).resolve(strict=False)
+        if result.subtitle_path
+        else None
+    )
+
+    media_exists = media.is_file()
+    subtitle_exists = subtitle.is_file() if subtitle is not None else None
+    media_contained = media.parent == root or root in media.parents
+    subtitle_contained = (
+        subtitle.parent == root or root in subtitle.parents
+        if subtitle is not None
+        else None
+    )
+    matched_basename = (
+        media.stem == subtitle.stem
+        if subtitle is not None
+        else None
+    )
+    completed_progress = any(
+        event.get("phase") == "completed"
+        and event.get("status") == "finished"
+        for event in progress_events
+    )
+
+    boolean_checks = [
+        media_exists,
+        media_contained,
+        completed_progress,
+    ]
+    if subtitle is not None:
+        boolean_checks.extend(
+            [
+                bool(subtitle_exists),
+                bool(subtitle_contained),
+                bool(matched_basename),
+            ]
+        )
+
+    return {
+        "media_exists": media_exists,
+        "subtitle_exists": subtitle_exists,
+        "media_within_save_directory": media_contained,
+        "subtitle_within_save_directory": subtitle_contained,
+        "media_subtitle_basename_match": matched_basename,
+        "completed_progress_observed": completed_progress,
+        "all_passed": all(boolean_checks),
+    }
+
+
 def _write_report(report: dict[str, Any], report_file: str | None) -> None:
     text = json.dumps(report, indent=2, ensure_ascii=False, sort_keys=True)
     print(text)
@@ -276,8 +333,17 @@ def run(args) -> tuple[dict[str, Any], int]:
             "last_event": progress_events[-1] if progress_events else None,
         }
         report["result"] = result.as_dict()
-        report["status"] = "passed"
-        return report, 0
+        report["checks"] = _result_checks(
+            result,
+            args.save_directory,
+            progress_events,
+        )
+        report["status"] = (
+            "passed"
+            if report["checks"]["all_passed"]
+            else "failed"
+        )
+        return report, 0 if report["checks"]["all_passed"] else 4
 
     except (YouTubeServiceError, DownloadPathError) as exc:
         report["status"] = "failed"
