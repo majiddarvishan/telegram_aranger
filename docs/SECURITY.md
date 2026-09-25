@@ -126,3 +126,19 @@ Important boundaries:
 - Application administrators/host operators are trusted and are not isolated from user secrets by this architecture.
 
 If strong tenant isolation is required, move from a single local Streamlit/SQLite process to a service architecture with centralized authentication, a shared database, per-request authorization, audited secret access, and isolated worker/runtime credentials.
+
+
+## YouTube SOCKS5 proxy credentials
+
+YouTube has an optional SOCKS5 proxy configuration independent from Telegram proxy state.
+
+Security rules:
+- disabled by default;
+- proxy password is kept only in the active Streamlit session when entered through the UI;
+- Telegram Harbor does not persist the YouTube proxy password to SQLite;
+- validation reports store only safe metadata and never the password value;
+- the manual validation CLI reads an optional password from `YOUTUBE_SOCKS5_PASSWORD` (or the environment variable selected with `--proxy-password-env`) rather than accepting a plaintext password argument;
+- raw yt-dlp `proxy` injection through generic downloader options remains blocked;
+- enabling SOCKS5 does not enable cookies, authenticated YouTube sessions, geo-bypass flags, or access-control bypass.
+
+Treat any proxy username/password as a secret and prefer a dedicated secret manager/environment injection for shared hosted deployments.
