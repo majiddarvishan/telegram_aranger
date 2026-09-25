@@ -403,6 +403,35 @@ class DownloadExecutionTests(unittest.TestCase):
             )
             self.assertNotIn("cookiefile", backend.options)
 
+    def test_authenticated_needs_auth_metadata_can_download(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            backend = FakeDownloadBackend()
+            auth = YouTubeAuthConfig(
+                enabled=True,
+                source="browser",
+                browser="chrome",
+            )
+            restricted = metadata()
+            restricted["availability"] = "needs_auth"
+
+            result = download_video(
+                DownloadRequest(
+                    url="https://youtu.be/BaW_jenozKc",
+                    save_directory=tmp,
+                    acknowledged=True,
+                    auth=auth,
+                ),
+                restricted,
+                backend=backend,
+                ffmpeg=FFMPEG,
+            )
+
+            self.assertTrue(Path(result.media_path).is_file())
+            self.assertEqual(
+                backend.options["cookiesfrombrowser"],
+                ("chrome", None, None, None),
+            )
+
     def test_audio_only_output_is_mp3(self):
         with tempfile.TemporaryDirectory() as tmp:
             result = download_video(
