@@ -368,6 +368,10 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Record OS/Python/app-version/build-commit identity in manual validation reports without hostname/user/secrets.
 - [x] Embed Docker source commit via `TELEGRAM_HARBOR_BUILD_SHA` and verify it in CI.
 - [x] Record a safe reproducible request summary (mode/quality/save directory/roots/subtitle/acknowledgement) without persisting the original URL.
+- [x] Add a network-free preflight mode for FFmpeg/FFprobe + Save-directory/allowed-root validation.
+- [x] Run Docker preflight in CI without any YouTube URL.
+- [x] Return invalid YouTube URLs as structured failure reports instead of uncaught tracebacks.
+- [x] Self-check title-based output naming, collision suffix acceptance, media mode extension, and subtitle reported extension.
 
 - [ ] Public test video.
 - [ ] Video + audio.
