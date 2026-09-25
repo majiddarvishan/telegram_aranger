@@ -979,3 +979,40 @@ Result:
 - GUI-P6 final visual polish review is complete for Light, Dark and narrow desktop widths.
 
 The `gui` branch is now considered visually ready for merge, subject to the user's explicit approval. Do not merge automatically.
+
+
+## 2026-09-25 — GUI merged to main and v1.1.0 release checkpoint
+
+User confirmed the redesigned application is correct.
+
+Merge:
+- `gui@6f0f91025d0886178c0814acdfe993397415adb1` was fast-forward merged into `main`.
+- No merge conflict and no merge commit were required.
+- `main` is again the project source of truth.
+
+Release:
+- semantic release selected: `v1.1.0` because this release contains substantial new UI/product functionality plus SQLite schema v4 peer persistence, rather than a patch-only change;
+- root VERSION set to `1.1.0`;
+- branding regression updated to `1.1.0`;
+- README updated for v1.1.0, the redesigned UI, current navigation, new UI/theme files, and persisted dialog peer metadata;
+- CHANGELOG finalized under `1.1.0 - 2026-09-25`;
+- release checkpoint SHA: `4b7325b06cb92c32b56fc8a9a82388f547492ae8`;
+- intended Git tag: `v1.1.0` pointing exactly to that checkpoint.
+
+Included release scope:
+- centralized Telegram Harbor design system;
+- content-first message cards;
+- redesigned sidebar/filter/action bar;
+- branded auth and empty/error states;
+- Light/Dark adaptive surfaces;
+- RTL/LTR message rendering;
+- responsive compact-workspace wrapping;
+- final hover/focus/active/microcopy polish;
+- SQLite schema v4;
+- persisted Pyrogram peer type/access-hash metadata;
+- peer hydration on session restore;
+- legacy dialog-cache refresh and targeted peer fallback.
+
+Tag note:
+- the connected GitHub tools can move branch refs but do not expose creation of Git tag refs;
+- create `v1.1.0` manually on the exact release checkpoint SHA unless a tag is already created externally.
