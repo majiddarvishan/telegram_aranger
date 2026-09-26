@@ -669,12 +669,30 @@ def render_youtube(settings) -> None:
         ),
     )
 
+    save_directory_ready = bool(
+        st.session_state.get("youtube_save_directory", "").strip()
+    )
+    inspected_url_ready = (
+        st.session_state.get("youtube_inspected_url") == url.strip()
+    )
     can_start = (
-        bool(st.session_state.get("youtube_save_directory", "").strip())
+        save_directory_ready
         and policy.can_download
         and ffmpeg.fully_available
-        and st.session_state.get("youtube_inspected_url") == url.strip()
+        and inspected_url_ready
     )
+
+    if not can_start:
+        reasons = []
+        if not save_directory_ready:
+            reasons.append("set a save directory")
+        if not policy.can_download:
+            reasons.append("acknowledge the rights/service notice")
+        if not ffmpeg.fully_available:
+            reasons.append("make FFmpeg and FFprobe available to the Streamlit process")
+        if not inspected_url_ready:
+            reasons.append("Inspect the current URL again")
+        st.caption("Download unavailable: " + "; ".join(reasons) + ".")
 
     if st.button(
         "Download",
