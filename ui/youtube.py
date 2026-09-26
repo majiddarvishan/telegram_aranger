@@ -23,9 +23,27 @@ from services.youtube_service import (
     inspect_video,
 )
 from utils.download_paths import DownloadPathError, validate_save_directory
+from utils.native_dialogs import DirectoryPickerError, choose_directory
+from utils.preferences import save_preference
 
 
 WORKSPACE_TITLE = "YouTube Download"
+
+
+def _remember_youtube_save_directory() -> None:
+    value = str(st.session_state.get("youtube_save_directory", "") or "").strip()
+    if value:
+        save_preference("youtube_save_directory", value)
+
+
+def _browse_youtube_save_directory() -> None:
+    current = str(
+        st.session_state.get("youtube_save_directory", "") or ""
+    ).strip()
+    selected = choose_directory(current)
+    if selected:
+        st.session_state.youtube_save_directory = selected
+        save_preference("youtube_save_directory", selected)
 
 
 def _invalidate_youtube_inspection() -> None:
@@ -625,19 +643,33 @@ def render_youtube(settings) -> None:
         )
 
     with st.container(key="youtube-save-controls"):
-        st.text_input(
-            "Save directory",
-            key="youtube_save_directory",
-            placeholder=(
-                r"C:\Users\Majid\Downloads\TelegramHarbor"
-                if Path.cwd().drive
-                else "/home/majid/Downloads/telegram-harbor"
-            ),
-            help=(
-                "Absolute path on the machine running Telegram Harbor. "
-                "Remote deployments save to the server host."
-            ),
-        )
+        path_col, browse_col = st.columns([5, 1])
+        with path_col:
+            st.text_input(
+                "Save directory",
+                key="youtube_save_directory",
+                on_change=_remember_youtube_save_directory,
+                help=(
+                    "Absolute path on the machine running Telegram Harbor. "
+                    "The default is your Downloads folder and the last selected "
+                    "path is remembered across restarts."
+                ),
+            )
+        with browse_col:
+            st.write("")
+            st.write("")
+            if st.button(
+                "Browse…",
+                key="youtube-browse-save-directory",
+                use_container_width=True,
+            ):
+                try:
+                    _browse_youtube_save_directory()
+                except DirectoryPickerError as exc:
+                    st.warning(str(exc))
+                else:
+                    st.rerun()
+
         st.checkbox(
             "Create the directory if it does not exist",
             key="youtube_create_directory",
