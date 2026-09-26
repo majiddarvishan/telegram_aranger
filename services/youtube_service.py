@@ -855,6 +855,32 @@ def normalize_downloader_error(error: Exception) -> YouTubeServiceError:
     message = str(error).strip() or "YouTube operation failed."
     lowered = message.lower()
 
+    browser_cookie_failure = (
+        ("cookie" in lowered or "cookies" in lowered)
+        and any(
+            marker in lowered
+            for marker in (
+                "could not copy chrome cookie database",
+                "permission denied",
+                "database is locked",
+                "unable to open database file",
+                "failed to decrypt",
+                "keyring",
+                "secretstorage",
+            )
+        )
+    )
+    if browser_cookie_failure:
+        return YouTubeServiceError(
+            "youtube_browser_session_unavailable",
+            (
+                "Browser session cookies could not be read. If you selected "
+                "Chrome/Edge/Brave on Windows, fully close the browser and its "
+                "background processes, then retry. Otherwise choose another local "
+                "browser/profile or use cookies.txt fallback."
+            ),
+        )
+
     rules = (
         (
             (
