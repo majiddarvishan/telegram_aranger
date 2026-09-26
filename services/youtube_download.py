@@ -223,6 +223,7 @@ def download_video(
                     quality=quality,
                     subtitle_plan=subtitle_plan,
                     progress_callback=progress_callback,
+                    cancel_check=cancel_check,
                     proxy=request.proxy,
                     cookiefile=cookiefile,
                     cookies_from_browser=browser_spec,
