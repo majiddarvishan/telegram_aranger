@@ -50,6 +50,18 @@ _BROWSER_AUTO_ORDER = (
     "whale",
 )
 
+_WINDOWS_BROWSER_AUTO_ORDER = (
+    "firefox",
+    "chrome",
+    "edge",
+    "brave",
+    "chromium",
+    "vivaldi",
+    "opera",
+    "whale",
+    "safari",
+)
+
 FORBIDDEN_V1_DOWNLOADER_OPTIONS = {
     "cookiefile",
     "cookiesfrombrowser",
@@ -293,7 +305,12 @@ def detect_local_browser_cookie_source() -> str | None:
         ),
     }
 
-    for browser in _BROWSER_AUTO_ORDER:
+    auto_order = (
+        _WINDOWS_BROWSER_AUTO_ORDER
+        if os.name == "nt"
+        else _BROWSER_AUTO_ORDER
+    )
+    for browser in auto_order:
         if any(path and os.path.exists(path) for path in candidate_roots[browser]):
             return browser
     return None
