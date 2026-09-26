@@ -102,7 +102,9 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         self.assertNotIn("import yt_dlp", source)
         self.assertIn("inspect_video", source)
-        self.assertIn("download_video", source)
+        self.assertIn("start_youtube_download_job", source)
+        self.assertIn("download_subtitle", source)
+        self.assertNotIn("import yt_dlp", source)
 
     def test_ui_uses_responsive_workspace_keys(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
@@ -141,7 +143,8 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         self.assertNotIn('st.error(f"YouTube download failed: {exc}")', source)
         self.assertNotIn('"message": str(exc)', source)
-        self.assertIn("YouTube download failed unexpectedly.", source)
+        jobs_source = Path("services/youtube_jobs.py").read_text(encoding="utf-8")
+        self.assertIn("YouTube download failed unexpectedly.", jobs_source)
         self.assertIn("YouTube inspection failed unexpectedly.", source)
 
     def test_completed_output_keeps_subtitle_provenance(self):
@@ -222,6 +225,23 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
             source.count("on_change=_invalidate_youtube_inspection"),
             5,
         )
+
+    def test_ui_supports_cancel_browse_and_per_format_actions(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+        state_source = Path("utils/state.py").read_text(encoding="utf-8")
+
+        self.assertIn("Cancel download", source)
+        self.assertIn("@st.fragment(run_every=\"500ms\")", source)
+        self.assertIn("Browse…", source)
+        self.assertIn("choose_directory", source)
+        self.assertIn("save_preference", source)
+        self.assertIn("Available formats / quick download", source)
+        self.assertIn("Video + Audio", source)
+        self.assertIn('"Audio"', source)
+        self.assertIn('"Sub"', source)
+        self.assertIn("format_id=format_id", source)
+        self.assertIn("download_subtitle", source)
+        self.assertIn('"youtube_download_job": None', state_source)
 
     def test_ui_contains_v1_safety_and_progress_contract(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
