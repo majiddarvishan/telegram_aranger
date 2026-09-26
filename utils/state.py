@@ -2,6 +2,8 @@ from datetime import date, timedelta
 
 import streamlit as st
 
+from utils.preferences import default_download_directory, load_preference
+
 
 def initialize_state():
     today = date.today()
@@ -45,7 +47,10 @@ def initialize_state():
         "youtube_quality_key": "best",
         "youtube_subtitles_enabled": False,
         "youtube_subtitle_index": 0,
-        "youtube_save_directory": "",
+        "youtube_save_directory": load_preference(
+            "youtube_save_directory",
+            default_download_directory(),
+        ),
         "youtube_create_directory": False,
         "youtube_acknowledged": False,
         "youtube_use_auth": False,
