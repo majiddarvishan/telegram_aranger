@@ -7,7 +7,6 @@ from typing import Any, Callable, Mapping
 from services.youtube_download import (
     DownloadProgress,
     DownloadRequest,
-    DownloadResult,
     download_video,
 )
 from services.youtube_service import YouTubeServiceError
@@ -19,7 +18,7 @@ class YouTubeDownloadJob:
     lock: threading.Lock = field(default_factory=threading.Lock)
     status: str = "running"
     progress: DownloadProgress | None = None
-    result: DownloadResult | None = None
+    result: Any | None = None
     error: dict[str, Any] | None = None
     thread: threading.Thread | None = None
 
@@ -47,11 +46,11 @@ class YouTubeDownloadJob:
 
 
 def start_youtube_download_job(
-    request: DownloadRequest,
+    request: Any,
     metadata: Mapping[str, Any],
     *,
     allowed_roots: tuple[str, ...] = (),
-    runner: Callable[..., DownloadResult] = download_video,
+    runner: Callable[..., Any] = download_video,
 ) -> YouTubeDownloadJob:
     job = YouTubeDownloadJob()
 
