@@ -43,6 +43,7 @@ def initialize_state():
         "youtube_metadata": None,
         "youtube_error": None,
         "youtube_download_result": None,
+        "youtube_download_job": None,
         "youtube_mode": "Video + Audio",
         "youtube_quality_key": "best",
         "youtube_subtitles_enabled": False,
