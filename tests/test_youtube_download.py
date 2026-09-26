@@ -6,11 +6,15 @@ from unittest.mock import patch
 
 from services.youtube_download import (
     DownloadRequest,
+    SubtitleDownloadRequest,
     SubtitleSelection,
     build_download_options,
+    build_subtitle_only_options,
     build_subtitle_plan,
+    download_subtitle,
     download_video,
     format_selector,
+    resolve_requested_format,
     normalize_download_error,
     progress_hook,
     resolve_media_source,
@@ -233,6 +237,71 @@ class DownloadOptionTests(unittest.TestCase):
             "socks5://user:pass@proxy.example:1080",
         )
 
+    def test_exact_video_and_audio_format_selectors(self):
+        selected_video = {
+            "format_id": "137",
+            "has_video": True,
+            "has_audio": False,
+        }
+        selected_muxed = {
+            "format_id": "18",
+            "has_video": True,
+            "has_audio": True,
+        }
+        selected_audio = {
+            "format_id": "251",
+            "has_video": False,
+            "has_audio": True,
+        }
+
+        self.assertEqual(
+            format_selector(
+                "video_audio",
+                "best",
+                selected_format=selected_video,
+            ),
+            "137+ba/b",
+        )
+        self.assertEqual(
+            format_selector(
+                "video_audio",
+                "best",
+                selected_format=selected_muxed,
+            ),
+            "18",
+        )
+        self.assertEqual(
+            format_selector(
+                "audio_only",
+                "best",
+                selected_format=selected_audio,
+            ),
+            "251",
+        )
+
+    def test_resolve_requested_format_rejects_mode_mismatch(self):
+        data = metadata(
+            formats=[
+                {
+                    "format_id": "137",
+                    "has_video": True,
+                    "has_audio": False,
+                },
+                {
+                    "format_id": "251",
+                    "has_video": False,
+                    "has_audio": True,
+                },
+            ]
+        )
+        self.assertEqual(
+            resolve_requested_format(data, "137", "video_audio")["format_id"],
+            "137",
+        )
+        with self.assertRaises(YouTubeServiceError) as caught:
+            resolve_requested_format(data, "137", "audio_only")
+        self.assertEqual(caught.exception.code, "format_mode_mismatch")
+
     def test_audio_options_extract_mp3(self):
         with tempfile.TemporaryDirectory() as tmp:
             options = build_download_options(
@@ -248,6 +317,13 @@ class DownloadOptionTests(unittest.TestCase):
         self.assertEqual(pp["key"], "FFmpegExtractAudio")
         self.assertEqual(pp["preferredcodec"], "mp3")
         self.assertEqual(options["final_ext"], "mp3")
+
+
+    def test_cancel_check_aborts_from_progress_hook(self):
+        hook = progress_hook(None, cancel_check=lambda: True)
+        with self.assertRaises(YouTubeServiceError) as caught:
+            hook({"status": "downloading", "downloaded_bytes": 1})
+        self.assertEqual(caught.exception.code, "download_cancelled")
 
 
 class SubtitlePlanTests(unittest.TestCase):
