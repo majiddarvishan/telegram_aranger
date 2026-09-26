@@ -427,3 +427,19 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [ ] Warning flow.
 - [ ] Failure paths.
 - [ ] Final merge/release review.
+
+
+### YouTube download UX follow-up — 2026-09-27
+- [x] Add cooperative cancellation to the download engine and a live `Cancel download` control.
+- [x] Run YouTube downloads in a cancellable background job so Streamlit remains interactive.
+- [x] Default Save directory to the local user's `Downloads` folder.
+- [x] Add a native local folder picker with manual-path fallback for headless/remote environments.
+- [x] Persist the last selected YouTube Save directory in `~/.telegram_harbor/preferences.json`.
+- [x] Add per-format quick actions for Video + Audio and Audio using the inspected format ID.
+- [x] Add subtitle-only quick download using the selected subtitle/caption track.
+- [x] Keep exact-format selection constrained to format IDs returned by the current Inspect result.
+- [x] Add regression coverage for cancellation, exact-format selection and the new UI controls.
+- [x] GitHub Actions run `36277332726` is green on Linux unittest, Windows/Python 3.14 and Docker at `b0294672c1a86a211251fed46fa9496d1fb35ecc`.
+- [ ] Manually verify Cancel during a real YouTube download.
+- [ ] Manually verify native Browse + persisted Save directory after app restart on Windows.
+- [ ] Manually verify per-format Video + Audio, Audio and Subtitle actions with live YouTube.
