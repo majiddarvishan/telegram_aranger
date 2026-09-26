@@ -119,7 +119,9 @@ def _render_youtube_auth_settings() -> None:
                 on_change=_invalidate_youtube_inspection,
                 help=(
                     "Auto checks standard local browser-profile locations without "
-                    "reading cookie contents. The selected browser must exist on "
+                    "reading cookie contents. On Windows, Firefox is preferred because "
+                    "modern Chromium browsers may use App-Bound cookie encryption that "
+                    "yt-dlp cannot decrypt directly. The selected browser must exist on "
                     "the same machine/user account that runs Telegram Harbor."
                 ),
             )
@@ -136,6 +138,11 @@ def _render_youtube_auth_settings() -> None:
                 "Local installs: this can reuse your existing signed-in browser "
                 "session without exporting cookies. Remote/Docker deployments "
                 "cannot read cookies from a browser running on your own PC."
+            )
+            st.caption(
+                "Windows note: Firefox is the preferred Browser Session source. "
+                "Recent Chrome/Edge/Brave versions can use App-Bound cookie "
+                "encryption that prevents direct yt-dlp decryption."
             )
         else:
             st.file_uploader(
