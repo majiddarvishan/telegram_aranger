@@ -133,6 +133,16 @@ class YtDlpDownloadBackend:
         return info
 
 
+def _raise_if_cancelled(
+    cancel_check: Callable[[], bool] | None,
+) -> None:
+    if cancel_check is not None and cancel_check():
+        raise YouTubeServiceError(
+            "download_cancelled",
+            "YouTube download was cancelled.",
+        )
+
+
 def download_video(
     request: DownloadRequest,
     metadata: Mapping[str, Any],
@@ -141,8 +151,10 @@ def download_video(
     backend: DownloadBackend | None = None,
     ffmpeg: FFmpegCapability | None = None,
     progress_callback: Callable[[DownloadProgress], None] | None = None,
+    cancel_check: Callable[[], bool] | None = None,
 ) -> DownloadResult:
     """Execute one validated V1 download job."""
+    _raise_if_cancelled(cancel_check)
     validated = validate_youtube_url(request.url)
     metadata_video_id = str(metadata.get("video_id") or "").strip()
     if (
@@ -224,6 +236,7 @@ def download_video(
                 except Exception as exc:
                     raise normalize_download_error(exc) from exc
 
+            _raise_if_cancelled(cancel_check)
             downloaded_video_id = str(info.get("id") or "").strip()
             if (
                 downloaded_video_id
@@ -344,6 +357,7 @@ def build_download_options(
     quality: str,
     subtitle_plan: Mapping[str, Any] | None,
     progress_callback: Callable[[DownloadProgress], None] | None,
+    cancel_check: Callable[[], bool] | None = None,
     proxy: YouTubeProxyConfig | None = None,
     cookiefile: str | None = None,
     cookies_from_browser: tuple[str, str | None, None, None] | None = None,
@@ -382,8 +396,10 @@ def build_download_options(
             "subtitle": str(temp_directory / f"{basename}.%(ext)s"),
         },
         "postprocessors": postprocessors,
-        "progress_hooks": [progress_hook(progress_callback)],
-        "postprocessor_hooks": [postprocessor_hook(progress_callback)],
+        "progress_hooks": [progress_hook(progress_callback, cancel_check=cancel_check)],
+        "postprocessor_hooks": [
+            postprocessor_hook(progress_callback, cancel_check=cancel_check)
+        ],
     }
 
     proxy_url = proxy.proxy_url() if proxy is not None else None
@@ -674,8 +690,11 @@ def try_convert_subtitle_to_srt(
 
 def progress_hook(
     callback: Callable[[DownloadProgress], None] | None,
+    *,
+    cancel_check: Callable[[], bool] | None = None,
 ):
     def hook(data: Mapping[str, Any]) -> None:
+        _raise_if_cancelled(cancel_check)
         status = str(data.get("status") or "")
         if status not in {"downloading", "finished", "error"}:
             return
@@ -712,8 +731,11 @@ def progress_hook(
 
 def postprocessor_hook(
     callback: Callable[[DownloadProgress], None] | None,
+    *,
+    cancel_check: Callable[[], bool] | None = None,
 ):
     def hook(data: Mapping[str, Any]) -> None:
+        _raise_if_cancelled(cancel_check)
         status = str(data.get("status") or "")
         if status not in {"started", "processing", "finished"}:
             return
@@ -748,6 +770,11 @@ def normalize_download_error(error: Exception) -> YouTubeServiceError:
         )
 
     message = str(error).lower()
+    if "download_cancelled" in message or "download was cancelled" in message:
+        return YouTubeServiceError(
+            "download_cancelled",
+            "YouTube download was cancelled.",
+        )
     if "no space left on device" in message or "disk full" in message:
         return YouTubeServiceError(
             "disk_full",
