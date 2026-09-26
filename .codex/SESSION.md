@@ -2198,3 +2198,30 @@ Manual acceptance still open:
 - cookies.txt fallback on remote/Docker if required;
 - real SOCKS5 validation;
 - remaining YT-P7 media/subtitle/UI/Windows/Docker acceptance.
+
+
+## 2026-09-27 — YouTube cancel, folder picker and per-format downloads
+
+User confirmed live YouTube download works with the current authenticated-cookie + SOCKS5 + Deno setup and requested three follow-up UX capabilities.
+
+Implemented:
+- downloads now run as cancellable background jobs;
+- yt-dlp progress/post-processing hooks cooperatively stop when cancellation is requested;
+- the UI exposes a live `Cancel download` action while a job is active;
+- Save directory defaults to the current OS user's `Downloads` directory;
+- local installs can open a native folder chooser via `Browse…`;
+- headless/remote deployments keep the manual path field and receive a clear picker-unavailable warning;
+- the last selected Save directory is persisted locally in `~/.telegram_harbor/preferences.json`;
+- inspected formats are presented with per-row quick actions;
+- Video + Audio uses the selected video format ID and merges best audio when the selected row is video-only;
+- Audio uses the selected audio format ID and converts to MP3 through the existing FFmpeg path;
+- Subtitle downloads only the selected subtitle/caption track and preserves manual/automatic provenance plus SRT/VTT fallback behavior;
+- quick actions only accept format IDs from the current inspected metadata;
+- the existing simple mode/quality Download workflow remains available.
+
+Validation:
+- GitHub Actions run `36277332726` completed successfully at `b0294672c1a86a211251fed46fa9496d1fb35ecc`;
+- Linux unittest, Windows/Python 3.14 and Docker jobs are all green;
+- live/manual UI acceptance for Cancel, native Browse persistence and all three per-format actions remains pending user verification.
+
+Branch remains `feature/youtube-download`; no merge to `main` was performed.
