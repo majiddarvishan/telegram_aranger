@@ -8,7 +8,9 @@ import streamlit as st
 from services.youtube_download import (
     DownloadProgress,
     DownloadRequest,
+    SubtitleDownloadRequest,
     SubtitleSelection,
+    download_subtitle,
 )
 from services.youtube_jobs import YouTubeDownloadJob, start_youtube_download_job
 from services.youtube_policy import (
@@ -351,28 +353,6 @@ def _render_metadata(metadata: Mapping[str, Any]) -> None:
     availability = str(metadata.get("availability") or "Unknown")
     st.caption(f"Availability: {availability}")
 
-    formats = metadata.get("formats")
-    if isinstance(formats, list) and formats:
-        with st.expander("Available formats / quality information", expanded=False):
-            rows = []
-            for item in formats[:40]:
-                if not isinstance(item, Mapping):
-                    continue
-                rows.append(
-                    {
-                        "Format": item.get("format_id") or "",
-                        "Extension": item.get("ext") or "",
-                        "Resolution": item.get("resolution") or (
-                            f"{item.get('height')}p" if item.get("height") else ""
-                        ),
-                        "FPS": item.get("fps") or "",
-                        "Video": "Yes" if item.get("has_video") else "No",
-                        "Audio": "Yes" if item.get("has_audio") else "No",
-                        "Size": _format_bytes(item.get("size_bytes")),
-                    }
-                )
-            if rows:
-                st.dataframe(rows, use_container_width=True, hide_index=True)
 
     tracks = metadata.get("subtitles")
     if isinstance(tracks, list) and tracks:
@@ -424,6 +404,10 @@ def _render_restriction_state(metadata: Mapping[str, Any]):
 def _build_download_request(
     settings,
     metadata: Mapping[str, Any],
+    *,
+    mode_override: str | None = None,
+    format_id: str | None = None,
+    include_ui_subtitle: bool = True,
 ) -> DownloadRequest:
     save_directory = str(
         st.session_state.get("youtube_save_directory", "") or ""
@@ -439,15 +423,20 @@ def _build_download_request(
     )
 
     mode_label = st.session_state.get("youtube_mode", "Video + Audio")
-    mode = "audio_only" if mode_label == "Audio only" else "video_audio"
+    mode = mode_override or (
+        "audio_only" if mode_label == "Audio only" else "video_audio"
+    )
     quality = (
         "best"
-        if mode == "audio_only"
+        if mode == "audio_only" or format_id
         else st.session_state.get("youtube_quality_key", "best")
     )
 
     subtitle = None
-    if st.session_state.get("youtube_subtitles_enabled", False):
+    if (
+        include_ui_subtitle
+        and st.session_state.get("youtube_subtitles_enabled", False)
+    ):
         tracks = metadata.get("subtitles") or []
         index = int(st.session_state.get("youtube_subtitle_index", 0))
         if not isinstance(tracks, list) or not tracks:
@@ -473,7 +462,208 @@ def _build_download_request(
         ),
         proxy=_youtube_proxy_config(),
         auth=_youtube_auth_config(),
+        format_id=format_id,
     )
+
+
+def _selected_quick_subtitle(
+    metadata: Mapping[str, Any],
+) -> SubtitleSelection:
+    tracks = metadata.get("subtitles")
+    if not isinstance(tracks, list) or not tracks:
+        raise YouTubeServiceError(
+            "subtitle_unavailable",
+            "No subtitle/caption track is available for this video.",
+        )
+
+    labels = [_subtitle_label(track) for track in tracks]
+    selected_label = st.session_state.get(
+        "youtube_format_subtitle_label",
+        labels[0],
+    )
+    try:
+        index = labels.index(selected_label)
+    except ValueError:
+        index = 0
+    selected = tracks[index]
+    return SubtitleSelection(
+        language=str(selected.get("language") or ""),
+        source=str(selected.get("source") or "manual"),
+    )
+
+
+def _start_format_download(
+    settings,
+    metadata: Mapping[str, Any],
+    *,
+    format_id: str,
+    action: str,
+) -> None:
+    if action == "subtitle":
+        save_directory = str(
+            st.session_state.get("youtube_save_directory", "") or ""
+        ).strip()
+        validate_save_directory(
+            save_directory,
+            allowed_roots=settings.youtube_download_roots,
+            create=bool(
+                st.session_state.get("youtube_create_directory", False)
+            ),
+        )
+        request = SubtitleDownloadRequest(
+            url=st.session_state.get("youtube_inspected_url", ""),
+            save_directory=save_directory,
+            subtitle=_selected_quick_subtitle(metadata),
+            acknowledged=bool(
+                st.session_state.get("youtube_acknowledged", False)
+            ),
+            proxy=_youtube_proxy_config(),
+            auth=_youtube_auth_config(),
+        )
+        runner = download_subtitle
+    else:
+        mode = "audio_only" if action == "audio" else "video_audio"
+        request = _build_download_request(
+            settings,
+            metadata,
+            mode_override=mode,
+            format_id=format_id,
+            include_ui_subtitle=False,
+        )
+        runner = None
+
+    st.session_state.youtube_download_result = None
+    kwargs = {
+        "allowed_roots": settings.youtube_download_roots,
+    }
+    if runner is not None:
+        kwargs["runner"] = runner
+    st.session_state.youtube_download_job = start_youtube_download_job(
+        request,
+        metadata,
+        **kwargs,
+    )
+
+
+def _render_format_downloads(
+    settings,
+    metadata: Mapping[str, Any],
+    *,
+    can_start: bool,
+) -> None:
+    formats = metadata.get("formats")
+    if not isinstance(formats, list) or not formats:
+        return
+
+    tracks = metadata.get("subtitles")
+    if not isinstance(tracks, list):
+        tracks = []
+
+    with st.expander(
+        "Available formats / quick download",
+        expanded=False,
+    ):
+        if tracks:
+            labels = [_subtitle_label(track) for track in tracks]
+            st.selectbox(
+                "Subtitle track used by Subtitle buttons",
+                labels,
+                key="youtube_format_subtitle_label",
+            )
+        else:
+            st.caption("No subtitle/caption track is available.")
+
+        current_job = st.session_state.get("youtube_download_job")
+        busy = _job_is_active(current_job)
+
+        header = st.columns([1.0, 0.8, 1.2, 0.6, 0.7, 0.7, 1.0, 1.2, 0.8, 0.8])
+        for col, label in zip(
+            header,
+            (
+                "Format",
+                "Ext",
+                "Resolution",
+                "FPS",
+                "Video",
+                "Audio",
+                "Size",
+                "Video + Audio",
+                "Audio",
+                "Subtitle",
+            ),
+        ):
+            col.markdown(f"**{label}**")
+
+        for index, item in enumerate(formats[:40]):
+            if not isinstance(item, Mapping):
+                continue
+            format_id = str(item.get("format_id") or "").strip()
+            if not format_id:
+                continue
+
+            row = st.columns([1.0, 0.8, 1.2, 0.6, 0.7, 0.7, 1.0, 1.2, 0.8, 0.8])
+            row[0].write(format_id)
+            row[1].write(str(item.get("ext") or ""))
+            row[2].write(
+                str(
+                    item.get("resolution")
+                    or (
+                        f"{item.get('height')}p"
+                        if item.get("height")
+                        else ""
+                    )
+                )
+            )
+            row[3].write(str(item.get("fps") or ""))
+            has_video = bool(item.get("has_video"))
+            has_audio = bool(item.get("has_audio"))
+            row[4].write("Yes" if has_video else "No")
+            row[5].write("Yes" if has_audio else "No")
+            row[6].write(_format_bytes(item.get("size_bytes")))
+
+            video_clicked = row[7].button(
+                "Download",
+                key=f"youtube-format-video-{index}-{format_id}",
+                disabled=not can_start or busy or not has_video,
+                use_container_width=True,
+                help="Download this video format and merge best audio when needed.",
+            )
+            audio_clicked = row[8].button(
+                "Audio",
+                key=f"youtube-format-audio-{index}-{format_id}",
+                disabled=not can_start or busy or not has_audio,
+                use_container_width=True,
+                help="Download this exact audio format and convert it to MP3.",
+            )
+            subtitle_clicked = row[9].button(
+                "Sub",
+                key=f"youtube-format-subtitle-{index}-{format_id}",
+                disabled=not can_start or busy or not tracks,
+                use_container_width=True,
+                help="Download only the selected subtitle/caption track.",
+            )
+
+            action = (
+                "video_audio"
+                if video_clicked
+                else "audio"
+                if audio_clicked
+                else "subtitle"
+                if subtitle_clicked
+                else None
+            )
+            if action is not None:
+                try:
+                    _start_format_download(
+                        settings,
+                        metadata,
+                        format_id=format_id,
+                        action=action,
+                    )
+                except (YouTubeServiceError, DownloadPathError) as exc:
+                    st.error(exc.message)
+                else:
+                    st.rerun()
 
 
 def _start_download(settings, metadata: Mapping[str, Any]) -> None:
@@ -769,6 +959,12 @@ def render_youtube(settings) -> None:
     current_job = st.session_state.get("youtube_download_job")
     download_active = _job_is_active(current_job)
 
+    _render_format_downloads(
+        settings,
+        metadata,
+        can_start=can_start,
+    )
+
     if st.button(
         "Download",
         key="youtube-download",
@@ -785,9 +981,12 @@ def render_youtube(settings) -> None:
     _render_download_job_status()
 
     result = st.session_state.get("youtube_download_result")
-    if isinstance(result, Mapping) and result.get("media_path"):
+    if isinstance(result, Mapping) and (
+        result.get("media_path") or result.get("subtitle_path")
+    ):
         st.success("Last completed output")
-        st.code(str(result["media_path"]))
+        if result.get("media_path"):
+            st.code(str(result["media_path"]))
         if result.get("subtitle_path"):
             st.code(str(result["subtitle_path"]))
             st.caption(
