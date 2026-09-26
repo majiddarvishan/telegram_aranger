@@ -344,6 +344,20 @@ class YouTubeAuthConfigTests(unittest.TestCase):
                 "chrome",
             )
 
+    def test_auto_browser_prefers_firefox_on_windows(self):
+        def exists(path):
+            lowered = path.lower()
+            return "firefox" in lowered or "google" in lowered or "chrome" in lowered
+
+        with (
+            patch("services.youtube_service.os.name", "nt"),
+            patch("services.youtube_service.os.path.exists", side_effect=exists),
+        ):
+            self.assertEqual(
+                detect_local_browser_cookie_source(),
+                "firefox",
+            )
+
     def test_browser_auth_auto_fails_when_no_local_profile_is_detected(self):
         auth = YouTubeAuthConfig(
             enabled=True,
