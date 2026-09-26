@@ -820,6 +820,26 @@ class YouTubeErrorNormalizationTests(unittest.TestCase):
                 self.assertFalse(error.access_restricted)
                 self.assertNotIn("/home/user", error.message)
 
+    def test_maps_locked_browser_cookie_database_errors(self):
+        messages = (
+            "ERROR: Could not copy Chrome cookie database. See issue 7271",
+            "PermissionError: Permission denied while opening Chrome Cookies database",
+            "sqlite3.OperationalError: database is locked: Cookies",
+            "ERROR: unable to open database file: Firefox cookies",
+            "ERROR: keyring unavailable while loading cookies",
+            "ERROR: SecretStorage is not available for cookies",
+        )
+        for message in messages:
+            with self.subTest(message=message):
+                error = normalize_downloader_error(RuntimeError(message))
+                self.assertEqual(
+                    error.code,
+                    "youtube_browser_session_unavailable",
+                )
+                self.assertFalse(error.access_restricted)
+                self.assertIn("fully close the browser", error.message)
+                self.assertNotIn("issue 7271", error.message)
+
     def test_unknown_downloader_error_does_not_expose_raw_message(self):
         raw = (
             "extractor failed for "
