@@ -9,8 +9,8 @@ from services.youtube_download import (
     DownloadProgress,
     DownloadRequest,
     SubtitleSelection,
-    download_video,
 )
+from services.youtube_jobs import YouTubeDownloadJob, start_youtube_download_job
 from services.youtube_policy import (
     GENERAL_RIGHTS_NOTICE,
     evaluate_download_policy,
@@ -47,6 +47,9 @@ def _browse_youtube_save_directory() -> None:
 
 
 def _invalidate_youtube_inspection() -> None:
+    active_job = st.session_state.get("youtube_download_job")
+    if _job_is_active(active_job):
+        active_job.request_cancel()
     st.session_state.youtube_metadata = None
     st.session_state.youtube_error = None
     st.session_state.youtube_download_result = None
@@ -418,35 +421,40 @@ def _render_restriction_state(metadata: Mapping[str, Any]):
     return policy
 
 
-def _run_download(settings, metadata: Mapping[str, Any]) -> None:
-    save_directory = st.session_state.get("youtube_save_directory", "").strip()
-    create_directory = bool(st.session_state.get("youtube_create_directory", False))
+def _build_download_request(
+    settings,
+    metadata: Mapping[str, Any],
+) -> DownloadRequest:
+    save_directory = str(
+        st.session_state.get("youtube_save_directory", "") or ""
+    ).strip()
+    create_directory = bool(
+        st.session_state.get("youtube_create_directory", False)
+    )
 
-    try:
-        validate_save_directory(
-            save_directory,
-            allowed_roots=settings.youtube_download_roots,
-            create=create_directory,
-        )
-    except DownloadPathError as exc:
-        st.error(exc.message)
-        return
+    validate_save_directory(
+        save_directory,
+        allowed_roots=settings.youtube_download_roots,
+        create=create_directory,
+    )
 
     mode_label = st.session_state.get("youtube_mode", "Video + Audio")
     mode = "audio_only" if mode_label == "Audio only" else "video_audio"
-
-    if mode == "audio_only":
-        quality = "best"
-    else:
-        quality = st.session_state.get("youtube_quality_key", "best")
+    quality = (
+        "best"
+        if mode == "audio_only"
+        else st.session_state.get("youtube_quality_key", "best")
+    )
 
     subtitle = None
     if st.session_state.get("youtube_subtitles_enabled", False):
         tracks = metadata.get("subtitles") or []
         index = int(st.session_state.get("youtube_subtitle_index", 0))
         if not isinstance(tracks, list) or not tracks:
-            st.error("No subtitle/caption track is available for this video.")
-            return
+            raise YouTubeServiceError(
+                "subtitle_unavailable",
+                "No subtitle/caption track is available for this video.",
+            )
         index = max(0, min(index, len(tracks) - 1))
         selected = tracks[index]
         subtitle = SubtitleSelection(
@@ -454,63 +462,95 @@ def _run_download(settings, metadata: Mapping[str, Any]) -> None:
             source=str(selected.get("source") or "manual"),
         )
 
-    progress_bar = st.progress(0, text="Preparing download…")
-    status = st.empty()
-
-    def on_progress(event: DownloadProgress) -> None:
-        if event.percent is not None:
-            percent = max(0, min(int(event.percent), 100))
-            progress_bar.progress(percent, text=_progress_text(event))
-        else:
-            status.caption(_progress_text(event))
-
-    request = DownloadRequest(
+    return DownloadRequest(
         url=st.session_state.get("youtube_inspected_url", ""),
         save_directory=save_directory,
         mode=mode,
         quality=quality,
         subtitle=subtitle,
-        acknowledged=bool(st.session_state.get("youtube_acknowledged", False)),
+        acknowledged=bool(
+            st.session_state.get("youtube_acknowledged", False)
+        ),
         proxy=_youtube_proxy_config(),
         auth=_youtube_auth_config(),
     )
 
-    try:
-        result = download_video(
-            request,
-            metadata,
-            allowed_roots=settings.youtube_download_roots,
-            progress_callback=on_progress,
-        )
-    except YouTubeServiceError as exc:
-        progress_bar.empty()
-        status.empty()
-        st.error(exc.message)
-        return
-    except DownloadPathError as exc:
-        progress_bar.empty()
-        status.empty()
-        st.error(exc.message)
-        return
-    except Exception:
-        progress_bar.empty()
-        status.empty()
-        st.error("YouTube download failed unexpectedly.")
+
+def _start_download(settings, metadata: Mapping[str, Any]) -> None:
+    request = _build_download_request(settings, metadata)
+    st.session_state.youtube_download_result = None
+    st.session_state.youtube_download_job = start_youtube_download_job(
+        request,
+        metadata,
+        allowed_roots=settings.youtube_download_roots,
+    )
+
+
+def _job_is_active(job: Any) -> bool:
+    return (
+        isinstance(job, YouTubeDownloadJob)
+        and job.snapshot()["status"] in {"running", "cancelling"}
+    )
+
+
+@st.fragment(run_every="500ms")
+def _render_active_download_job() -> None:
+    job = st.session_state.get("youtube_download_job")
+    if not isinstance(job, YouTubeDownloadJob):
         return
 
-    progress_bar.progress(100, text="Completed")
-    status.empty()
-    st.session_state.youtube_download_result = result.as_dict()
-    st.success("Download completed.")
+    snapshot = job.snapshot()
+    status = snapshot["status"]
+    if status not in {"running", "cancelling"}:
+        st.rerun()
+        return
 
-    st.code(result.media_path)
-    if result.subtitle_path:
-        st.caption(
-            f"Subtitle: {result.subtitle_path} "
-            f"({result.subtitle_language or 'unknown'}, "
-            f"{(result.subtitle_format or 'unknown').upper()}, "
-            f"{result.subtitle_source or 'unknown'})"
+    progress = snapshot.get("progress")
+    if isinstance(progress, DownloadProgress):
+        percent = (
+            max(0, min(int(progress.percent), 100))
+            if progress.percent is not None
+            else 0
         )
+        st.progress(percent, text=_progress_text(progress))
+    else:
+        st.progress(0, text="Preparing download…")
+
+    if status == "cancelling":
+        st.caption("Cancelling download…")
+    if st.button(
+        "Cancel download",
+        key="youtube-cancel-download",
+        disabled=status == "cancelling",
+        type="secondary",
+    ):
+        job.request_cancel()
+
+
+def _render_download_job_status() -> None:
+    job = st.session_state.get("youtube_download_job")
+    if not isinstance(job, YouTubeDownloadJob):
+        return
+
+    snapshot = job.snapshot()
+    status = snapshot["status"]
+    if status in {"running", "cancelling"}:
+        _render_active_download_job()
+        return
+
+    if status == "cancelled":
+        st.info("YouTube download cancelled.")
+        return
+
+    if status == "failed":
+        error = snapshot.get("error") or {}
+        st.error(error.get("message") or "YouTube download failed.")
+        return
+
+    result = snapshot.get("result")
+    if status == "completed" and result is not None:
+        st.session_state.youtube_download_result = result.as_dict()
+        st.success("Download completed.")
 
 
 def render_youtube(settings) -> None:
@@ -726,13 +766,23 @@ def render_youtube(settings) -> None:
             reasons.append("Inspect the current URL again")
         st.caption("Download unavailable: " + "; ".join(reasons) + ".")
 
+    current_job = st.session_state.get("youtube_download_job")
+    download_active = _job_is_active(current_job)
+
     if st.button(
         "Download",
         key="youtube-download",
         type="primary",
-        disabled=not can_start,
+        disabled=not can_start or download_active,
     ):
-        _run_download(settings, metadata)
+        try:
+            _start_download(settings, metadata)
+        except (YouTubeServiceError, DownloadPathError) as exc:
+            st.error(exc.message)
+        else:
+            st.rerun()
+
+    _render_download_job_status()
 
     result = st.session_state.get("youtube_download_result")
     if isinstance(result, Mapping) and result.get("media_path"):
