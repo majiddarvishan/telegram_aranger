@@ -53,6 +53,17 @@ class DownloadRequest:
     acknowledged: bool = False
     proxy: YouTubeProxyConfig | None = None
     auth: YouTubeAuthConfig | None = None
+    format_id: str | None = None
+
+
+@dataclass(frozen=True)
+class SubtitleDownloadRequest:
+    url: str
+    save_directory: str
+    subtitle: SubtitleSelection
+    acknowledged: bool = False
+    proxy: YouTubeProxyConfig | None = None
+    auth: YouTubeAuthConfig | None = None
 
 
 @dataclass(frozen=True)
@@ -83,6 +94,22 @@ class DownloadResult:
     subtitle_format: str | None
     subtitle_source: str | None
     subtitle_language: str | None = None
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class SubtitleDownloadResult:
+    video_id: str
+    title: str
+    mode: str
+    subtitle_path: str
+    subtitle_format: str
+    subtitle_source: str
+    subtitle_language: str
+    media_path: str | None = None
+    quality: str = "subtitle"
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -168,6 +195,11 @@ def download_video(
 
     mode = validate_mode(request.mode)
     quality = validate_quality(request.quality)
+    selected_format = resolve_requested_format(
+        metadata,
+        request.format_id,
+        mode,
+    )
     save_directory = validate_save_directory(
         request.save_directory,
         allowed_roots=allowed_roots,
@@ -221,6 +253,7 @@ def download_video(
                     basename=temp_basename,
                     mode=mode,
                     quality=quality,
+                    selected_format=selected_format,
                     subtitle_plan=subtitle_plan,
                     progress_callback=progress_callback,
                     cancel_check=cancel_check,
@@ -356,8 +389,9 @@ def build_download_options(
     basename: str,
     mode: str,
     quality: str,
-    subtitle_plan: Mapping[str, Any] | None,
-    progress_callback: Callable[[DownloadProgress], None] | None,
+    selected_format: Mapping[str, Any] | None = None,
+    subtitle_plan: Mapping[str, Any] | None = None,
+    progress_callback: Callable[[DownloadProgress], None] | None = None,
     cancel_check: Callable[[], bool] | None = None,
     proxy: YouTubeProxyConfig | None = None,
     cookiefile: str | None = None,
@@ -387,7 +421,11 @@ def build_download_options(
         "logger": _QuietLogger(),
         "noplaylist": True,
         "overwrites": False,
-        "format": format_selector(mode, quality),
+        "format": format_selector(
+            mode,
+            quality,
+            selected_format=selected_format,
+        ),
         "paths": {
             "home": str(temp_directory),
             "temp": str(temp_directory),
@@ -427,7 +465,65 @@ def build_download_options(
     return options
 
 
-def format_selector(mode: str, quality: str) -> str:
+def resolve_requested_format(
+    metadata: Mapping[str, Any],
+    format_id: str | None,
+    mode: str,
+) -> Mapping[str, Any] | None:
+    requested = str(format_id or "").strip()
+    if not requested:
+        return None
+
+    formats = metadata.get("formats")
+    if not isinstance(formats, list):
+        formats = []
+    selected = next(
+        (
+            item
+            for item in formats
+            if isinstance(item, Mapping)
+            and str(item.get("format_id") or "") == requested
+        ),
+        None,
+    )
+    if selected is None:
+        raise YouTubeServiceError(
+            "format_unavailable",
+            "The selected YouTube format is no longer available.",
+        )
+
+    if mode == "video_audio" and not bool(selected.get("has_video")):
+        raise YouTubeServiceError(
+            "format_mode_mismatch",
+            "The selected format does not contain video.",
+        )
+    if mode == "audio_only" and not bool(selected.get("has_audio")):
+        raise YouTubeServiceError(
+            "format_mode_mismatch",
+            "The selected format does not contain audio.",
+        )
+    return selected
+
+
+def format_selector(
+    mode: str,
+    quality: str,
+    *,
+    selected_format: Mapping[str, Any] | None = None,
+) -> str:
+    if selected_format is not None:
+        format_id = str(selected_format.get("format_id") or "").strip()
+        if not format_id:
+            raise YouTubeServiceError(
+                "format_unavailable",
+                "The selected YouTube format has no format ID.",
+            )
+        if mode == "audio_only":
+            return format_id
+        if bool(selected_format.get("has_audio")):
+            return format_id
+        return f"{format_id}+ba/b"
+
     if mode == "audio_only":
         return "ba/b"
 
@@ -502,6 +598,186 @@ def build_subtitle_plan(
         "requested_format": fallback,
         "prefer_srt": False,
     }
+
+
+def download_subtitle(
+    request: SubtitleDownloadRequest,
+    metadata: Mapping[str, Any],
+    *,
+    allowed_roots: tuple[str, ...] = (),
+    backend: DownloadBackend | None = None,
+    ffmpeg: FFmpegCapability | None = None,
+    progress_callback: Callable[[DownloadProgress], None] | None = None,
+    cancel_check: Callable[[], bool] | None = None,
+) -> SubtitleDownloadResult:
+    _raise_if_cancelled(cancel_check)
+    validated = validate_youtube_url(request.url)
+    metadata_video_id = str(metadata.get("video_id") or "").strip()
+    if metadata_video_id and metadata_video_id != validated["video_id"]:
+        raise YouTubeServiceError(
+            "metadata_video_mismatch",
+            "Inspected YouTube metadata does not match the requested video.",
+        )
+
+    save_directory = validate_save_directory(
+        request.save_directory,
+        allowed_roots=allowed_roots,
+    )
+    policy = evaluate_download_policy(
+        metadata,
+        acknowledged=request.acknowledged,
+        authenticated_session=bool(request.auth and request.auth.enabled),
+    )
+    if policy.blocked:
+        raise YouTubeServiceError(
+            policy.block_code or "download_blocked",
+            policy.block_message or "This video cannot be downloaded.",
+            access_restricted=True,
+        )
+    if not policy.can_download:
+        raise YouTubeServiceError(
+            "acknowledgement_required",
+            "You must acknowledge the rights/service notice before downloading.",
+        )
+
+    title = str(metadata.get("title") or "YouTube Video")
+    basename = sanitize_youtube_title(title)
+    subtitle_plan = build_subtitle_plan(metadata, request.subtitle)
+    if subtitle_plan is None:
+        raise YouTubeServiceError(
+            "subtitle_unavailable",
+            "No subtitle/caption track was selected.",
+        )
+
+    successful = False
+    final_group: OutputGroup | None = None
+    try:
+        with tempfile.TemporaryDirectory(
+            prefix=".telegram-harbor-youtube-",
+            dir=save_directory,
+        ) as temp_root:
+            temp_directory = Path(temp_root)
+            browser_spec = (
+                request.auth.cookies_from_browser_spec()
+                if request.auth is not None
+                else None
+            )
+            with materialize_youtube_cookie_file(request.auth) as cookiefile:
+                options = build_subtitle_only_options(
+                    temp_directory=temp_directory,
+                    basename=basename,
+                    subtitle_plan=subtitle_plan,
+                    progress_callback=progress_callback,
+                    cancel_check=cancel_check,
+                    proxy=request.proxy,
+                    cookiefile=cookiefile,
+                    cookies_from_browser=browser_spec,
+                )
+                downloader = backend or YtDlpDownloadBackend()
+                info = downloader.download(validated["url"], options)
+
+            _raise_if_cancelled(cancel_check)
+            source = resolve_subtitle_source(
+                info,
+                temp_directory,
+                basename,
+                subtitle_plan,
+            )
+            if source.stat().st_size <= 0:
+                raise YouTubeServiceError(
+                    "subtitle_output_empty",
+                    "Downloader produced an empty subtitle file.",
+                )
+
+            actual_format = source.suffix.lstrip(".").lower() or "unknown"
+            capability = ffmpeg or detect_ffmpeg()
+            if (
+                subtitle_plan["prefer_srt"]
+                and actual_format == "vtt"
+                and capability.ffmpeg_path
+            ):
+                source, actual_format = try_convert_subtitle_to_srt(
+                    source,
+                    temp_directory / f"{basename}.srt",
+                    capability.ffmpeg_path,
+                    progress_callback=progress_callback,
+                )
+
+            final_group = reserve_available_group(
+                save_directory,
+                title,
+                actual_format,
+                None,
+            )
+            os.replace(source, final_group.media_path)
+            successful = True
+
+            result = SubtitleDownloadResult(
+                video_id=str(metadata.get("video_id") or validated["video_id"]),
+                title=title,
+                mode="subtitle_only",
+                subtitle_path=str(final_group.media_path),
+                subtitle_format=actual_format,
+                subtitle_source=str(subtitle_plan["source"]),
+                subtitle_language=str(subtitle_plan["language"]),
+            )
+            emit_progress(
+                progress_callback,
+                DownloadProgress(
+                    phase="completed",
+                    status="finished",
+                    percent=100.0,
+                    final_output_path=result.subtitle_path,
+                ),
+            )
+            return result
+    finally:
+        if not successful and final_group is not None:
+            cleanup_reserved_group(final_group)
+
+
+def build_subtitle_only_options(
+    *,
+    temp_directory: Path,
+    basename: str,
+    subtitle_plan: Mapping[str, Any],
+    progress_callback: Callable[[DownloadProgress], None] | None = None,
+    cancel_check: Callable[[], bool] | None = None,
+    proxy: YouTubeProxyConfig | None = None,
+    cookiefile: str | None = None,
+    cookies_from_browser: tuple[str, str | None, None, None] | None = None,
+) -> dict[str, Any]:
+    source = str(subtitle_plan["source"])
+    options: dict[str, Any] = {
+        "quiet": True,
+        "no_warnings": True,
+        "logger": _QuietLogger(),
+        "noplaylist": True,
+        "skip_download": True,
+        "writesubtitles": source == "manual",
+        "writeautomaticsub": source == "automatic",
+        "subtitleslangs": [subtitle_plan["language"]],
+        "subtitlesformat": subtitle_plan["requested_format"],
+        "paths": {
+            "home": str(temp_directory),
+            "temp": str(temp_directory),
+        },
+        "outtmpl": {
+            "default": str(temp_directory / f"{basename}.%(ext)s"),
+            "subtitle": str(temp_directory / f"{basename}.%(ext)s"),
+        },
+        "progress_hooks": [
+            progress_hook(progress_callback, cancel_check=cancel_check)
+        ],
+    }
+    proxy_url = proxy.proxy_url() if proxy is not None else None
+    if proxy_url:
+        options["proxy"] = proxy_url
+    if cookiefile:
+        options["cookiefile"] = cookiefile
+    if cookies_from_browser:
+        options["cookiesfrombrowser"] = cookies_from_browser
+    return options
 
 
 def reserve_available_group(
