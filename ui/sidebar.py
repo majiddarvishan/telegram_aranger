@@ -111,6 +111,23 @@ def _render_web_account(settings, user: dict) -> None:
             st.stop()
 
 
+def _invalidate_youtube_network_context() -> None:
+    job = st.session_state.get("youtube_download_job")
+    if job is not None and hasattr(job, "request_cancel"):
+        try:
+            snapshot = job.snapshot()
+        except Exception:
+            snapshot = {}
+        if snapshot.get("status") in {"running", "cancelling"}:
+            job.request_cancel()
+
+    st.session_state.youtube_metadata = None
+    st.session_state.youtube_error = None
+    st.session_state.youtube_download_result = None
+    st.session_state.youtube_acknowledged = False
+    st.session_state.youtube_inspected_url = ""
+
+
 def _render_network_settings():
     proxy_tone = "info" if st.session_state.use_proxy else "neutral"
     proxy_label = "Proxy on" if st.session_state.use_proxy else "Proxy off"
@@ -123,31 +140,41 @@ def _render_network_settings():
             badge_html(proxy_label, proxy_tone),
             unsafe_allow_html=True,
         )
-        st.session_state.use_proxy = st.checkbox(
+        st.checkbox(
             "Enable SOCKS5 proxy",
-            value=st.session_state.use_proxy,
+            key="use_proxy",
+            on_change=_invalidate_youtube_network_context,
+            help="Shared by both Telegram and YouTube.",
         )
 
         if st.session_state.use_proxy:
-            st.session_state.proxy_host = st.text_input(
+            st.text_input(
                 "Proxy host / IP",
-                value=st.session_state.proxy_host,
+                key="proxy_host",
+                on_change=_invalidate_youtube_network_context,
             )
-            st.session_state.proxy_port = st.number_input(
+            st.number_input(
                 "Proxy port",
-                value=st.session_state.proxy_port,
+                key="proxy_port",
                 min_value=1,
                 max_value=65535,
+                on_change=_invalidate_youtube_network_context,
             )
-            st.session_state.proxy_user = st.text_input(
+            st.text_input(
                 "Username (optional)",
-                value=st.session_state.proxy_user,
+                key="proxy_user",
+                on_change=_invalidate_youtube_network_context,
             )
-            st.session_state.proxy_pass = st.text_input(
+            st.text_input(
                 "Password (optional)",
                 type="password",
-                value=st.session_state.proxy_pass,
+                key="proxy_pass",
+                on_change=_invalidate_youtube_network_context,
             )
+
+        st.caption(
+            "These SOCKS5 settings are shared by Telegram and YouTube."
+        )
 
     return proxy_config(st.session_state)
 
@@ -552,17 +579,13 @@ def render_sidebar(settings) -> str:
         label_visibility="collapsed",
     )
 
+    st.sidebar.divider()
+    proxy = _render_network_settings()
+
     if workspace == "YouTube Download":
-        st.sidebar.caption(
-            "YouTube can use its own optional SOCKS5 proxy settings. "
-            "Telegram SOCKS5 proxy settings are not reused automatically."
-        )
         return workspace
 
     st.sidebar.divider()
-    proxy = _render_network_settings()
-    st.sidebar.divider()
-
     _render_account_selector(
         settings,
         user,
