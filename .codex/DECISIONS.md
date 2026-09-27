@@ -216,23 +216,22 @@ Example:
 This preserves the requirement that media and subtitle files remain obviously paired.
 
 
-## D-034 — YouTube SOCKS5 is optional and independent
+## D-034 — SOCKS5 is shared by Telegram and YouTube
 Status: implemented on `feature/youtube-download`
 
-YouTube Inspect and Download may use an optional SOCKS5 proxy.
+Telegram Harbor exposes one SOCKS5 configuration in the Sidebar under `Network & proxy`.
 
-The YouTube proxy is intentionally independent from Telegram networking:
-- disabled by default;
-- configured inside the YouTube workspace;
-- never reuses Telegram SOCKS5 settings automatically;
-- applies consistently to both metadata Inspect and media/subtitle Download;
-- supports optional username/password authentication;
-- keeps the password session-only in the Streamlit UI and out of logs/validation JSON;
-- the manual validation runner reads an optional proxy password from an environment variable instead of a command-line password argument.
+The shared proxy contract:
+- one enable/disable switch and one host/port/optional username/password set;
+- the same session-state configuration is used by Telegram and by YouTube Inspect/Download;
+- YouTube does not render a second proxy configuration inside its workspace;
+- changing shared proxy settings invalidates previously inspected YouTube metadata/acknowledgement and requests cancellation of an active YouTube download;
+- proxy credentials remain session-only and are not written to logs or validation JSON;
+- the manual validation runner may still accept explicit proxy arguments because it runs outside the Streamlit Sidebar.
 
-Raw `proxy` values remain forbidden through generic yt-dlp `extra_options`; only the validated `YouTubeProxyConfig` path may set yt-dlp's proxy option.
+Raw `proxy` values remain forbidden through generic yt-dlp `extra_options`; YouTube routing still enters yt-dlp only through validated `YouTubeProxyConfig`.
 
-This proxy support is ordinary network routing only. It does not enable cookies, login-protected/private content, DRM bypass, geo-bypass flags, or other access-control circumvention.
+This proxy support is ordinary network routing only. It does not enable DRM, private/member/paywall access-control bypass, geo-bypass flags, or other circumvention.
 
 
 ## D-035 — YouTube authentication prefers local browser session
@@ -256,7 +255,7 @@ Fallback mode:
 
 Security/scope:
 - generic yt-dlp `cookiefile` and `cookiesfrombrowser` remain forbidden; only validated auth config may set them;
-- authenticated access is compatible with the independent YouTube SOCKS5 configuration;
+- authenticated access is compatible with the shared Sidebar SOCKS5 configuration;
 - private/member-only/premium/DRM states remain blocked even if the authenticated account could access them;
 - browser/account cookies are secrets and authenticated mode is opt-in.
 
