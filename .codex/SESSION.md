@@ -2225,3 +2225,23 @@ Validation:
 - live/manual UI acceptance for Cancel, native Browse persistence and all three per-format actions remains pending user verification.
 
 Branch remains `feature/youtube-download`; no merge to `main` was performed.
+
+
+## 2026-09-28 — Correct YouTube format table and unify SOCKS5
+
+User corrected two implementation mistakes:
+- video formats must not disappear from the YouTube format list;
+- each format row needs one Download menu, not three separate action columns;
+- Telegram and YouTube should share one SOCKS5 configuration in the Sidebar.
+
+Corrections:
+- removed the 40-format UI cap and render every normalized format returned by the current Inspect result;
+- restored the `Available formats / quality information` section;
+- each row now has one `Download` popover containing all three choices: `Video + Audio`, `Audio`, and `Subtitle`;
+- incompatible choices remain visible but disabled for that row;
+- removed the separate `YouTube network / SOCKS5` UI and all `youtube_proxy_*` session-state fields;
+- YouTube now builds `YouTubeProxyConfig` from the same `use_proxy/proxy_host/proxy_port/proxy_user/proxy_pass` state used by Telegram;
+- the shared `Network & proxy` Sidebar control is visible in both workspaces;
+- changing shared proxy settings invalidates stale YouTube Inspect metadata and acknowledgement.
+
+This supersedes the earlier independent-YouTube-proxy UI decision. The manual validation runner keeps explicit proxy arguments because it is a standalone validation tool, not the Streamlit UI.
