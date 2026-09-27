@@ -388,24 +388,21 @@ class SidebarHierarchySmokeTests(unittest.TestCase):
 
 
 class WorkspaceSidebarSmokeTests(unittest.TestCase):
-    def test_youtube_workspace_hides_telegram_network_controls(self):
+    def test_youtube_workspace_keeps_shared_network_controls(self):
         import inspect
-        from ui.sidebar import render_sidebar
+        from ui.sidebar import render_sidebar, _render_network_settings
 
         source = inspect.getsource(render_sidebar)
+        network_source = inspect.getsource(_render_network_settings)
+        proxy_render = source.index("proxy = _render_network_settings()")
         youtube_branch = source.index(
             'if workspace == "YouTube Download":'
         )
-        proxy_render = source.index("_render_network_settings()")
 
-        self.assertLess(youtube_branch, proxy_render)
+        self.assertLess(proxy_render, youtube_branch)
         self.assertIn(
-            "YouTube can use its own optional SOCKS5 proxy settings.",
-            source,
-        )
-        self.assertIn(
-            "Telegram SOCKS5 proxy settings are not reused automatically.",
-            source,
+            "These SOCKS5 settings are shared by Telegram and YouTube.",
+            network_source,
         )
         self.assertIn("return workspace", source)
 
