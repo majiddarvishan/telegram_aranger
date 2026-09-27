@@ -195,34 +195,36 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
             auth_source,
         )
 
-    def test_ui_exposes_independent_youtube_socks5_controls(self):
+    def test_youtube_reuses_shared_sidebar_socks5_controls(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         sidebar_source = Path("ui/sidebar.py").read_text(encoding="utf-8")
         state_source = Path("utils/state.py").read_text(encoding="utf-8")
 
-        self.assertIn("Use SOCKS5 proxy for YouTube", source)
-        self.assertIn("youtube_proxy_host", source)
-        self.assertIn("youtube_proxy_port", source)
-        self.assertIn("youtube_proxy_user", source)
-        self.assertIn("youtube_proxy_pass", source)
-        self.assertIn('type="password"', source)
-        self.assertIn("proxy=_youtube_proxy_config()", source)
+        self.assertIn('st.session_state.get("use_proxy", False)', source)
+        self.assertIn('st.session_state.get("proxy_host", "")', source)
+        self.assertIn('st.session_state.get("proxy_port", 1080)', source)
+        self.assertIn('st.session_state.get("proxy_user", "")', source)
+        self.assertIn('st.session_state.get("proxy_pass", "")', source)
+        self.assertNotIn("youtube_use_proxy", source)
+        self.assertNotIn("youtube_proxy_host", source)
+        self.assertNotIn("youtube_proxy_port", source)
+        self.assertNotIn("youtube_proxy_user", source)
+        self.assertNotIn("youtube_proxy_pass", source)
+        self.assertNotIn("youtube_use_proxy", state_source)
+        self.assertIn("Shared by both Telegram and YouTube.", sidebar_source)
         self.assertIn(
-            "Telegram proxy settings are not reused automatically.",
-            source,
-        )
-        self.assertIn(
-            "Telegram SOCKS5 proxy settings are not reused automatically.",
+            "These SOCKS5 settings are shared by Telegram and YouTube.",
             sidebar_source,
         )
-        self.assertIn('"youtube_use_proxy": False', state_source)
 
-    def test_proxy_changes_invalidate_previous_inspection(self):
-        source = Path("ui/youtube.py").read_text(encoding="utf-8")
-        self.assertIn("def _invalidate_youtube_inspection()", source)
-        self.assertIn("youtube_inspected_url = \"\"", source)
+    def test_shared_proxy_changes_invalidate_previous_youtube_inspection(self):
+        sidebar_source = Path("ui/sidebar.py").read_text(encoding="utf-8")
+        self.assertIn("def _invalidate_youtube_network_context()", sidebar_source)
+        self.assertIn('st.session_state.youtube_inspected_url = ""', sidebar_source)
         self.assertGreaterEqual(
-            source.count("on_change=_invalidate_youtube_inspection"),
+            sidebar_source.count(
+                "on_change=_invalidate_youtube_network_context"
+            ),
             5,
         )
 
@@ -235,10 +237,12 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn("Browse…", source)
         self.assertIn("choose_directory", source)
         self.assertIn("save_preference", source)
-        self.assertIn("Available formats / quick download", source)
-        self.assertIn("Video + Audio", source)
+        self.assertIn("Available formats / quality information", source)
+        self.assertIn(".popover(", source)
+        self.assertIn('"Video + Audio"', source)
         self.assertIn('"Audio"', source)
-        self.assertIn('"Sub"', source)
+        self.assertIn('"Subtitle"', source)
+        self.assertNotIn("formats[:40]", source)
         self.assertIn("format_id=format_id", source)
         self.assertIn("download_subtitle", source)
         self.assertIn('"youtube_download_job": None', state_source)
