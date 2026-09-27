@@ -58,11 +58,6 @@ def initialize_state():
         "youtube_auth_source": "Browser session",
         "youtube_auth_browser": "Auto",
         "youtube_auth_profile": "",
-        "youtube_use_proxy": False,
-        "youtube_proxy_host": "127.0.0.1",
-        "youtube_proxy_port": 1080,
-        "youtube_proxy_user": "",
-        "youtube_proxy_pass": "",
     }
     for key, value in defaults.items():
         if key not in st.session_state:
