@@ -361,7 +361,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Contain downloader-returned media/subtitle paths to the per-job temporary directory before moving final outputs.
 - [x] Reject direct outside paths and symlink escapes with regression coverage.
 - [x] Expand Windows/Python 3.14 offline coverage to run YouTube download-engine and manual-runner tests in addition to path tests.
-- [x] Hide Telegram account/proxy controls while the YouTube workspace is selected, with explicit UI copy that Telegram SOCKS5 is not reused.
+- [x] Keep Telegram account controls hidden in the YouTube workspace while keeping one shared Sidebar Network & proxy control visible for both Telegram and YouTube.
 - [x] Move workspace selection ownership into the shared sidebar routing and add regression coverage.
 - [x] Scan all GitHub Actions workflow YAML files for accidental live YouTube URLs/direct live runner usage.
 - [x] Add self-validating post-download checks to the manual runner for file existence, final-path containment, completion progress, and matched media/subtitle basename.
@@ -398,7 +398,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Bound sanitized YouTube titles by both UTF-16 units and UTF-8 bytes so long Unicode names stay valid on Windows and common Linux filesystems.
 - [x] Keep `full_release_ready=false` in validation summaries until real Streamlit/manual acceptance is completed; runner evidence alone cannot release the feature.
 - [x] Prefer native Git HEAD over `TELEGRAM_HARBOR_BUILD_SHA` for validation identity; use the environment value only when Git metadata is unavailable (for example Docker image).
-- [x] Add optional independent YouTube SOCKS5 routing for both Inspect and Download; keep it disabled by default and never auto-reuse Telegram proxy state.
+- [x] Route YouTube Inspect and Download through the same Sidebar SOCKS5 configuration used by Telegram; remove duplicate YouTube proxy controls/state.
 - [x] Support optional SOCKS5 username/password while keeping password out of logs and validation reports.
 - [x] Keep generic yt-dlp `extra_options["proxy"]` forbidden; proxy must enter through validated `YouTubeProxyConfig`.
 - [x] Require SOCKS5 Inspect + live Download in the strict validation-summary release gate.
