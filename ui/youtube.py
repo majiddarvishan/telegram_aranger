@@ -192,54 +192,15 @@ def _render_youtube_auth_settings() -> None:
 
 
 def _youtube_proxy_config() -> YouTubeProxyConfig | None:
-    if not st.session_state.get("youtube_use_proxy", False):
+    if not st.session_state.get("use_proxy", False):
         return None
     return YouTubeProxyConfig(
         enabled=True,
-        host=str(st.session_state.get("youtube_proxy_host", "")).strip(),
-        port=int(st.session_state.get("youtube_proxy_port", 1080)),
-        username=str(st.session_state.get("youtube_proxy_user", "")),
-        password=str(st.session_state.get("youtube_proxy_pass", "")),
+        host=str(st.session_state.get("proxy_host", "")).strip(),
+        port=int(st.session_state.get("proxy_port", 1080)),
+        username=str(st.session_state.get("proxy_user", "")),
+        password=str(st.session_state.get("proxy_pass", "")),
     )
-
-
-def _render_youtube_proxy_settings() -> None:
-    with st.expander("YouTube network / SOCKS5", expanded=False):
-        st.checkbox(
-            "Use SOCKS5 proxy for YouTube",
-            key="youtube_use_proxy",
-            on_change=_invalidate_youtube_inspection,
-        )
-        st.caption(
-            "This proxy is used only by YouTube Inspect/Download. "
-            "Telegram proxy settings are not reused automatically."
-        )
-
-        if st.session_state.get("youtube_use_proxy", False):
-            st.text_input(
-                "SOCKS5 host / IP",
-                key="youtube_proxy_host",
-                on_change=_invalidate_youtube_inspection,
-            )
-            st.number_input(
-                "SOCKS5 port",
-                min_value=1,
-                max_value=65535,
-                step=1,
-                key="youtube_proxy_port",
-                on_change=_invalidate_youtube_inspection,
-            )
-            st.text_input(
-                "SOCKS5 username (optional)",
-                key="youtube_proxy_user",
-                on_change=_invalidate_youtube_inspection,
-            )
-            st.text_input(
-                "SOCKS5 password (optional)",
-                type="password",
-                key="youtube_proxy_pass",
-                on_change=_invalidate_youtube_inspection,
-            )
 
 
 def _format_bytes(size: int | float | None) -> str:
@@ -553,20 +514,38 @@ def _render_format_downloads(
 ) -> None:
     formats = metadata.get("formats")
     if not isinstance(formats, list) or not formats:
+        st.caption("No downloadable YouTube formats were reported.")
         return
 
     tracks = metadata.get("subtitles")
     if not isinstance(tracks, list):
         tracks = []
 
+    video_count = sum(
+        1
+        for item in formats
+        if isinstance(item, Mapping) and item.get("has_video")
+    )
+    audio_count = sum(
+        1
+        for item in formats
+        if isinstance(item, Mapping) and item.get("has_audio")
+    )
+
     with st.expander(
-        "Available formats / quick download",
-        expanded=False,
+        "Available formats / quality information",
+        expanded=True,
     ):
+        st.caption(
+            f"{video_count} video format(s) · "
+            f"{audio_count} audio-capable format(s) · "
+            f"{len(formats)} total"
+        )
+
         if tracks:
             labels = [_subtitle_label(track) for track in tracks]
             st.selectbox(
-                "Subtitle track used by Subtitle buttons",
+                "Subtitle track used by Download → Subtitle",
                 labels,
                 key="youtube_format_subtitle_label",
             )
@@ -576,94 +555,112 @@ def _render_format_downloads(
         current_job = st.session_state.get("youtube_download_job")
         busy = _job_is_active(current_job)
 
-        header = st.columns([1.0, 0.8, 1.2, 0.6, 0.7, 0.7, 1.0, 1.2, 0.8, 0.8])
-        for col, label in zip(
-            header,
-            (
-                "Format",
-                "Ext",
-                "Resolution",
-                "FPS",
-                "Video",
-                "Audio",
-                "Size",
-                "Video + Audio",
-                "Audio",
-                "Subtitle",
-            ),
-        ):
-            col.markdown(f"**{label}**")
+        table = st.container(height=560)
+        with table:
+            header = st.columns(
+                [1.0, 0.8, 1.2, 0.6, 0.8, 0.8, 1.0, 1.1]
+            )
+            for col, label in zip(
+                header,
+                (
+                    "Format",
+                    "Ext",
+                    "Resolution",
+                    "FPS",
+                    "Video",
+                    "Audio",
+                    "Size",
+                    "Download",
+                ),
+            ):
+                col.markdown(f"**{label}**")
 
-        for index, item in enumerate(formats[:40]):
-            if not isinstance(item, Mapping):
-                continue
-            format_id = str(item.get("format_id") or "").strip()
-            if not format_id:
-                continue
+            for index, item in enumerate(formats):
+                if not isinstance(item, Mapping):
+                    continue
 
-            row = st.columns([1.0, 0.8, 1.2, 0.6, 0.7, 0.7, 1.0, 1.2, 0.8, 0.8])
-            row[0].write(format_id)
-            row[1].write(str(item.get("ext") or ""))
-            row[2].write(
-                str(
-                    item.get("resolution")
-                    or (
-                        f"{item.get('height')}p"
-                        if item.get("height")
-                        else ""
+                format_id = str(item.get("format_id") or "").strip()
+                if not format_id:
+                    continue
+
+                row = st.columns(
+                    [1.0, 0.8, 1.2, 0.6, 0.8, 0.8, 1.0, 1.1]
+                )
+                row[0].write(format_id)
+                row[1].write(str(item.get("ext") or ""))
+                row[2].write(
+                    str(
+                        item.get("resolution")
+                        or (
+                            f"{item.get('height')}p"
+                            if item.get("height")
+                            else "audio only"
+                        )
                     )
                 )
-            )
-            row[3].write(str(item.get("fps") or ""))
-            has_video = bool(item.get("has_video"))
-            has_audio = bool(item.get("has_audio"))
-            row[4].write("Yes" if has_video else "No")
-            row[5].write("Yes" if has_audio else "No")
-            row[6].write(_format_bytes(item.get("size_bytes")))
+                row[3].write(str(item.get("fps") or ""))
+                has_video = bool(item.get("has_video"))
+                has_audio = bool(item.get("has_audio"))
+                row[4].write("Yes" if has_video else "No")
+                row[5].write("Yes" if has_audio else "No")
+                row[6].write(_format_bytes(item.get("size_bytes")))
 
-            video_clicked = row[7].button(
-                "Download",
-                key=f"youtube-format-video-{index}-{format_id}",
-                disabled=not can_start or busy or not has_video,
-                use_container_width=True,
-                help="Download this video format and merge best audio when needed.",
-            )
-            audio_clicked = row[8].button(
-                "Audio",
-                key=f"youtube-format-audio-{index}-{format_id}",
-                disabled=not can_start or busy or not has_audio,
-                use_container_width=True,
-                help="Download this exact audio format and convert it to MP3.",
-            )
-            subtitle_clicked = row[9].button(
-                "Sub",
-                key=f"youtube-format-subtitle-{index}-{format_id}",
-                disabled=not can_start or busy or not tracks,
-                use_container_width=True,
-                help="Download only the selected subtitle/caption track.",
-            )
-
-            action = (
-                "video_audio"
-                if video_clicked
-                else "audio"
-                if audio_clicked
-                else "subtitle"
-                if subtitle_clicked
-                else None
-            )
-            if action is not None:
-                try:
-                    _start_format_download(
-                        settings,
-                        metadata,
-                        format_id=format_id,
-                        action=action,
+                with row[7].popover(
+                    "Download",
+                    use_container_width=True,
+                ):
+                    video_clicked = st.button(
+                        "Video + Audio",
+                        key=f"youtube-format-video-{index}-{format_id}",
+                        disabled=not can_start or busy or not has_video,
+                        use_container_width=True,
+                        help=(
+                            "Use this exact video format and merge the best "
+                            "available audio when the row has no audio."
+                        ),
                     )
-                except (YouTubeServiceError, DownloadPathError) as exc:
-                    st.error(exc.message)
-                else:
-                    st.rerun()
+                    audio_clicked = st.button(
+                        "Audio",
+                        key=f"youtube-format-audio-{index}-{format_id}",
+                        disabled=not can_start or busy or not has_audio,
+                        use_container_width=True,
+                        help=(
+                            "Use this exact audio-capable format and extract "
+                            "an MP3 output."
+                        ),
+                    )
+                    subtitle_clicked = st.button(
+                        "Subtitle",
+                        key=f"youtube-format-subtitle-{index}-{format_id}",
+                        disabled=not can_start or busy or not tracks,
+                        use_container_width=True,
+                        help=(
+                            "Download only the subtitle/caption track selected "
+                            "above. The media format ID does not affect subtitles."
+                        ),
+                    )
+
+                action = (
+                    "video_audio"
+                    if video_clicked
+                    else "audio"
+                    if audio_clicked
+                    else "subtitle"
+                    if subtitle_clicked
+                    else None
+                )
+                if action is not None:
+                    try:
+                        _start_format_download(
+                            settings,
+                            metadata,
+                            format_id=format_id,
+                            action=action,
+                        )
+                    except (YouTubeServiceError, DownloadPathError) as exc:
+                        st.error(exc.message)
+                    else:
+                        st.rerun()
 
 
 def _start_download(settings, metadata: Mapping[str, Any]) -> None:
@@ -761,7 +758,6 @@ def render_youtube(settings) -> None:
             "extraction. Install them on the machine running Telegram Harbor."
         )
 
-    _render_youtube_proxy_settings()
     _render_youtube_auth_settings()
 
     url = st.text_input(
