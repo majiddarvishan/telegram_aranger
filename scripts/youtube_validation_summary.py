@@ -319,7 +319,7 @@ def _expand_patterns(patterns: list[str]) -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Summarize Telegram Harbor YouTube manual-validation JSON reports "
+            "Summarize YARA YouTube manual-validation JSON reports "
             "without performing any network requests."
         )
     )
