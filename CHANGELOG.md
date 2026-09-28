@@ -1,6 +1,6 @@
 # Changelog
 
-All notable Telegram Harbor changes are recorded here.
+All notable YARA changes are recorded here.
 
 ## Unreleased
 
