@@ -1,4 +1,4 @@
-# Telegram Harbor Security Notes
+# YARA Security Notes
 
 ## Scope
 
@@ -135,7 +135,7 @@ YouTube has an optional SOCKS5 proxy configuration independent from Telegram pro
 Security rules:
 - disabled by default;
 - proxy password is kept only in the active Streamlit session when entered through the UI;
-- Telegram Harbor does not persist the YouTube proxy password to SQLite;
+- YARA does not persist the YouTube proxy password to SQLite;
 - validation reports store only safe metadata and never the password value;
 - the manual validation CLI reads an optional password from `YOUTUBE_SOCKS5_PASSWORD` (or the environment variable selected with `--proxy-password-env`) rather than accepting a plaintext password argument;
 - raw yt-dlp `proxy` injection through generic downloader options remains blocked;
@@ -146,11 +146,11 @@ Treat any proxy username/password as a secret and prefer a dedicated secret mana
 
 ## YouTube authenticated sessions
 
-Telegram Harbor supports optional signed-in YouTube access without collecting Google credentials.
+YARA supports optional signed-in YouTube access without collecting Google credentials.
 
 Preferred local mode — Browser session:
 - uses yt-dlp's supported browser-cookie integration;
-- reads cookies from a browser profile on the **same host and OS user** that runs Telegram Harbor;
+- reads cookies from a browser profile on the **same host and OS user** that runs YARA;
 - supports an optional profile name/path;
 - does not copy browser cookie values into SQLite, structured logs, or validation reports;
 - validation reports record only the auth source, selected browser, and whether a profile was configured;
@@ -171,5 +171,5 @@ General rules:
 - browser/account cookies are sensitive session credentials; enable this only when needed and prefer a dedicated YouTube account/session where practical.
 
 Operational limitation:
-- a Docker container or remote server cannot directly reuse cookies from a browser running on the user's laptop/desktop. In that topology use the `cookies.txt` fallback or run Telegram Harbor locally under the browser's OS user.
+- a Docker container or remote server cannot directly reuse cookies from a browser running on the user's laptop/desktop. In that topology use the `cookies.txt` fallback or run YARA locally under the browser's OS user.
 
