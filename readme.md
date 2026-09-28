@@ -42,7 +42,7 @@ It provides one central place to connect multiple Telegram accounts, browse priv
 ## Project layout
 
 ```text
-telegram-harbor/
+yara/
 ├── app.py
 ├── requirements.txt
 ├── Dockerfile
