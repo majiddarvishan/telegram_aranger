@@ -1,6 +1,6 @@
 # Tasks / Technical Findings
 
-This file began as the 2026-09-24 review backlog and now tracks implementation status for **Telegram Harbor** on `main`. Completed items reflect committed code/docs/tests; do not mark real-device/manual validation complete unless it was actually performed.
+This file began as the 2026-09-24 review backlog and now tracks implementation status for **YARA** on `main`. Completed items reflect committed code/docs/tests; do not mark real-device/manual validation complete unless it was actually performed.
 
 ## P0 — Correctness
 - [x] Fix tag identity: `message_tags` now uses `(telegram_account_id, chat_id, message_id)` with an in-place migration that preserves legacy rows under `chat_id=0`.
@@ -98,7 +98,7 @@ This file began as the 2026-09-24 review backlog and now tracks implementation s
 - [x] Prevent scrolled message cards from visually bleeding through the fixed header by adding a shared opaque fixed backdrop, stacking isolation, and regression coverage.
 - [x] Fix fixed-header clipping/overflow with Streamlit toolbar and collapsed sidebar: explicit viewport width override, safe collapsed-sidebar default, expanded-sidebar offset, opaque background, and regression coverage.
 - [x] Keep the message filter/control area truly fixed in the viewport while message content scrolls, and move Previous/Next date navigation from the bottom into the same fixed header; regression coverage included.
-- [x] Rename the product to **Telegram Harbor** across UI, documentation, Docker/CI naming, logger namespaces, and project context while preserving persisted compatibility identifiers.
+- [x] Rename the product to **YARA** across UI, documentation, Docker/CI naming, logger namespaces, and project context while preserving persisted compatibility identifiers.
 - [x] Surface loaded/visible counts, current message limit, end-of-range state, and an explicit `Load More Messages` action.
 - [x] Require an explicit second-step confirmation before permanently deleting a Telegram message.
 - [x] Define current tag semantics: commas are separators; values are trimmed/deduplicated; removing a tag from the field removes it from that message; global rename/delete remains intentionally out of scope until richer tag management is requested.
@@ -118,32 +118,32 @@ Branch before context commit:
 
 
 ## Release checkpoints
-- [x] Telegram Harbor v1.0.0 release checkpoint recorded at `bd8c8b211aa8e3ee5ca09c864b3e4803eac6807b` with root `VERSION=1.0.0`, sidebar version display, branding test, README version, and green CI.
+- [x] YARA v1.0.0 release checkpoint recorded at `bd8c8b211aa8e3ee5ca09c864b3e4803eac6807b` with root `VERSION=1.0.0`, sidebar version display, branding test, README version, and green CI.
 
 - [ ] Create Git tag `v1.0.0` pointing exactly to `bd8c8b211aa8e3ee5ca09c864b3e4803eac6807b`. The currently connected GitHub write actions do not expose tag-ref creation; do not move this release tag to later sticky-header commits.
 
 
 ## Release checkpoint v1.0.1
-- [x] Telegram Harbor v1.0.1 release checkpoint recorded at `a7648e64f1cd8efc0c098b4eb0a689e6bd94d873`.
+- [x] YARA v1.0.1 release checkpoint recorded at `a7648e64f1cd8efc0c098b4eb0a689e6bd94d873`.
 - [ ] Create Git tag `v1.0.1` pointing exactly to `a7648e64f1cd8efc0c098b4eb0a689e6bd94d873`; current GitHub connector does not expose tag-ref creation.
 - [x] Start `1.0.2-dev` after the checkpoint.
 - [x] Increase message-panel default height to 620px and make it configurable with `MESSAGE_SCROLL_HEIGHT`.
 
 
 ## Release checkpoint v1.0.2
-- [x] Telegram Harbor v1.0.2 release checkpoint recorded at `9a4c429827ec4e31ef1376ae97b0b074a13dd7e9`.
+- [x] YARA v1.0.2 release checkpoint recorded at `9a4c429827ec4e31ef1376ae97b0b074a13dd7e9`.
 - [x] VERSION / README / CHANGELOG / branding regression updated for 1.0.2.
 - [ ] Create Git tag `v1.0.2` pointing exactly to `9a4c429827ec4e31ef1376ae97b0b074a13dd7e9`; current connector does not expose tag-ref creation.
 
 
 ## Release checkpoint v1.0.3
-- [x] Telegram Harbor v1.0.3 release checkpoint recorded at `6c27b0343f7534a2c7ff906f27483791df601fe4`.
+- [x] YARA v1.0.3 release checkpoint recorded at `6c27b0343f7534a2c7ff906f27483791df601fe4`.
 - [x] VERSION / README / CHANGELOG / branding regression updated for 1.0.3.
 - [ ] Create Git tag `v1.0.3` pointing exactly to `6c27b0343f7534a2c7ff906f27483791df601fe4`; current GitHub connector does not expose tag-ref creation.
 
 
 ## Release checkpoint v1.0.4
-- [x] Telegram Harbor v1.0.4 release checkpoint recorded at `0c3144f4d99201a917c9353c788def4df9fb4258`.
+- [x] YARA v1.0.4 release checkpoint recorded at `0c3144f4d99201a917c9353c788def4df9fb4258`.
 - [x] VERSION / README / CHANGELOG / branding regression updated for 1.0.4.
 - [ ] Create Git tag `v1.0.4` pointing exactly to `0c3144f4d99201a917c9353c788def4df9fb4258`; current GitHub connector does not expose tag-ref creation.
 
@@ -229,7 +229,7 @@ Planning source:
 
 ## Release checkpoint v1.1.0
 - [x] Fast-forward merge completed from `gui` into `main`.
-- [x] Telegram Harbor v1.1.0 release checkpoint recorded at `4b7325b06cb92c32b56fc8a9a82388f547492ae8`.
+- [x] YARA v1.1.0 release checkpoint recorded at `4b7325b06cb92c32b56fc8a9a82388f547492ae8`.
 - [x] VERSION / README / CHANGELOG / branding regression updated for 1.1.0.
 - [x] GUI redesign validation completed in Light, Dark, desktop and narrow layouts.
 - [x] SQLite schema v4 peer persistence is included in the release.
