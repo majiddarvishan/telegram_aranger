@@ -8,7 +8,7 @@ class DirectoryPickerError(RuntimeError):
 
 
 def choose_directory(initial_directory: str | None = None) -> str | None:
-    """Open a native folder picker on the machine running Telegram Harbor."""
+    """Open a native folder picker on the machine running YARA."""
     try:
         import tkinter as tk
         from tkinter import filedialog
