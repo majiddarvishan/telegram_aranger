@@ -255,6 +255,26 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
             state_source,
         )
 
+    def test_url_change_and_new_inspect_clear_stale_error(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+
+        url_index = source.index('"YouTube URL"')
+        inspect_index = source.index(
+            'if st.button("Inspect"',
+            url_index,
+        )
+        url_block = source[url_index:inspect_index]
+        inspect_block = source[inspect_index:inspect_index + 500]
+
+        self.assertIn(
+            "on_change=_invalidate_youtube_inspection",
+            url_block,
+        )
+        self.assertIn(
+            "st.session_state.youtube_error = None",
+            inspect_block,
+        )
+
     def test_ui_supports_cancel_browse_and_per_format_actions(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         state_source = Path("utils/state.py").read_text(encoding="utf-8")
