@@ -96,7 +96,7 @@ def start_youtube_download_job(
 
     thread = threading.Thread(
         target=worker,
-        name="telegram-harbor-youtube-download",
+        name="yara-youtube-download",
         daemon=True,
     )
     job.thread = thread
