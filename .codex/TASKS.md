@@ -443,3 +443,18 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [ ] Manually verify Cancel during a real YouTube download.
 - [ ] Manually verify native Browse + persisted Save directory after app restart on Windows.
 - [ ] Manually verify per-format Video + Audio, Audio and Subtitle actions with live YouTube.
+
+
+### YouTube format UI correction — 2026-09-28
+- [x] Keep one shared SOCKS5 configuration in the Sidebar for both Telegram and YouTube.
+- [x] Default shared SOCKS5 host/port to `127.0.0.1:1080` when enabled and values are empty/invalid.
+- [x] Restore the complete inspected format list; do not truncate to the first 40 entries.
+- [x] Keep one `Download` menu per format row.
+- [x] Expose `Video + Audio`, `Audio`, and `Subtitle` inside each row's Download menu.
+- [x] Move subtitle language selection into the row Download menu.
+- [x] Remove the standalone subtitle/caption table from the main YouTube page.
+- [x] Remove global Output, Quality, subtitle-enable controls and the global Download button.
+- [x] Keep native Browse selection pending until before the Save-directory widget is instantiated.
+- [x] Replace touched Streamlit `use_container_width` usage with `width`.
+- [x] GitHub Actions run `36479282936` is green on Linux unittest, Windows/Python 3.14 and Docker.
+- [ ] Manually verify per-row Video + Audio, Audio and Subtitle-with-language downloads in the live UI.
