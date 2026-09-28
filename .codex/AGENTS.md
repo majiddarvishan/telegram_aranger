@@ -1,7 +1,7 @@
 # Agent Working Notes
 
 ## Scope
-This file is guidance for future coding/review sessions on **YARA** (`majiddarvishan/telegram_aranger`), currently on branch `main`.
+This file is guidance for future coding/review sessions on **YARA** (`majiddarvishan/yara`), with `main` as the source-of-truth branch.
 
 ## Before changing code
 - Read `.codex/START_HERE.md`, then `.codex/TASKS.md`.
