@@ -1,8 +1,13 @@
 services:
   telegram-harbor:
-    build: .
+    build:
+      context: .
+      args:
+        TELEGRAM_HARBOR_BUILD_SHA: ${TELEGRAM_HARBOR_BUILD_SHA:-local}
     env_file:
       - .env
+    environment:
+      YOUTUBE_DOWNLOAD_ROOTS: ${YOUTUBE_DOWNLOAD_ROOTS:-/data/youtube}
     ports:
       - "8501:8501"
     volumes:

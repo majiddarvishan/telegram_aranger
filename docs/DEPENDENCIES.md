@@ -1,4 +1,4 @@
-# Telegram Harbor Dependency Policy
+# YARA Dependency Policy
 
 ## Update policy
 
@@ -26,6 +26,7 @@ Before replacing Pyrogram or moving to a fork:
 - cryptography
 - python-dotenv
 - extra-streamlit-components
+- yt-dlp
 
 For bounded dependencies:
 - review updates at least monthly;
@@ -35,7 +36,7 @@ For bounded dependencies:
 
 ## Telegram crypto acceleration
 
-Telegram Harbor installs `tgcrypto2>=1.3.6,<2`.
+YARA installs `tgcrypto2>=1.3.6,<2`.
 
 `tgcrypto2` is a maintained fork of the archived original `TgCrypto` project. Its PyPI package name is `tgcrypto2`, but it intentionally keeps the Python import name `tgcrypto` for drop-in compatibility with Pyrogram.
 
@@ -56,3 +57,32 @@ Because Pyrogram upstream is archived, dependency review must include:
 - maintained fork/replacement options.
 
 Do not silently switch Telegram client libraries merely to receive updates. Session migration and behavior compatibility must be designed and tested explicitly.
+
+
+## YouTube downloader and FFmpeg
+
+YARA uses `yt-dlp` only behind the YouTube service abstraction. Streamlit UI code must not depend on yt-dlp internals.
+
+The Python dependency is kept inside the bounded 2026 major range in `requirements.txt`. Downloader updates can change extractor behavior, metadata fields, format selection and error text, so update it through the normal dependency-review flow and run the YouTube service/download regression suite.
+
+FFmpeg and FFprobe are operational dependencies for:
+- merging video and audio streams;
+- audio-only extraction;
+- subtitle conversion to SRT where supported.
+
+The Docker image installs FFmpeg directly. Native Windows/Linux installations must provide `ffmpeg` and `ffprobe` on `PATH`.
+
+
+## YouTube browser-session authentication
+
+Browser-session authentication uses yt-dlp's `cookies-from-browser` integration and therefore depends on the browser profile and OS credential store being readable by the YARA process.
+
+Operational requirements:
+- YARA and the selected browser profile must be on the same host.
+- Run YARA under the same OS user that owns/decrypts the browser cookies.
+- Chromium-family cookies may depend on the platform credential store (for example Windows DPAPI or a Linux desktop keyring).
+- Firefox requires access to its local profile/cookie database.
+- Containers normally cannot access/decrypt the desktop browser profile unless it is deliberately mounted with the necessary host credentials; use the `cookies.txt` fallback instead.
+- Browser cookie extraction behavior is provided by the installed yt-dlp version; keep yt-dlp within the project's pinned supported range.
+
+If browser extraction fails, YARA normalizes the error as `youtube_browser_session_unavailable` without displaying raw cookie/database paths.

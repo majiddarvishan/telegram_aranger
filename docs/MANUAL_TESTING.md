@@ -1,10 +1,10 @@
-# Telegram Harbor Manual Validation Checklist
+# YARA Manual Validation Checklist
 
 This checklist covers behavior that automated tests cannot fully prove because it requires a real Telegram account, browser, and media transfer.
 
 ## Preconditions
 
-- Work from branch `main`.
+- For YouTube feature validation before merge, work from branch `feature/youtube-download`; otherwise use `main`.
 - Use a non-production Telegram account for validation.
 - Configure valid `TELEGRAM_API_ID`, `TELEGRAM_API_HASH`, and `TELEGRAM_SESSION_ENCRYPTION_KEY`.
 - If a SOCKS5 proxy is not required, disable it in the sidebar.
@@ -169,3 +169,341 @@ Only mark the remaining media-validation task complete after:
 - inline video playback works for small and large videos;
 - browser video download produces a playable file;
 - interrupted-download recovery has been reproduced successfully at least once.
+
+
+## 11. YouTube Download V1
+
+Use only public content that you are permitted to save for this validation.
+
+### Inspect
+
+1. Open the **YouTube Download** workspace.
+2. Enter one public YouTube video URL.
+3. Click **Inspect**.
+
+Expected:
+- no media file is downloaded during Inspect;
+- title, channel/uploader, thumbnail, duration, video ID and availability are shown;
+- format/quality information is available;
+- subtitle/caption tracks are visible and Manual vs Auto-generated is distinguishable;
+- estimated size is shown when downloader metadata provides one;
+- a rights/service notice is shown.
+
+### Video + Audio
+
+1. Select **Video + Audio**.
+2. Test Best, max 1080p, max 720p and max 480p where the source supports them.
+3. Enter a writable absolute Save directory.
+4. Acknowledge the rights/service notice.
+5. Start the download.
+
+Expected:
+- progress exposes phase, percentage where known, bytes, speed and ETA where available;
+- merge/post-processing state is visible;
+- final media path is shown;
+- output basename is the sanitized YouTube title;
+- an existing file is not overwritten and receives a grouped numeric suffix.
+
+### Audio only
+
+Repeat with **Audio only**.
+
+Expected:
+- output is an extracted audio file;
+- FFmpeg/FFprobe absence is reported clearly instead of starting an invalid job.
+
+### Manual subtitle
+
+Use a video with a manual subtitle track.
+
+Expected:
+- selector labels the track as **Manual**;
+- one selected track is downloaded;
+- SRT is preferred;
+- media and subtitle share exactly the same basename.
+
+### Auto-generated caption
+
+Use a video with auto-generated captions.
+
+Expected:
+- selector labels the track as **Auto-generated**;
+- only the selected track is downloaded;
+- if SRT conversion is unavailable, the actual fallback format such as VTT is reported and the file extension remains truthful.
+
+### Save-directory safety
+
+Validate:
+- empty path;
+- relative path;
+- missing path without create confirmation;
+- missing path with explicit create confirmation;
+- non-writable directory;
+- path outside configured `YOUTUBE_DOWNLOAD_ROOTS`;
+- filename collision with both media and subtitle present.
+
+Expected:
+- invalid paths are rejected before downloader execution;
+- output cannot escape the configured root;
+- paired media/subtitle collision suffixes remain aligned.
+
+### Docker
+
+Build and run the container, then verify:
+
+```bash
+docker run --rm --entrypoint ffmpeg telegram-harbor:test -version
+docker run --rm --entrypoint ffprobe telegram-harbor:test -version
+```
+
+Inside the application use `/data/youtube` as the Save directory.
+
+### Windows
+
+Verify `ffmpeg -version` and `ffprobe -version` from the same terminal, then run one Video + Audio, one Audio-only and one subtitle download using a native Windows absolute path.
+
+### Restriction/error paths
+
+Check representative unavailable/restricted metadata when safely reproducible.
+
+Expected:
+- stronger warning/error state is shown;
+- ordinarily accessible public content remains downloadable after acknowledgement;
+- private/member-only/login-protected/DRM/paywalled content is not bypassed;
+- no browser-cookie import or automatic Telegram proxy reuse occurs.
+
+
+### Optional repeatable YouTube service-level runner
+
+For repeatable live checks outside the Streamlit UI, use:
+
+```bash
+python scripts/youtube_manual_validate.py --help
+```
+
+Example Inspect:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --report-file validation-reports/inspect.json
+```
+
+Example Video + Audio:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode video_audio \
+  --quality max_720p \
+  --save-directory "/absolute/path/to/output" \
+  --acknowledge \
+  --report-file validation-reports/video.json
+```
+
+This helper is for manual/live validation only. GitHub Actions tests the helper with fakes and does not call live YouTube.
+
+See `.codex/YOUTUBE_VALIDATION.md` for Windows, Docker, subtitle and collision commands.
+
+
+### YouTube offline preflight
+
+Before any live YouTube validation, verify the host prerequisites without network access:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --mode preflight \
+  --save-directory "/absolute/path/to/output"
+```
+
+For a restricted hosted root:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --mode preflight \
+  --save-directory "/srv/telegram-harbor/youtube/test" \
+  --allowed-root "/srv/telegram-harbor/youtube" \
+  --create-directory
+```
+
+Expected result:
+- exit code 0;
+- `status=passed`;
+- FFmpeg + FFprobe found;
+- `ffmpeg -version` and `ffprobe -version` both execute successfully;
+- `ffmpeg_runtime_ready=true`;
+- Save directory valid/writable;
+- environment/build identity included in the JSON report;
+- no YouTube URL required and no live YouTube request performed.
+
+Invalid YouTube URLs in live modes must produce a structured JSON failure rather than a traceback.
+
+
+### YouTube collision second-run validation
+
+After one successful media + subtitle download, keep the first output pair in place and repeat the same command with:
+
+```bash
+--expect-collision
+```
+
+The JSON report must show:
+- `collision_expectation_met: true`;
+- `collision_number` >= 2;
+- matching media/subtitle basenames;
+- requested subtitle language/source matching the result.
+
+This flag is only for an intentional second-run collision test; it does not create or force a collision by itself.
+
+
+### Summarize YouTube validation evidence
+
+After running the manual scenarios:
+
+```bash
+python scripts/youtube_validation_summary.py validation-reports/*.json
+```
+
+Use `--require-core` when you want a non-zero exit code until the core runner scenarios are all represented by passing reports.
+
+This summary is evidence aggregation only; it does not replace the visual Streamlit review or final release decision.
+
+
+### YouTube pre-release evidence gate
+
+After all runner-based live cases have been collected from the same source revision:
+
+```bash
+python scripts/youtube_validation_summary.py \
+  --require-release-ready \
+  validation-reports/*.json
+```
+
+A zero exit code means the runner/platform/policy evidence is complete and traceable to one source commit. It does **not** complete the separate Light/Dark/narrow visual review, real Streamlit warning/error presentation review, or final merge/release decision.
+
+
+### YouTube SOCKS5
+
+The YouTube workspace has its own optional SOCKS5 configuration. Telegram proxy settings are not reused automatically.
+
+UI validation:
+1. Open **YouTube Download**.
+2. Expand **YouTube network / SOCKS5**.
+3. Enable **Use SOCKS5 proxy for YouTube**.
+4. Enter host/IP and port.
+5. If required, enter username/password.
+6. Run **Inspect** on a public permitted video.
+7. Run one download.
+
+Expected:
+- Inspect succeeds through the configured SOCKS5 route.
+- Download uses the same proxy settings.
+- Changing any YouTube proxy field clears the previous Inspect result and requires a new Inspect.
+- Password input is masked.
+- Proxy password is not displayed in application output, logs, or validation JSON.
+- Telegram SOCKS5 settings are unchanged.
+
+Manual-runner validation without authentication:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --proxy-host 127.0.0.1 \
+  --proxy-port 1080 \
+  --report-file validation-reports/proxy-inspect.json
+```
+
+For an authenticated SOCKS5 proxy, keep the password out of shell history/process arguments:
+
+```bash
+export YOUTUBE_SOCKS5_PASSWORD='your-proxy-password'
+
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --proxy-host 127.0.0.1 \
+  --proxy-port 1080 \
+  --proxy-user your-user \
+  --report-file validation-reports/proxy-inspect-auth.json
+```
+
+The report records only safe proxy metadata such as enabled state, host/port and whether credentials were configured. The password value is never written to the report.
+
+
+### YouTube authenticated session
+
+Use this only when guest access is insufficient or YouTube requests a signed-in session.
+
+#### Preferred local flow — Browser session
+
+Requirements:
+- YARA runs on the same machine as the signed-in browser;
+- it runs under the same OS user that owns the browser profile.
+
+UI:
+1. Open **YouTube Download**.
+2. Expand **YouTube sign-in**.
+3. Enable **Use authenticated YouTube session**.
+4. Select **Browser session**.
+5. Leave Browser on **Auto** or select Chrome/Firefox/Edge/Brave/etc.
+6. Leave profile empty for the default/recent profile, or enter a profile name/path.
+7. Run **Inspect**, then one Download.
+
+Expected:
+- no Google username/password field exists;
+- Inspect and Download use the same browser session;
+- changing auth source/browser/profile invalidates previous Inspect metadata;
+- cookie values never appear in UI output, logs, database, or validation JSON;
+- report records only auth source/browser and whether a profile was configured;
+- private/member-only/premium/DRM policy blocks still apply.
+
+Manual-runner Inspect:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --browser-session chrome \
+  --report-file validation-reports/browser-auth-inspect.json
+```
+
+Optional explicit profile:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --browser-session firefox \
+  --browser-profile "default-release" \
+  --report-file validation-reports/browser-auth-profile.json
+```
+
+Authenticated download:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode video_audio \
+  --quality max_720p \
+  --save-directory "/absolute/path/to/output" \
+  --browser-session chrome \
+  --acknowledge \
+  --report-file validation-reports/browser-auth-download.json
+```
+
+#### Remote/Docker fallback — cookies.txt
+
+When the backend cannot access the user's local browser profile, use the existing youtube.com-only Netscape `cookies.txt` fallback:
+
+```bash
+python scripts/youtube_manual_validate.py \
+  --url "https://www.youtube.com/watch?v=<VIDEO_ID>" \
+  --mode inspect \
+  --cookies-file "/absolute/path/to/youtube-cookies.txt" \
+  --report-file validation-reports/cookie-file-auth-inspect.json
+```
+
+Do not combine `--browser-session` and `--cookies-file`.
+

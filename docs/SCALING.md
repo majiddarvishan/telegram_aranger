@@ -1,4 +1,4 @@
-# Telegram Harbor Scaling and Performance
+# YARA Scaling and Performance
 
 ## Current deployment model
 

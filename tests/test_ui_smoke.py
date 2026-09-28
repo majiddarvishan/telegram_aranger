@@ -387,6 +387,83 @@ class SidebarHierarchySmokeTests(unittest.TestCase):
         self.assertEqual(WEB_ACCOUNT_CARD_KEY, "web-account-card")
 
 
+class SharedProxyDefaultsTests(unittest.TestCase):
+    def test_shared_proxy_defaults_to_localhost_1080_when_enabled(self):
+        import inspect
+        from ui.sidebar import (
+            _ensure_shared_proxy_defaults,
+            _on_shared_proxy_toggle,
+        )
+
+        sidebar_source = inspect.getsource(_ensure_shared_proxy_defaults)
+        toggle_source = inspect.getsource(_on_shared_proxy_toggle)
+
+        self.assertIn('"127.0.0.1"', sidebar_source)
+        self.assertIn("1080", sidebar_source)
+        self.assertIn("_ensure_shared_proxy_defaults()", toggle_source)
+
+        state_source = open("utils/state.py", encoding="utf-8").read()
+        self.assertIn('"use_proxy": False', state_source)
+        self.assertIn('"proxy_host": "127.0.0.1"', state_source)
+        self.assertIn('"proxy_port": 1080', state_source)
+
+
+    def test_network_settings_normalize_defaults_before_widgets(self):
+        import inspect
+        from ui.sidebar import _render_network_settings
+
+        source = inspect.getsource(_render_network_settings)
+        normalize_index = source.index("_ensure_shared_proxy_defaults()")
+        checkbox_index = source.index("st.checkbox(")
+
+        self.assertLess(normalize_index, checkbox_index)
+
+
+class WorkspaceSidebarSmokeTests(unittest.TestCase):
+    def test_youtube_workspace_keeps_shared_network_controls(self):
+        import inspect
+        from ui.sidebar import render_sidebar, _render_network_settings
+
+        source = inspect.getsource(render_sidebar)
+        network_source = inspect.getsource(_render_network_settings)
+        proxy_render = source.index("proxy = _render_network_settings()")
+        youtube_branch = source.index(
+            'if workspace == "YouTube Download":'
+        )
+
+        self.assertLess(proxy_render, youtube_branch)
+        self.assertIn(
+            "These SOCKS5 settings are shared by Telegram and YouTube.",
+            network_source,
+        )
+        self.assertIn("return workspace", source)
+
+    def test_shared_proxy_toggle_applies_default_helper(self):
+        import inspect
+        from ui.sidebar import (
+            _ensure_shared_proxy_defaults,
+            _on_shared_proxy_toggle,
+        )
+
+        helper_source = inspect.getsource(_ensure_shared_proxy_defaults)
+        toggle_source = inspect.getsource(_on_shared_proxy_toggle)
+        self.assertIn('"127.0.0.1"', helper_source)
+        self.assertIn("1080", helper_source)
+        self.assertIn("_ensure_shared_proxy_defaults()", toggle_source)
+        self.assertIn("_invalidate_youtube_network_context()", toggle_source)
+
+    def test_sidebar_owns_workspace_selector(self):
+        import inspect
+        from ui.sidebar import render_sidebar
+
+        source = inspect.getsource(render_sidebar)
+        self.assertIn(
+            '("Telegram Messages", "YouTube Download")',
+            source,
+        )
+        self.assertIn('key="workspace"', source)
+
+
 class UiAccountSelectionSmokeTests(unittest.TestCase):
     def test_account_switch_resets_chat_messages_runtime_view_state(self):
         state = {
@@ -442,4 +519,4 @@ class SidebarWebAccountPolishTests(unittest.TestCase):
         source = inspect.getsource(_render_web_account)
 
         self.assertIn('key="sidebar-web-logout"', source)
-        self.assertIn("use_container_width=False", source)
+        self.assertIn('width="content"', source)

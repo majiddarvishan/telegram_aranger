@@ -1,6 +1,6 @@
 # Decisions / Observed Design Choices
 
-These are the current implementation/architecture decisions for **Telegram Harbor** on `main`. Update this file when the user changes a requirement or a later phase supersedes one.
+These are the current implementation/architecture decisions for **YARA** on `main`. Update this file when the user changes a requirement or a later phase supersedes one.
 
 ## D-001 — Streamlit is the application shell
 Status: current
@@ -107,10 +107,10 @@ Status: current
 
 The supported container model is a single non-root Streamlit instance with persistent state under /data and health checking through Streamlit /_stcore/health. Telegram connectivity is user/session-specific and is not part of process readiness.
 
-## D-021 — Product name is Telegram Harbor
+## D-021 — Product name is YARA
 Status: current
 
-The product is named **Telegram Harbor** and behaves as a general Telegram message/media manager for private chats, groups, supergroups, channels, and Saved Messages.
+The product is named **YARA** and behaves as a general Telegram message/media manager for private chats, groups, supergroups, channels, and Saved Messages.
 
 The GitHub repository name remains `telegram_aranger` for now. Persisted compatibility identifiers such as the existing cookie name, default database filename, and Docker volume name are intentionally retained to avoid breaking login persistence or hiding existing data.
 
@@ -123,3 +123,139 @@ A first Delete action only enters a pending state. A second explicit confirmatio
 Status: current
 
 Tags remain comma-separated SQLite text for the current feature scope. Values are trimmed and de-duplicated. A normalized tag table is deferred until global rename/delete, richer tag metadata, or higher-scale querying is required.
+
+
+## D-024 — YouTube download is an independent workspace
+Status: implemented on `feature/youtube-download`
+
+YouTube functionality is isolated from Telegram message browsing. The Streamlit UI should expose a separate workspace/tool rather than embedding YouTube download controls inside Telegram message cards.
+
+## D-025 — YouTube download uses a service abstraction
+Status: implemented on `feature/youtube-download`
+
+The UI must not call the downloader library directly. URL validation, metadata inspection, format selection, download execution, progress hooks, post-processing, and error normalization belong behind a dedicated service layer.
+
+## D-026 — Save directory is user-supplied
+Status: implemented on `feature/youtube-download`
+
+V1 requires the user to provide a filesystem save directory before download.
+
+On a local installation this is a path on the local machine. On a remotely hosted installation this path belongs to the host running YARA, not the browser client. The UI must state this clearly.
+
+Hosted/multi-user deployments should support configured allowed roots so Web users cannot write to arbitrary server paths.
+
+## D-027 — Rights/service warning is informational, not a legal determination
+Status: implemented in policy layer on `feature/youtube-download`
+
+YARA cannot reliably determine copyright ownership from YouTube metadata. V1 therefore:
+- always presents a concise rights/service notice;
+- may show stronger warnings when metadata/downloader state indicates restrictions;
+- requires explicit user acknowledgement before download;
+- does not block ordinarily accessible public content solely because a warning is shown.
+
+## D-028 — No technical access-control bypass
+Status: enforced by policy/service behavior on `feature/youtube-download`
+
+V1 must not introduce mechanisms that bypass DRM, paywalls, private/member-only access controls, login protection, or comparable technical restrictions.
+
+The baseline scope is public content that the downloader can access normally without bypass behavior.
+
+## D-029 — YouTube V1 is single-video and non-batch
+Status: implemented/enforced on `feature/youtube-download`
+
+V1 intentionally excludes playlists, full channels, private/member-only/premium content, DRM/access-control bypass, batch queues, scheduling, and automatic geo-bypass.
+
+Optional cookie-session authentication is supported for otherwise in-scope videos that YouTube requires a signed-in session to access. Local Browser Session is preferred; youtube.com-only Netscape `cookies.txt` is the remote/Docker fallback.
+
+## D-030 — FFmpeg is an operational dependency for full YouTube output support
+Status: implemented on `feature/youtube-download`; Docker/Windows platform setup documented
+
+FFmpeg must be treated as a platform dependency for video/audio merging and audio extraction where required. Windows and Docker setup, capability detection, and user-facing failure messages are part of the feature definition.
+
+
+## D-031 — YouTube V1 includes one optional subtitle track
+Status: implemented in engine and UI on `feature/youtube-download`
+
+V1 includes optional subtitle download for a single selected language/track per download job.
+
+The metadata model and UI must distinguish:
+- manual subtitles;
+- auto-generated captions.
+
+The user explicitly chooses whether to download subtitles and which available track to use.
+
+The preferred subtitle output is SRT. If conversion is unavailable, the actual fallback format (for example VTT/original) must be reported instead of silently renaming the content.
+
+Multiple subtitle languages in one job are deferred so the V1 filename requirement can remain deterministic.
+
+## D-032 — YouTube output basename comes from the video title
+Status: implemented in filesystem layer on `feature/youtube-download`
+
+The default output basename is the sanitized YouTube video title, not the video ID.
+
+Examples:
+- `My Video.mp4`
+- `My Video.mp3`
+- `My Video.srt`
+
+When a subtitle is included, the media and subtitle files must use the same basename.
+
+Sanitization must preserve a readable title while producing valid Windows/Linux filenames.
+
+## D-033 — Filename collisions are resolved as one output group
+Status: implemented in filesystem layer on `feature/youtube-download`
+
+Automatic overwrite is not the default.
+
+If the target basename already exists, YARA chooses one collision suffix for the whole output group and applies it consistently.
+
+Example:
+- `My Video (2).mp4`
+- `My Video (2).srt`
+
+This preserves the requirement that media and subtitle files remain obviously paired.
+
+
+## D-034 — SOCKS5 is shared by Telegram and YouTube
+Status: implemented on `feature/youtube-download`
+
+YARA exposes one SOCKS5 configuration in the Sidebar under `Network & proxy`.
+
+The shared proxy contract:
+- one enable/disable switch and one host/port/optional username/password set;
+- the same session-state configuration is used by Telegram and by YouTube Inspect/Download;
+- YouTube does not render a second proxy configuration inside its workspace;
+- changing shared proxy settings invalidates previously inspected YouTube metadata/acknowledgement and requests cancellation of an active YouTube download;
+- proxy credentials remain session-only and are not written to logs or validation JSON;
+- the manual validation runner may still accept explicit proxy arguments because it runs outside the Streamlit Sidebar.
+
+Raw `proxy` values remain forbidden through generic yt-dlp `extra_options`; YouTube routing still enters yt-dlp only through validated `YouTubeProxyConfig`.
+
+This proxy support is ordinary network routing only. It does not enable DRM, private/member/paywall access-control bypass, geo-bypass flags, or other circumvention.
+
+
+## D-035 — YouTube authentication prefers local browser session
+Status: implemented on `feature/youtube-download`
+
+YouTube authenticated access is cookie-session based. YARA does not collect Google username/password and does not implement YouTube OAuth.
+
+Preferred local mode:
+- use yt-dlp's supported browser-cookie integration;
+- browser profile must exist on the same host and under the same OS user as YARA;
+- UI offers Auto plus explicit supported browsers and an optional profile field;
+- Auto checks only standard browser-profile locations before an explicit authenticated operation;
+- no browser cookie values are persisted to SQLite, logs, or validation reports.
+
+Fallback mode:
+- user-supplied Netscape-format `cookies.txt`;
+- intended for Docker/remote installations where the browser is on another machine;
+- upload is session-only;
+- only `youtube.com` rows are accepted;
+- a restrictive temporary file is created only for the yt-dlp operation and removed afterward.
+
+Security/scope:
+- generic yt-dlp `cookiefile` and `cookiesfrombrowser` remain forbidden; only validated auth config may set them;
+- authenticated access is compatible with the shared Sidebar SOCKS5 configuration;
+- private/member-only/premium/DRM states remain blocked even if the authenticated account could access them;
+- browser/account cookies are secrets and authenticated mode is opt-in.
+

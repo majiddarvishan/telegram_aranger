@@ -18,6 +18,7 @@ from ui.auth import render_web_auth, restore_remembered_user
 from ui.main import render_main
 from ui.sidebar import render_sidebar
 from ui.theme import apply_theme
+from ui.youtube import render_youtube
 from utils.logging import configure_logging, log_event
 from utils.state import initialize_state
 
@@ -49,5 +50,9 @@ if st.session_state.web_user is None:
     render_web_auth(settings)
     st.stop()
 
-render_sidebar(settings)
-render_main(settings)
+workspace = render_sidebar(settings)
+
+if workspace == "YouTube Download":
+    render_youtube(settings)
+else:
+    render_main(settings)

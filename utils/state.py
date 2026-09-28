@@ -2,6 +2,8 @@ from datetime import date, timedelta
 
 import streamlit as st
 
+from utils.preferences import default_download_directory, load_preference
+
 
 def initialize_state():
     today = date.today()
@@ -26,7 +28,7 @@ def initialize_state():
         "message_auto_latest_chat_id": None,
         "media_files": {},
         "pending_delete_message": None,
-        "use_proxy": True,
+        "use_proxy": False,
         "proxy_host": "127.0.0.1",
         "proxy_port": 1080,
         "proxy_user": "",
@@ -35,6 +37,24 @@ def initialize_state():
         "message_date_range_picker": (today - timedelta(days=6), today),
         "pending_message_date_range": None,
         "page_anchor": today,
+        "workspace": "Telegram Messages",
+        "youtube_url": "",
+        "youtube_inspected_url": "",
+        "youtube_metadata": None,
+        "youtube_error": None,
+        "youtube_download_result": None,
+        "youtube_download_job": None,
+        "youtube_save_directory": load_preference(
+            "youtube_save_directory",
+            default_download_directory(),
+        ),
+        "youtube_pending_save_directory": None,
+        "youtube_create_directory": False,
+        "youtube_acknowledged": False,
+        "youtube_use_auth": False,
+        "youtube_auth_source": "Browser session",
+        "youtube_auth_browser": "Auto",
+        "youtube_auth_profile": "",
     }
     for key, value in defaults.items():
         if key not in st.session_state:

@@ -97,7 +97,7 @@ def _render_web_account(settings, user: dict) -> None:
         if st.button(
             "Sign out",
             key="sidebar-web-logout",
-            use_container_width=False,
+            width="content",
         ):
             try:
                 runtime = st.session_state.get("telegram_runtime")
@@ -111,7 +111,47 @@ def _render_web_account(settings, user: dict) -> None:
             st.stop()
 
 
+def _invalidate_youtube_network_context() -> None:
+    job = st.session_state.get("youtube_download_job")
+    if job is not None and hasattr(job, "request_cancel"):
+        try:
+            snapshot = job.snapshot()
+        except Exception:
+            snapshot = {}
+        if snapshot.get("status") in {"running", "cancelling"}:
+            job.request_cancel()
+
+    st.session_state.youtube_metadata = None
+    st.session_state.youtube_error = None
+    st.session_state.youtube_download_result = None
+    st.session_state.youtube_acknowledged = False
+    st.session_state.youtube_inspected_url = ""
+
+
+def _ensure_shared_proxy_defaults() -> None:
+    if not str(st.session_state.get("proxy_host", "") or "").strip():
+        st.session_state.proxy_host = "127.0.0.1"
+
+    try:
+        port = int(st.session_state.get("proxy_port", 0) or 0)
+    except (TypeError, ValueError):
+        port = 0
+    if not (1 <= port <= 65535):
+        st.session_state.proxy_port = 1080
+
+
+def _on_shared_proxy_toggle() -> None:
+    if st.session_state.get("use_proxy", False):
+        _ensure_shared_proxy_defaults()
+    _invalidate_youtube_network_context()
+
+
 def _render_network_settings():
+    # Normalize legacy/blank proxy state before any proxy widget is instantiated.
+    # This guarantees the visible defaults are 127.0.0.1:1080 when enabled,
+    # while preserving any valid values the user has already chosen.
+    _ensure_shared_proxy_defaults()
+
     proxy_tone = "info" if st.session_state.use_proxy else "neutral"
     proxy_label = "Proxy on" if st.session_state.use_proxy else "Proxy off"
 
@@ -123,31 +163,42 @@ def _render_network_settings():
             badge_html(proxy_label, proxy_tone),
             unsafe_allow_html=True,
         )
-        st.session_state.use_proxy = st.checkbox(
+        st.checkbox(
             "Enable SOCKS5 proxy",
-            value=st.session_state.use_proxy,
+            key="use_proxy",
+            on_change=_on_shared_proxy_toggle,
+            help="Shared by both Telegram and YouTube. Defaults to 127.0.0.1:1080.",
         )
 
         if st.session_state.use_proxy:
-            st.session_state.proxy_host = st.text_input(
+            _ensure_shared_proxy_defaults()
+            st.text_input(
                 "Proxy host / IP",
-                value=st.session_state.proxy_host,
+                key="proxy_host",
+                on_change=_invalidate_youtube_network_context,
             )
-            st.session_state.proxy_port = st.number_input(
+            st.number_input(
                 "Proxy port",
-                value=st.session_state.proxy_port,
+                key="proxy_port",
                 min_value=1,
                 max_value=65535,
+                on_change=_invalidate_youtube_network_context,
             )
-            st.session_state.proxy_user = st.text_input(
+            st.text_input(
                 "Username (optional)",
-                value=st.session_state.proxy_user,
+                key="proxy_user",
+                on_change=_invalidate_youtube_network_context,
             )
-            st.session_state.proxy_pass = st.text_input(
+            st.text_input(
                 "Password (optional)",
                 type="password",
-                value=st.session_state.proxy_pass,
+                key="proxy_pass",
+                on_change=_invalidate_youtube_network_context,
             )
+
+        st.caption(
+            "These SOCKS5 settings are shared by Telegram and YouTube."
+        )
 
     return proxy_config(st.session_state)
 
@@ -219,7 +270,7 @@ def _render_connected_account_actions(
         if st.button(
             "Refresh chats",
             key="sidebar-refresh-chats",
-            use_container_width=True,
+            width="stretch",
         ):
             st.session_state.dialogs = []
             st.session_state.force_refresh_dialogs = True
@@ -229,7 +280,7 @@ def _render_connected_account_actions(
         if st.button(
             "Add account",
             key="sidebar-add-account-connected",
-            use_container_width=True,
+            width="stretch",
         ):
             _start_login()
             st.rerun()
@@ -240,13 +291,13 @@ def _render_connected_account_actions(
     ):
         st.caption(
             "Disconnect keeps this account saved. "
-            "Log out removes it from Telegram Harbor."
+            "Log out removes it from YARA."
         )
 
         if st.button(
             "Disconnect",
             key="sidebar-disconnect-telegram",
-            use_container_width=True,
+            width="stretch",
         ):
             disconnect()
             st.session_state.telegram_user = None
@@ -256,7 +307,7 @@ def _render_connected_account_actions(
         if st.button(
             "Log out & remove",
             key="sidebar-logout-telegram",
-            use_container_width=True,
+            width="stretch",
         ):
             try:
                 logout()
@@ -295,7 +346,7 @@ def _render_account_selector(
         if st.sidebar.button(
             "Add Telegram account",
             key="sidebar-add-first-account",
-            use_container_width=True,
+            width="stretch",
         ):
             _start_login()
             st.rerun()
@@ -354,7 +405,7 @@ def _render_account_selector(
         if st.sidebar.button(
             "Add account",
             key="sidebar-add-account-disconnected",
-            use_container_width=True,
+            width="stretch",
         ):
             _start_login()
             st.rerun()
@@ -399,7 +450,7 @@ def _render_telegram_login(settings, user: dict, proxy) -> None:
             )
             submitted = st.form_submit_button(
                 "Send login code",
-                use_container_width=True,
+                width="stretch",
             )
 
         if submitted:
@@ -425,7 +476,7 @@ def _render_telegram_login(settings, user: dict, proxy) -> None:
             code = st.text_input("Telegram code")
             submitted = st.form_submit_button(
                 "Verify code",
-                use_container_width=True,
+                width="stretch",
             )
 
         if submitted:
@@ -474,7 +525,7 @@ def _render_telegram_login(settings, user: dict, proxy) -> None:
             if st.button(
                 "Resend code",
                 key="sidebar-resend-code",
-                use_container_width=True,
+                width="stretch",
             ):
                 try:
                     st.session_state.telegram_phone_code_hash = (
@@ -494,7 +545,7 @@ def _render_telegram_login(settings, user: dict, proxy) -> None:
             if st.button(
                 "Change phone",
                 key="sidebar-change-phone",
-                use_container_width=True,
+                width="stretch",
             ):
                 _reset_login()
                 st.session_state.telegram_login_active = True
@@ -511,7 +562,7 @@ def _render_telegram_login(settings, user: dict, proxy) -> None:
         )
         submitted = st.form_submit_button(
             "Login",
-            use_container_width=True,
+            width="stretch",
         )
 
     if submitted:
@@ -534,16 +585,31 @@ def _render_telegram_login(settings, user: dict, proxy) -> None:
             st.sidebar.error(f"2FA verification failed: {exc}")
 
 
-def render_sidebar(settings):
+def render_sidebar(settings) -> str:
     user = st.session_state.web_user
 
     _render_brand()
     _render_web_account(settings, user)
     st.sidebar.divider()
 
-    proxy = _render_network_settings()
-    st.sidebar.divider()
+    st.sidebar.markdown(
+        section_title_html("Workspace"),
+        unsafe_allow_html=True,
+    )
+    workspace = st.sidebar.radio(
+        "Workspace",
+        ("Telegram Messages", "YouTube Download"),
+        key="workspace",
+        label_visibility="collapsed",
+    )
 
+    st.sidebar.divider()
+    proxy = _render_network_settings()
+
+    if workspace == "YouTube Download":
+        return workspace
+
+    st.sidebar.divider()
     _render_account_selector(
         settings,
         user,
@@ -555,4 +621,4 @@ def render_sidebar(settings):
         proxy,
     )
 
-    return proxy
+    return workspace

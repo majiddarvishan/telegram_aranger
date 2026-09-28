@@ -1,14 +1,16 @@
 # Project Context
 
 ## Product purpose
-**Telegram Harbor** is a local/self-hosted Streamlit Telegram message and media manager using Pyrogram.
+**YARA** is a local/self-hosted Streamlit Telegram message and media manager using Pyrogram.
 
 The product supports Saved Messages plus private chats, groups, supergroups, and channels. The GitHub repository remains `majiddarvishan/telegram_aranger` for compatibility/history.
 
 ## Current branch
-- Working branch: `main`
-- The completed `gui` redesign branch was fast-forward merged into `main`.
-- `main` is the current source of truth.
+- Working branch: `feature/youtube-download`
+- Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
+- YouTube V1 implementation and extensive automated readiness hardening are present. Latest confirmed full-green checkpoint in this handoff is `c33bb39ebfd46cd06065a6653e0b1714da7624b3`; re-check current branch HEAD/CI because newer hardening may be present. Manual YT-P5 visual review and YT-P7 live/UI/platform acceptance remain open.
+- The completed `gui` redesign is already merged into `main`.
+- Latest confirmed full-green YouTube checkpoint in this handoff: `c33bb39ebfd46cd06065a6653e0b1714da7624b3`.
 - Re-check GitHub branch HEAD before making future edits.
 
 ## Current capabilities
@@ -49,6 +51,8 @@ The product supports Saved Messages plus private chats, groups, supergroups, and
 - cryptography/Fernet
 - python-dotenv
 - extra-streamlit-components
+- yt-dlp (behind the YouTube service abstraction)
+- FFmpeg/FFprobe for YouTube merge/extraction/subtitle conversion
 
 ## Configuration
 Required:
@@ -72,6 +76,7 @@ Storage/media:
 - `MEDIA_DOWNLOAD_MAX_MB=200`
 - `MESSAGE_SCROLL_HEIGHT=620`
 - `TELEGRAM_DIALOG_LIMIT=100`
+- `YOUTUBE_DOWNLOAD_ROOTS=` (optional for native installs; Docker defaults to `/data/youtube`)
 
 Operations:
 - `LOG_LEVEL=INFO`
@@ -188,7 +193,7 @@ Real Telegram/browser validation has been completed successfully with no issues 
 
 ## Pyrogram peer persistence
 - Exported Pyrogram session strings contain authentication/session data but do not contain Pyrogram's peer cache.
-- Telegram Harbor therefore persists peer metadata with each dialog-cache snapshot:
+- YARA therefore persists peer metadata with each dialog-cache snapshot:
   - canonical Pyrogram peer ID;
   - peer type;
   - access hash where required;
@@ -200,8 +205,46 @@ Real Telegram/browser validation has been completed successfully with no issues 
 
 
 ## Automatic empty-range fallback
-- When a chat is selected for the first time in the current UI session, Telegram Harbor first tries the currently selected date range.
+- When a chat is selected for the first time in the current UI session, YARA first tries the currently selected date range.
 - If that range contains no messages and the Telegram request itself succeeded, the app fetches only the newest `default_message_limit` messages for that chat.
 - The visible Date range is then synchronized to the oldest/newest dates represented by that latest-message batch.
-- The fallback is one-shot per chat selection. If the user later manually chooses an empty range, Telegram Harbor preserves that choice instead of jumping away from it.
+- The fallback is one-shot per chat selection. If the user later manually chooses an empty range, YARA preserves that choice instead of jumping away from it.
 - The startup/default chat remains Saved Messages when it is available.
+
+
+## YouTube download implementation status
+- Working branch: `feature/youtube-download`.
+- YT-P1 service foundation is implemented with an isolated yt-dlp backend, offline URL validation/metadata normalization, subtitle/format normalization, FFmpeg detection, normalized downloader errors, and no-live-network unit tests.
+- YT-P2 filesystem safety is implemented in `utils/download_paths.py`: absolute host paths, optional explicit directory creation, writable probing, configured allowed roots, symlink-aware containment, cross-platform title sanitization, matched media/subtitle basenames, and grouped collision suffixing.
+- YT-P3 policy is implemented in `services/youtube_policy.py`: a general rights/service notice always requires acknowledgement; metadata restriction signals produce stronger warnings; accessible public content remains allowed after acknowledgement; private/membership/premium/authentication/DRM/unavailable states remain blocked without any bypass behavior.
+- YT-P4 download engine is implemented in `services/youtube_download.py`: video+audio MP4 output, audio-only MP3 output, quality presets, one optional manual/automatic subtitle, SRT-preferred conversion with explicit original/VTT fallback, normalized progress/post-processing state, isolated temp downloads, grouped no-overwrite final naming, cleanup on failure, and final output-path reporting.
+- YT-P5 Streamlit UI is implemented in `ui/youtube.py` with independent workspace routing, Inspect, metadata/thumbnail/formats/subtitle display, output/quality controls, save-directory UI, rights/restriction acknowledgement, FFmpeg capability state, normalized progress and final output reporting. Manual Light/Dark/responsive review remains open.
+- YT-P6 platform/docs is implemented: Docker installs FFmpeg/FFprobe, Docker/Compose default to `/data/youtube` as the allowed root, Windows/remote-host guidance is documented, CI includes YouTube UI/offline tests and Docker FFmpeg verification.
+- YT-P7 validation/readiness work is active: `.codex/YOUTUBE_VALIDATION.md` and `scripts/youtube_manual_validate.py` provide repeatable manual evidence; CI is explicitly guarded against live YouTube calls; unknown downloader/UI errors are sanitized; downloader-returned output paths must resolve inside the per-job temp directory; responsive YouTube layout is structurally hardened; Windows/Python 3.14 offline coverage now includes the download engine and manual runner. Manual Light/Dark/narrow screenshots and real YouTube/Windows/Docker download acceptance remain open. Additional hardening now includes canonical downloader URLs, explicit downloader-option/access-control boundaries, fail-closed availability, URL/metadata/downloader video-ID invariants, non-empty media/subtitle acceptance, executable FFmpeg/FFprobe preflight, traceable single-commit validation reports, strict runner-vs-full-release separation, and UTF-16/UTF-8 filename budgets for Windows/Linux.
+- V1 scope: single public YouTube video URL.
+- User must provide a Save directory.
+- On local installations the path is local to the user machine; on remote deployments it is a server-host path and must be labeled as such.
+- Hosted/multi-user mode should support allowed save roots.
+- Planned outputs:
+  - Video + audio;
+  - Audio only;
+  - optional single-track subtitle download;
+  - simple quality presets.
+- Metadata must be inspected before download.
+- Subtitle metadata distinguishes manual subtitles from auto-generated captions.
+- Preferred subtitle output is SRT with explicit fallback reporting when SRT conversion is unavailable.
+- Saved media names use the sanitized video title as the basename.
+- When subtitle download is enabled, media and subtitle files use the same basename.
+- Collision suffixes are applied to the complete output group so paired files remain aligned.
+- UI should show a general copyright/service notice and stronger restriction warnings where signals exist.
+- Warning remains non-blocking for ordinarily accessible public content after acknowledgement.
+- YouTube supports optional Browser Session authentication on local installs, with a youtube.com-only `cookies.txt` fallback for Docker/remote deployments. Browser/account cookie values are never persisted by YARA.
+- Telegram and YouTube share one optional SOCKS5 configuration in the Sidebar. The same host/port/optional username/password route is used for Telegram and for YouTube Inspect/Download; YouTube does not have a duplicate proxy panel.
+- YouTube also supports optional session-only cookie authentication via a validated Netscape-format `cookies.txt`. YARA does not request Google username/password, does not use OAuth, does not persist cookie content, and removes the temporary cookie file after each operation.
+- V1 does not include DRM/paywall/private/member-only/login-protection bypass.
+- V1 does not include playlists, channels, browser-cookie import, batch queues, scheduling, automatic geo-bypass, or multiple subtitle languages in one job.
+- FFmpeg is an expected operational dependency for merging/extraction.
+- Downloader behavior must be isolated behind a service layer; Streamlit UI must not depend directly on the downloader library.
+- Detailed plans:
+  - `.codex/YOUTUBE_PLAN.md`
+  - `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`

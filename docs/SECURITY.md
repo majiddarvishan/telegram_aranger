@@ -1,4 +1,4 @@
-# Telegram Harbor Security Notes
+# YARA Security Notes
 
 ## Scope
 
@@ -126,3 +126,50 @@ Important boundaries:
 - Application administrators/host operators are trusted and are not isolated from user secrets by this architecture.
 
 If strong tenant isolation is required, move from a single local Streamlit/SQLite process to a service architecture with centralized authentication, a shared database, per-request authorization, audited secret access, and isolated worker/runtime credentials.
+
+
+## YouTube SOCKS5 proxy credentials
+
+YouTube has an optional SOCKS5 proxy configuration independent from Telegram proxy state.
+
+Security rules:
+- disabled by default;
+- proxy password is kept only in the active Streamlit session when entered through the UI;
+- YARA does not persist the YouTube proxy password to SQLite;
+- validation reports store only safe metadata and never the password value;
+- the manual validation CLI reads an optional password from `YOUTUBE_SOCKS5_PASSWORD` (or the environment variable selected with `--proxy-password-env`) rather than accepting a plaintext password argument;
+- raw yt-dlp `proxy` injection through generic downloader options remains blocked;
+- enabling SOCKS5 does not enable cookies, authenticated YouTube sessions, geo-bypass flags, or access-control bypass.
+
+Treat any proxy username/password as a secret and prefer a dedicated secret manager/environment injection for shared hosted deployments.
+
+
+## YouTube authenticated sessions
+
+YARA supports optional signed-in YouTube access without collecting Google credentials.
+
+Preferred local mode — Browser session:
+- uses yt-dlp's supported browser-cookie integration;
+- reads cookies from a browser profile on the **same host and OS user** that runs YARA;
+- supports an optional profile name/path;
+- does not copy browser cookie values into SQLite, structured logs, or validation reports;
+- validation reports record only the auth source, selected browser, and whether a profile was configured;
+- Auto detection checks standard browser-profile locations only; it does not read cookie contents until an authenticated Inspect/Download is explicitly started.
+
+Fallback mode — `cookies.txt`:
+- intended for Docker/remote installs where the browser is not on the backend host;
+- accepts only Mozilla/Netscape format with `youtube.com` cookie rows;
+- upload remains session-only;
+- cookie bytes are materialized to a restrictive temporary file only while yt-dlp runs and are deleted afterward;
+- cookie file path, names, and values are never written to validation reports.
+
+General rules:
+- no Google username/password fields;
+- no OAuth flow;
+- raw yt-dlp `cookiefile` / `cookiesfrombrowser` injection remains blocked through generic options;
+- authenticated mode does not override product blocks for private, members-only, premium, or DRM-protected content;
+- browser/account cookies are sensitive session credentials; enable this only when needed and prefer a dedicated YouTube account/session where practical.
+
+Operational limitation:
+- a Docker container or remote server cannot directly reuse cookies from a browser running on the user's laptop/desktop. In that topology use the `cookies.txt` fallback or run YARA locally under the browser's OS user.
+

@@ -103,6 +103,14 @@ class ThemeFoundationTests(unittest.TestCase):
         self.assertIn("@media (max-width: 700px)", APP_CSS)
         self.assertIn("padding-top: 36px", APP_CSS)
 
+    def test_youtube_workspace_responsive_rules_are_defined(self):
+        self.assertIn(".st-key-youtube-thumbnail", APP_CSS)
+        self.assertIn(".st-key-youtube-metadata-metrics", APP_CSS)
+        self.assertIn(".st-key-youtube-output-controls", APP_CSS)
+        self.assertIn("min-width: 220px", APP_CSS)
+        self.assertIn("min-width: 240px", APP_CSS)
+        self.assertIn("flex: 1 1 100% !important", APP_CSS)
+
     def test_reduced_motion_is_respected(self):
         self.assertIn("@media (prefers-reduced-motion: reduce)", APP_CSS)
 

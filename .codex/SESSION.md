@@ -1090,3 +1090,1199 @@ Regression coverage:
 - UI smoke test requires `Play voice`, `Play audio` and `st.audio`;
 - UI smoke test guards compact Sign out with `use_container_width=False`;
 - theme test guards right-aligned compact Sign out styling and prevents reintroducing the divider.
+
+
+## 2026-09-25 — YouTube download feature planning
+
+User request:
+- add YouTube download capability in a new branch;
+- do not implement code yet;
+- derive tasks first;
+- ask the user for the save location;
+- show copyright/service-restriction warnings but allow continuation for normally accessible public content.
+
+Branch:
+- created `feature/youtube-download` from `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
+
+Planning decisions:
+- V1 is a single public YouTube video workflow.
+- YouTube will be an independent workspace/tool, not embedded in Telegram message cards.
+- UI will inspect metadata before download.
+- Planned output modes:
+  - video + audio;
+  - audio only;
+  - simple quality presets.
+- Save directory is required from the user.
+- On a local installation, the path belongs to the local machine.
+- On a remote installation, the path belongs to the Telegram Harbor server; UI must say this explicitly.
+- Hosted/multi-user deployments should use configured allowed roots.
+- Downloader access will be behind a service abstraction; Streamlit UI must not call the downloader library directly.
+- FFmpeg is considered an operational dependency for merge/audio extraction where required.
+- CI must not rely on live YouTube.
+
+Rights/service warning behavior:
+- the app must not pretend it can make a definitive copyright determination from metadata;
+- always show a concise rights/service notice before download;
+- show stronger warnings when downloader/metadata reports restriction signals;
+- require acknowledgement;
+- warning itself remains non-blocking for ordinarily accessible public content;
+- no DRM/paywall/private/member-only/login-protection bypass is part of the design.
+
+Explicit V1 exclusions:
+- playlists;
+- full channels;
+- browser-cookie import;
+- private/member-only content;
+- DRM/access-control bypass;
+- automatic geo-bypass;
+- batch queues;
+- scheduling;
+- subtitles/chapters/SponsorBlock.
+
+Planning artifacts:
+- `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md` — full Persian architecture/product plan.
+- `.codex/YOUTUBE_PLAN.md` — executable phase backlog.
+- `.codex/TASKS.md` — YT-P0..YT-P7 tasks.
+- `.codex/DECISIONS.md` — D-024..D-030.
+- `.codex/PROJECT_CONTEXT.md` and `.codex/START_HERE.md` updated for the branch.
+
+No production code, dependency, Docker, Streamlit UI, or downloader implementation was added in this planning phase.
+
+
+## 2026-09-25 — YouTube subtitle and matched filename planning
+
+User added two YouTube requirements while keeping the branch planning-only:
+- support subtitle download;
+- saved filenames must match the YouTube video title, and subtitle/media outputs must share the same basename.
+
+Planning updates:
+- V1 now includes optional subtitle download.
+- One subtitle track is selected per download job.
+- Metadata/UI must distinguish manual subtitles from auto-generated captions.
+- User explicitly enables subtitles and selects one language/track.
+- Preferred subtitle output is SRT.
+- If SRT conversion is unavailable, the actual fallback format such as VTT/original must be reported.
+- The output basename is the sanitized YouTube video title; the default filename no longer includes the video ID.
+- Examples:
+  - `My Video.mp4`
+  - `My Video.mp3`
+  - `My Video.srt`
+- When media and subtitle are downloaded together, they use the exact same basename.
+- If a collision exists, one numeric suffix is selected for the entire output group:
+  - `My Video (2).mp4`
+  - `My Video (2).srt`
+- Multiple simultaneous subtitle languages remain deferred in V1 because they conflict with the exact matched-basename requirement.
+
+Updated planning artifacts:
+- `.codex/YOUTUBE_PLAN.md`
+- `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
+- `.codex/TASKS.md`
+- `.codex/DECISIONS.md` (D-031..D-033)
+- `.codex/PROJECT_CONTEXT.md`
+- `.codex/START_HERE.md`
+
+No production code, dependency, Streamlit UI, downloader implementation or Docker change was added.
+
+
+## 2026-09-25 — YouTube feature new-chat handoff
+
+User requested that the project be ready to continue in a new chat with no need to repeat requirements.
+
+Recorded:
+- branch remains `feature/youtube-download`;
+- YouTube feature remains planning-only;
+- all confirmed V1 requirements are preserved in `.codex/YOUTUBE_PLAN.md` and `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`;
+- created `.codex/NEXT_CHAT_PROMPT.md` with a copy/paste continuation prompt;
+- updated `.codex/START_HERE.md` so a future session reads the continuation prompt first;
+- corrected the Deferred section so subtitles are not incorrectly listed as fully deferred: one optional subtitle track is in V1, while multiple subtitle languages / advanced subtitle management remain deferred.
+
+Critical continuation constraints:
+- do not implement production YouTube code until explicit approval;
+- work only on `feature/youtube-download` unless the user says otherwise;
+- save directory is user-supplied;
+- rights/service warnings are non-blocking for ordinarily accessible public content after acknowledgement;
+- no DRM/paywall/private/member/login-protection bypass;
+- service abstraction separates Streamlit UI from downloader library;
+- FFmpeg is part of the deployment/platform plan;
+- no live YouTube dependency in CI.
+
+## 2026-09-25 — YT-P1 service foundation implementation
+
+User explicitly approved starting implementation on `feature/youtube-download`.
+
+Completed:
+- added the yt-dlp dependency behind `services/youtube_service.py`;
+- added offline validation for supported single-video YouTube URL shapes;
+- added metadata-only inspection with media downloading disabled;
+- normalized title/channel/thumbnail/duration/video ID, format/quality/size data, manual subtitles and automatic captions;
+- added FFmpeg/FFprobe capability detection;
+- added normalized downloader failure categories;
+- kept downloader details out of Streamlit/UI code.
+
+Testing / CI:
+- added `tests/test_youtube_service.py` using fake downloader metadata only;
+- the isolated local unit run passed 15 tests;
+- CI now includes the YouTube service tests and runs on `feature/youtube-download`;
+- no live YouTube calls are used by CI.
+
+Next:
+- YT-P2 — Save path / filesystem safety.
+
+## 2026-09-25 — YT-P2 filesystem safety implementation
+
+Completed:
+- added `utils/download_paths.py`;
+- save-directory validation requires a non-empty absolute path on the machine running Telegram Harbor;
+- missing directories are rejected by default and are created only when the caller explicitly opts in;
+- writability is verified with a temporary create/delete probe;
+- `YOUTUBE_DOWNLOAD_ROOTS` adds optional host-level allowed roots for shared/hosted deployments;
+- allowed-root checks resolve symlinks before containment checks so symlink/path traversal cannot escape the configured root;
+- YouTube titles are normalized into readable Windows/Linux-safe basenames while preserving Unicode;
+- Windows reserved device names and invalid filename characters are handled;
+- output extensions are validated separately from filenames;
+- media and optional subtitle paths are allocated as one output group;
+- collision suffixes are selected for the complete group, so paired outputs remain aligned (for example `My Video (2).mp4` and `My Video (2).srt`);
+- existing output files are never selected for automatic overwrite.
+
+Testing / CI:
+- added `tests/test_download_paths.py`;
+- isolated local run passed 13 filesystem/path tests;
+- Linux CI runs the path tests;
+- Windows/Python 3.14 CI also runs the same path tests for native Windows path behavior;
+- actual Save-directory UI control remains YT-P5; YT-P2 provides and enforces the filesystem contract it will call.
+
+Next:
+- YT-P3 — Warning / acknowledgement.
+
+## 2026-09-25 — YT-P3 warning and acknowledgement policy
+
+Completed:
+- added `services/youtube_policy.py` as a UI-independent policy layer;
+- the concise rights/service notice is always present and explicitly avoids claiming a legal copyright determination;
+- every download requires explicit user acknowledgement before the policy can allow execution;
+- age restriction, live/upcoming/recent-live state, missing reported formats and unusual availability states are normalized as stronger product warnings;
+- warnings by themselves remain non-blocking for normally accessible content after acknowledgement;
+- metadata states for private, paid/premium, subscriber/member-only, authentication-required and unavailable content are blocking;
+- DRM metadata is blocking even after acknowledgement;
+- normalized downloader errors are also converted into blocked policy state, so UI/download code does not invent bypass decisions;
+- no cookie import, authentication bypass, DRM bypass, geo bypass or Telegram proxy reuse was added.
+
+Testing:
+- added `tests/test_youtube_policy.py`;
+- isolated local run passed 8 policy tests;
+- service metadata now preserves `has_drm` for policy evaluation;
+- CI includes the policy tests and remains network-independent.
+
+Next:
+- YT-P4 — Download engine.
+
+## 2026-09-25 — YT-P4 download engine implementation
+
+Completed:
+- added `services/youtube_download.py` behind the existing downloader/service boundary;
+- added Video + Audio output with MP4 merge/remux and Audio-only output with MP3 extraction;
+- mapped Best / max 1080p / max 720p / max 480p presets to internal yt-dlp format selectors;
+- enforced FFmpeg + FFprobe capability before execution;
+- added optional one-track subtitle download with explicit Manual / Auto-generated source selection;
+- direct SRT is preferred; VTT is downloaded and converted to SRT when possible;
+- if VTT-to-SRT conversion fails, the original VTT is kept and the result reports `subtitle_format=vtt` instead of using a misleading .srt extension;
+- non-SRT/VTT subtitle formats remain in their actual original format;
+- media and subtitle are moved to the final save directory only after the complete job succeeds;
+- downloads and post-processing run inside an isolated temporary directory under the validated save root;
+- incomplete/failed jobs therefore remove partial/intermediate files automatically;
+- final output filenames are reserved with no-overwrite semantics and reuse the YT-P2 grouped collision policy;
+- progress is normalized into percentage, downloaded/total-or-estimated bytes, speed, ETA, phase and post-processor state;
+- final completion progress includes the final media output path;
+- disk-full, unavailable-format and FFmpeg/post-processing failures are normalized;
+- downloader options do not import cookies, reuse the Telegram proxy, or enable geo/access-control bypasses.
+
+Testing:
+- added `tests/test_youtube_download.py` with fake downloader behavior only;
+- isolated local run passed 20 download-engine scenarios;
+- CI now includes the download-engine tests with no live YouTube calls.
+
+Next:
+- YT-P5 — Streamlit UI.
+
+
+## 2026-09-26 — YT-P5 Streamlit UI implementation
+
+Continued on `feature/youtube-download` after re-checking the live branch state.
+
+Branch discovery:
+- the branch had already advanced to `6b9e5ca697e27619fab694a9e054926ccd8ade8b`;
+- YT-P1 through YT-P4 were already implemented on the branch;
+- work therefore continued from the first actually incomplete phase, YT-P5, without duplicating earlier service/download code.
+
+Implemented:
+- added `ui/youtube.py` as an independent YouTube workspace;
+- added sidebar workspace routing between Telegram Messages and YouTube Download;
+- Inspect retrieves metadata without downloading media;
+- metadata view shows title, channel/uploader, thumbnail, duration, video ID, availability, estimated size, formats/quality data and subtitle/caption tracks;
+- output controls support Video + Audio and Audio only;
+- quality presets use the normalized service contract;
+- optional one-track subtitle selection distinguishes Manual and Auto-generated captions and shows preferred/fallback format information;
+- Save directory is explicit and clearly described as a path on the Telegram Harbor host;
+- optional directory creation remains an explicit user action;
+- hosted allowed-root restrictions are surfaced when configured;
+- general rights/service notice plus stronger restriction warnings are shown before download;
+- explicit acknowledgement is required and blocked/access-controlled metadata remains non-downloadable;
+- FFmpeg/FFprobe capability is shown before download;
+- download progress displays percentage, transferred/estimated bytes, speed, ETA, phase and post-processing detail;
+- completed outputs show final media path and subtitle path/format/source when present;
+- raw yt-dlp logs remain hidden behind the service layer.
+
+State/tests:
+- added YouTube workspace state defaults in `utils/state.py`;
+- added `tests/test_youtube_ui.py` for formatting, Manual/Auto subtitle labeling, progress text and architecture/safety smoke assertions;
+- UI code does not import `yt_dlp` directly and uses the existing service/download abstractions.
+
+Still open in YT-P5:
+- Light/Dark/responsive manual visual review.
+
+Next:
+- complete YT-P5 visual validation, then continue to YT-P6 — Platform / docs.
+
+
+## 2026-09-26 — YT-P6 platform, Docker and documentation
+
+Completed on `feature/youtube-download` after YT-P5 implementation.
+
+Docker/platform:
+- Docker image now installs `ffmpeg` and `ffprobe`;
+- image creates `/data/youtube` and uses it as the default YouTube allowed root;
+- Docker Compose explicitly defaults `YOUTUBE_DOWNLOAD_ROOTS` to `/data/youtube`, so a blank copied `.env` does not silently disable the container restriction;
+- direct Docker run documentation passes the root explicitly for the same reason;
+- native Windows guidance documents verifying both `ffmpeg.exe` and `ffprobe.exe` on PATH.
+
+Documentation:
+- `readme.md` now documents the independent YouTube workspace, V1 scope, save-path semantics, subtitles, warning boundary and FFmpeg requirement;
+- `docs/DEPLOYMENT.md` now documents local/remote/Docker save-path semantics, allowed roots, host bind mounts, Windows FFmpeg and the no-bypass access boundary;
+- `docs/DEPENDENCIES.md` now records yt-dlp and FFmpeg operational policy;
+- `docs/MANUAL_TESTING.md` now contains a complete YouTube V1 acceptance checklist.
+
+CI:
+- GitHub Actions now runs `tests/test_youtube_ui.py`;
+- Docker CI verifies both `ffmpeg` and `ffprobe` exist in the built image;
+- all YouTube automated tests remain fake/offline and make no live YouTube calls.
+
+Remaining:
+- YT-P5 still needs manual Light/Dark/responsive visual review;
+- YT-P7 manual/live validation remains intentionally open;
+- no merge to `main` has been performed.
+
+
+## 2026-09-26 — YT-P7 validation phase started
+
+Re-checked `feature/youtube-download` before validation:
+- HEAD: `27c468c5285b41fd42dd8eaa6573bdf007d74600`;
+- no merge to `main` was performed.
+
+CI evidence:
+- GitHub Actions run `36191266353` completed successfully on that exact HEAD;
+- `unittest` passed, including YouTube service/path/policy/download-engine/UI tests;
+- `windows-python314` passed, including native Windows YouTube path tests;
+- `docker-build` passed, including image build, FFmpeg check, FFprobe check, container startup and Streamlit health.
+
+Validation discipline:
+- YT-P7 is manual/live acceptance, so these automated results do not mark the live checklist complete;
+- live public-video, Video + Audio, Audio-only, manual subtitle, auto-caption, real matched filenames/collision, UI save-directory flow, native Windows real download, Docker real download, warning/error presentation and YT-P5 Light/Dark/responsive review remain open until actually exercised;
+- no live YouTube call was added to CI.
+
+Added:
+- `.codex/YOUTUBE_VALIDATION.md` with a validation matrix, evidence requirements and a strict separation between automated regression evidence and manual/live acceptance.
+
+A commonly used downloader test video ID (`BaW_jenozKc`) is recorded only as a possible manual smoke-test candidate. It must be confirmed accessible/appropriate at test time and must never be wired into CI.
+
+
+## 2026-09-26 — YT-P7 repeatable manual validation runner
+
+Continued YT-P7 without marking unperformed live/manual cases complete.
+
+Added:
+- `scripts/youtube_manual_validate.py` for explicit manual/live validation outside CI;
+- modes: metadata-only Inspect, Video + Audio, Audio-only;
+- optional quality preset, subtitle language/source, explicit directory creation and allowed-root checks;
+- explicit `--acknowledge` requirement for download modes;
+- normalized progress output to stderr and safe JSON validation report output;
+- reports retain video ID and normalized metadata/result evidence but intentionally omit original URL, thumbnail/signed media URLs, cookies and browser/authentication state;
+- optional report files are intended for `validation-reports/`, which is now gitignored;
+- Linux/macOS-style shell, Windows PowerShell, Docker, subtitle and collision procedures are documented in `.codex/YOUTUBE_VALIDATION.md`;
+- `docs/MANUAL_TESTING.md` links the same repeatable runner.
+
+Regression coverage:
+- added `tests/test_youtube_manual_validate.py`;
+- tests cover safe metadata reporting, subtitle source disambiguation, parser defaults, inspect report behavior and download service-contract wiring;
+- GitHub Actions now runs these tests offline;
+- the runner itself is never invoked against live YouTube by CI.
+
+Manual/live items remain open until actually exercised through the real application/environment.
+
+
+## 2026-09-26 — YouTube release-readiness hardening during YT-P7
+
+Performed a code-level readiness review while live/manual execution remains unavailable in the current chat environment.
+
+Workspace independence:
+- confirmed `render_sidebar()` does not stop the application when no Telegram account is configured/connected;
+- YouTube Download therefore remains reachable as an independent workspace after Web login and is not blocked by Telegram account state.
+
+Responsive hardening:
+- replaced the fixed 420px YouTube thumbnail with a container-width image;
+- added stable YouTube container keys for thumbnail, metadata metrics, output controls and save controls;
+- added design-system responsive rules:
+  - compact view wraps the four metadata metrics into two-column-capable rows;
+  - output/quality controls wrap safely;
+  - <=700px forces metadata/output columns to full width;
+  - thumbnail remains bounded to the available container;
+- no YouTube-specific hard-coded light/dark colors were added; existing adaptive design tokens remain authoritative;
+- added theme/UI regression tests for the responsive structure.
+- manual Light/Dark/narrow screenshot review is still open and is not being claimed complete.
+
+Error-disclosure hardening:
+- unknown yt-dlp/downloader exceptions no longer surface raw exception strings;
+- unexpected Inspect/Download UI exceptions now show generic messages;
+- manual validation runner unexpected errors retain only a generic message plus exception type;
+- known normalized error categories still retain their specific user-facing messages;
+- regression tests explicitly ensure a synthetic signed URL/query token does not appear in normalized error messages or validation reports.
+
+A transient CSS f-string escaping issue introduced during the responsive edit was caught immediately during review and corrected before considering the change ready for CI.
+
+
+## 2026-09-26 — YouTube warning-flow UX hardening
+
+Release-readiness review found that the acknowledgement checkbox was rendered before the notice it referred to.
+
+Changed:
+- rights/service notice and restriction warnings are now rendered first;
+- acknowledgement is offered only after those messages;
+- blocked content does not expose an acknowledgement path that could imply the block can be overridden;
+- final policy is recomputed with the actual acknowledgement state before enabling Download.
+
+Regression coverage asserts the notice-rendering call appears before the acknowledgement control and that blocked state forces acknowledgement false.
+
+Manual warning-flow validation remains open until exercised in the real Streamlit UI.
+
+
+## 2026-09-26 — Enforced offline YouTube CI policy
+
+Added `tests/test_youtube_ci_policy.py` so the no-live-YouTube CI rule is executable rather than documentation-only.
+
+The guard asserts:
+- GitHub Actions workflow does not contain a live `youtube.com/watch` URL;
+- workflow does not contain a live `youtu.be/` URL;
+- workflow does not execute `scripts/youtube_manual_validate.py` directly;
+- the manual-validation helper is exercised only through its fake/offline unit test module.
+
+The CI workflow now runs this network-policy test explicitly.
+
+
+## 2026-09-26 — YouTube downloader output containment hardening
+
+Release-readiness review found a defense-in-depth gap: downloader-returned `filepath` values were accepted if they existed and had the expected extension, without independently proving they resolved inside the per-job temporary directory.
+
+Changed:
+- media source paths are now resolved and accepted only when the real file remains under the job temp directory;
+- subtitle `requested_subtitles[*].filepath` values are subject to the same containment rule;
+- glob/expected-path fallback is also resolved through the same helper;
+- symlinks resolving outside the temp directory are rejected;
+- outside files are never moved/deleted as final job output.
+
+Regression coverage:
+- direct media path outside temp is rejected;
+- direct subtitle path outside temp is rejected;
+- symlink inside temp pointing outside is rejected when symlinks are available.
+
+This complements the existing final Save-directory / allowed-root containment and no-overwrite logic.
+
+
+## 2026-09-26 — Expanded Windows YouTube CI coverage
+
+The Windows/Python 3.14 GitHub Actions job previously validated YouTube path handling only.
+
+It now also runs:
+- `tests/test_youtube_download.py` (download engine, fake backend, subtitle conversion fallback, grouped collision, containment/error behavior);
+- `tests/test_youtube_manual_validate.py` (manual runner parsing/report/service-contract behavior).
+
+All of these remain offline; no live YouTube request is introduced.
+
+This strengthens Windows implementation confidence but does not replace the still-open native Windows real-download validation in YT-P7.
+
+
+## 2026-09-26 — YouTube workspace/sidebar isolation hardening
+
+Release-readiness review found that the YouTube workspace still displayed Telegram-specific account and SOCKS5 proxy controls in the sidebar. Although those settings were not technically reused by YouTube, the UI could imply that they applied.
+
+Changed:
+- workspace selector is now owned by `render_sidebar()`;
+- common brand/Web-account controls remain visible in both workspaces;
+- Telegram network/proxy/account/login controls are rendered only for **Telegram Messages**;
+- **YouTube Download** instead shows explicit copy that YouTube uses the host network directly and Telegram SOCKS5 proxy settings are not reused;
+- `app.py` routes based on the workspace returned by the sidebar.
+
+Regression coverage:
+- confirms the sidebar owns the workspace selector;
+- confirms the YouTube branch occurs before Telegram network settings;
+- confirms the explicit no-proxy-reuse copy is present.
+
+CI network guard improvement:
+- `tests/test_youtube_ci_policy.py` now scans every `.github/workflows/*.yml` and `*.yaml`, not just `tests.yml`, for live YouTube URLs/direct live-runner use.
+
+
+## 2026-09-26 — Self-validating YT-P7 download reports
+
+Enhanced `scripts/youtube_manual_validate.py` so live/manual download evidence is checked immediately after the engine returns.
+
+For download modes the JSON report now verifies:
+- media file exists;
+- media path resolves under the selected Save directory;
+- a completed progress event was observed;
+- when subtitle/caption is selected:
+  - subtitle exists;
+  - subtitle resolves under the Save directory;
+  - media/subtitle stems are identical.
+
+The runner returns a non-zero exit code when these post-download checks fail.
+
+Offline tests cover:
+- successful matched-basename case;
+- mismatched subtitle basename failure;
+- normal download wiring with a simulated completion event.
+
+Real collision suffix acceptance still requires two live runs with the first output group retained.
+
+
+## 2026-09-26 — Traceable/reproducible YT-P7 evidence
+
+Enhanced manual validation reports so a future acceptance artifact can be tied to an exact implementation and reproduced without persisting the original YouTube URL.
+
+Environment evidence now records:
+- OS family/release and architecture;
+- Python version;
+- Docker detection;
+- Telegram Harbor VERSION;
+- source commit SHA when available.
+
+Privacy guard:
+- hostname, username and environment-variable dumps are not recorded.
+
+Source identity:
+- native source-tree runs attempt to resolve Git HEAD;
+- Docker accepts `TELEGRAM_HARBOR_BUILD_SHA` as a build argument/environment value;
+- GitHub Actions now builds the Docker image with `$GITHUB_SHA` and verifies the value inside the image;
+- Compose exposes the same build argument.
+
+Request evidence now records:
+- mode;
+- effective quality;
+- Save directory;
+- explicit create-directory choice;
+- allowed roots;
+- subtitle language/source;
+- acknowledgement flag.
+
+The original YouTube URL remains intentionally excluded from report storage; video ID is already recorded separately.
+
+
+## 2026-09-26 — YT-P7 offline preflight and structured failure hardening
+
+Added `preflight` mode to `scripts/youtube_manual_validate.py`.
+
+Preflight behavior:
+- requires no YouTube URL;
+- performs no Inspect/download call;
+- validates FFmpeg + FFprobe capability;
+- validates/optionally creates the Save directory;
+- honors allowed-root restrictions;
+- emits the same environment/build identity evidence as live reports;
+- returns a non-zero result when prerequisites fail.
+
+CI:
+- Docker job now runs the real validation runner in `--mode preflight` against `/data/youtube`;
+- no YouTube URL is supplied;
+- CI policy explicitly allows only preflight direct runner execution and continues to prohibit Inspect/Video+Audio/Audio-only modes in workflows.
+
+Failure-path fix:
+- URL validation moved inside the runner's normalized exception boundary;
+- invalid/non-YouTube URLs now produce structured JSON failure reports instead of escaping as tracebacks.
+
+Additional self-checks:
+- media output must use the sanitized video title, allowing the defined numeric collision suffix;
+- media extension must match Video+Audio (.mp4) or Audio-only (.mp3);
+- subtitle extension must match the result's reported actual subtitle format.
+
+Manual/live YT-P7 items remain open.
+
+
+## 2026-09-26 — Subtitle/collision false-positive hardening
+
+Manual report checks were tightened so a requested subtitle cannot silently disappear and still produce a passing validation report.
+
+Changes:
+- subtitle presence must match the request;
+- Manual vs Auto-generated source must match;
+- `DownloadResult` now includes `subtitle_language`;
+- selected subtitle language must match the result;
+- subtitle extension must match the actual reported subtitle format;
+- title-based output naming is self-checked;
+- media extension must match Video+Audio (.mp4) or Audio-only (.mp3).
+
+Collision validation:
+- added `--expect-collision`;
+- when enabled, a normal unsuffixed output fails validation;
+- a title-based numeric suffix such as `(2)` or higher is required and recorded as `collision_number`;
+- the flag does not manufacture a collision; the tester must retain the first output group and perform the second live run.
+
+Manual/live acceptance remains open until these checks are exercised against real YouTube output.
+
+
+## 2026-09-26 — Persisted subtitle provenance in YouTube UI
+
+The immediate post-download state already displayed subtitle path/format/source, but the persisted `Last completed output` block after a Streamlit rerun showed only the subtitle path.
+
+Updated the persisted result block to retain:
+- subtitle language;
+- actual subtitle format;
+- Manual vs Auto-generated source.
+
+Regression coverage verifies these provenance fields remain part of the completed-output UI contract.
+
+
+## 2026-09-26 — Offline YT-P7 validation report aggregation
+
+Added `scripts/youtube_validation_summary.py` to aggregate already-generated manual validation JSON reports without any network access.
+
+Coverage summary includes:
+- preflight;
+- public Inspect;
+- Video + Audio;
+- Audio-only;
+- Manual subtitle;
+- Auto-generated caption;
+- explicit collision second run;
+- live Save-directory containment;
+- native Windows live download;
+- Docker live download;
+- public acknowledged download;
+- structured failure evidence.
+
+Source traceability:
+- collects source commit SHAs from reports;
+- flags mixed-commit evidence via `single_source_commit=false`.
+
+The optional `--require-core` flag returns non-zero until all core runner scenarios are represented by passing reports.
+
+Guardrail:
+- visual Light/Dark/narrow review;
+- real Streamlit warning/error presentation;
+- final merge/release review
+
+remain manual-only and are explicitly listed as such by the summary rather than being auto-completed.
+
+Added offline unit tests for complete core coverage, Windows/Docker live requirements, collision evidence, mixed commits, structured failures, and invalid JSON handling.
+
+
+## 2026-09-26 — Strict validation source identity
+
+The report aggregator now treats missing/unknown/local source SHA as incomplete evidence. `single_source_commit` is true only when every loaded report carries one concrete identical source SHA. The summary also reports `reports_missing_source_commit` and `source_commit_complete` so mixed or untraceable acceptance evidence cannot look complete.
+
+
+## 2026-09-26 — Windows validation-summary coverage
+
+Expanded the Windows/Python 3.14 CI job to run `tests/test_youtube_validation_summary.py`.
+
+Purpose:
+- exercise report loading/globbing/path handling on Windows;
+- verify mixed/missing commit logic cross-platform;
+- verify scenario coverage aggregation on the same OS where native Windows manual reports will be generated.
+
+This remains fully offline and does not replace a real Windows YouTube download.
+
+
+## 2026-09-26 — Enforced YouTube V1 downloader option boundary
+
+Hardened `YtDlpBackend(extra_options=...)` so V1 restrictions are enforced in the service adapter itself rather than only by the current UI.
+
+Rejected option families include:
+- cookie files / browser-cookie import;
+- username/password/video-password/netrc authentication;
+- explicit downloader proxy / geo-verification proxy;
+- geo-bypass options;
+- custom HTTP headers that could carry authentication/cookies.
+
+Forbidden options raise normalized `downloader_option_not_allowed` without exposing option values.
+
+Safe operational options such as socket timeout/retry settings remain allowed.
+
+Regression tests cover both forbidden and allowed cases.
+
+
+## 2026-09-26 — Locked YouTube Inspect invariants
+
+Found that `YtDlpBackend.extra_options` was merged after the mandatory Inspect options. A caller could therefore override `skip_download`, `noplaylist`, quiet/warning behavior or the logger, violating the V1 service contract even without using authentication/bypass options.
+
+Changed:
+- safe extra options are applied first;
+- mandatory Inspect invariants are applied last and always win;
+- `download=False` remains enforced at `extract_info`.
+
+Regression coverage explicitly attempts to override these invariants and verifies they stay enabled.
+
+
+## 2026-09-26 — Fail-closed handling for unknown availability states
+
+Reviewed the current yt-dlp availability contract and hardened policy behavior for forward compatibility.
+
+Existing explicit blocked states remain:
+- private;
+- premium_only;
+- subscriber_only;
+- needs_auth;
+- unavailable.
+
+New rule:
+- any non-empty availability value other than public/unlisted that is not explicitly known is blocked as `restricted_availability` rather than treated as a warning-only signal;
+- missing availability remains allowed because metadata may omit the field for ordinarily accessible content;
+- unlisted remains allowed after acknowledgement.
+
+Regression tests cover both the fail-closed unknown state and the allowed unlisted case.
+
+
+## 2026-09-26 — Strict runner evidence gate
+
+Extended `scripts/youtube_validation_summary.py` with `--require-release-ready`.
+
+Unlike `--require-core`, the release-ready runner gate requires:
+- all core runner cases;
+- native Windows live download;
+- Docker live download;
+- acknowledged ordinary-public download evidence;
+- a structured failure report;
+- complete source-commit identity;
+- exactly one concrete source commit across all loaded reports.
+
+The summary exposes both:
+- `release_runner_coverage_complete`;
+- `release_runner_evidence_ready`.
+
+This prevents mixed-commit or platform-incomplete report sets from looking release-ready. Visual UI acceptance and final merge/release review remain manual-only.
+
+
+## 2026-09-26 — YouTube video identity invariants
+
+Hardened the Inspect/download boundary so all stages refer to the same YouTube video ID.
+
+Rules:
+- normalized Inspect metadata ID must match the ID extracted from the requested URL;
+- the download request's inspected metadata ID must match the URL before backend execution;
+- if downloader output reports an ID, it must also match the requested URL;
+- mismatches are normalized as `metadata_video_mismatch` / `download_video_mismatch`;
+- a mismatched backend output is rejected before final-file acceptance and temporary output is cleaned.
+
+This prevents stale/mismatched metadata from being used for policy, title/filename, subtitle choice, or result identity.
+
+
+## 2026-09-26 — Always-visible YouTube rights/service notice
+
+Audit found that the general rights/service notice was previously rendered only after a successful Inspect, despite the V1 requirement that the notice always be visible.
+
+Changed:
+- `GENERAL_RIGHTS_NOTICE` is rendered immediately when the YouTube workspace opens, before the Inspect action;
+- post-Inspect restriction rendering now adds only video-specific warnings/block messages and does not duplicate the general notice;
+- acknowledgement still appears only after metadata/restriction evaluation.
+
+Regression coverage verifies the notice appears before the Inspect control in `render_youtube()`.
+
+
+## 2026-09-26 — Non-empty YouTube output invariant
+
+Release-readiness review found that file existence alone could allow a zero-byte media/subtitle artifact to look successful.
+
+Engine hardening:
+- media output must have size > 0 before final reservation/move;
+- requested subtitle/caption must have size > 0;
+- zero-byte failures are normalized as `output_empty` / `subtitle_output_empty`;
+- temporary/final placeholders are cleaned by the existing failure path.
+
+Subtitle conversion:
+- FFmpeg return code 0 is no longer sufficient for SRT conversion success;
+- converted SRT must also exist and contain at least one byte;
+- a zero-byte converted SRT falls back to the original non-empty subtitle format.
+
+Manual evidence:
+- JSON checks now record `media_size_bytes` / `subtitle_size_bytes`;
+- `media_nonempty` and `subtitle_nonempty` participate in `all_passed`.
+
+Regression tests cover empty media, empty subtitle, and zero-byte SRT conversion fallback.
+
+
+## 2026-09-26 — Zero-byte YouTube output hardening
+
+A concurrent branch update added rejection of zero-byte media/subtitle outputs and related regression coverage.
+
+Follow-up review found one remaining conversion edge case:
+- FFmpeg could return code 0 while leaving a zero-byte SRT target;
+- `try_convert_subtitle_to_srt()` previously treated any existing target as success.
+
+Fixed:
+- SRT conversion success now requires a non-empty target;
+- empty/failed conversion target is removed best-effort;
+- the original non-empty subtitle source is retained with its truthful fallback format.
+
+This aligns the conversion path with the new non-empty final-output invariant.
+
+
+## 2026-09-26 — Executable FFmpeg/FFprobe preflight
+
+Strengthened YT-P7 preflight so PATH discovery alone cannot produce a passing prerequisite report.
+
+Preflight now:
+- discovers FFmpeg/FFprobe as before;
+- executes each binary with `-version` using a bounded 10-second subprocess;
+- suppresses raw stdout/stderr from the validation report/UI;
+- records `ffmpeg_runtime_ok`, `ffprobe_runtime_ok`, and `ffmpeg_runtime_ready`;
+- fails with normalized `ffmpeg_runtime_unavailable` when both paths exist but either executable cannot run.
+
+This remains network-free.
+
+Regression coverage verifies:
+- executable success;
+- non-zero exit;
+- OSError/broken executable;
+- missing binary;
+- preflight failure when runtime execution is incomplete.
+
+
+## 2026-09-26 — Canonical YouTube URL boundary
+
+Hardened the V1 URL boundary so downloader backends do not receive the user's original share/tracking URL.
+
+After validating a supported single-video shape, Telegram Harbor now passes only:
+
+`https://www.youtube.com/watch?v=<VIDEO_ID>`
+
+to Inspect and Download backends.
+
+Effects:
+- share/tracking query parameters are stripped;
+- playlist query context is not propagated even when a valid single video ID is present;
+- URL fragments are stripped;
+- embedded username/password userinfo is rejected;
+- explicit ports are rejected;
+- video-ID identity checks remain unchanged.
+
+Regression coverage verifies canonicalization for youtu.be, Shorts, Live and youtube-nocookie Embed shapes plus Inspect and Download backend calls.
+
+
+## 2026-09-26 — Stricter release-evidence semantics
+
+Tightened `scripts/youtube_validation_summary.py` to avoid two release-readiness false positives.
+
+Native Windows:
+- `windows_live_download` now requires `platform=Windows` and `docker=false`;
+- a Windows container can satisfy Docker evidence but cannot substitute for native Windows acceptance.
+
+Unreadable reports:
+- summary now exposes `report_set_readable`;
+- any JSON read/parse failure forces `release_runner_evidence_ready=false`;
+- CLI still returns the dedicated read-error exit code.
+
+Regression tests cover both Windows-container separation and CLI JSON output when an unreadable report is supplied.
+
+
+## 2026-09-26 — Windows/Unicode filename-component hardening
+
+Reviewed the title sanitizer before native Windows live validation.
+
+Issue:
+- Python `len()` counts Unicode code points;
+- supplementary characters such as emoji consume two UTF-16 code units on Windows/NTFS;
+- a character-count-only truncation therefore did not precisely express the intended Windows filename-component budget.
+
+Changed:
+- `sanitize_youtube_title()` now truncates by UTF-16 code units without splitting a Unicode character;
+- the existing default 160-unit basename budget remains conservative for media/subtitle extensions plus collision suffixes;
+- Windows reserved device-name protection is applied again after truncation so a custom small limit cannot accidentally produce `CON`, `NUL`, etc.
+
+Regression coverage:
+- long ASCII behavior remains unchanged;
+- supplementary Unicode is truncated by UTF-16 units;
+- truncation cannot create a reserved Windows device name;
+- long emoji titles plus media/subtitle extensions remain below the Windows filename-component limit.
+
+
+## 2026-09-26 — Cross-platform Unicode filename budget
+
+The first Unicode hardening used a Windows-oriented UTF-16 budget. Linux CI exposed an important cross-platform difference: ext4/common Linux filesystems also impose a byte-oriented filename-component limit, and emoji consume four UTF-8 bytes each.
+
+Adjusted the sanitizer to enforce both:
+- existing conservative UTF-16-unit budget for Windows;
+- 230-byte UTF-8 basename budget for Linux/common filesystems, reserving room for the largest supported extension and collision suffix.
+
+The output-group regression now checks both UTF-16 units and UTF-8 bytes remain below the common 255-unit/byte component limits.
+
+This corrected the Linux CI failure from the initial Windows-only Unicode budget.
+
+
+## 2026-09-26 — Runner evidence explicitly separated from full release readiness
+
+Clarified the YT-P7 aggregation contract to prevent a service-level evidence set from being mistaken for complete product acceptance.
+
+The summary now always exposes:
+- `runner_evidence_scope = service-level/manual-runner evidence only`;
+- `manual_acceptance_required = true`;
+- `full_release_ready = false`.
+
+Even a passing `release_runner_evidence_ready` still leaves actual Streamlit acceptance open:
+- public Inspect UI;
+- Video + Audio UI/progress/completion;
+- Audio-only UI/progress/completion;
+- Save-directory UI behavior;
+- Light/Dark/narrow visual review;
+- warning/error presentation;
+- final merge/release review.
+
+This is intentional; the aggregator cannot manufacture evidence for UI/manual checks it did not observe.
+
+
+## 2026-09-26 — Authoritative validation source identity
+
+Tightened commit-SHA evidence precedence.
+
+Before:
+- a concrete `TELEGRAM_HARBOR_BUILD_SHA` environment value could override the actual Git HEAD even in a native checkout.
+
+Now:
+- native/source-tree validation first resolves `git rev-parse --verify HEAD`;
+- a concrete environment build SHA is used only when Git metadata is unavailable;
+- Docker remains supported because `.git` is intentionally excluded and the image embeds `TELEGRAM_HARBOR_BUILD_SHA`.
+
+Regression coverage verifies:
+- stale environment SHA cannot override native Git HEAD;
+- Docker/no-Git fallback still uses the embedded build SHA.
+
+
+## 2026-09-26 — Source-identity test correction and full-green checkpoint
+
+The production validation identity rule remains:
+- native/source-tree runs use the actual Git HEAD as authoritative evidence;
+- `TELEGRAM_HARBOR_BUILD_SHA` is fallback only when Git metadata is unavailable, such as inside the Docker image.
+
+A legacy unit test still assumed the environment build SHA should override Git HEAD. That test was isolated from repository state by mocking `_detect_commit_sha()` directly; production behavior was not reverted.
+
+GitHub Actions run `36197766755` on commit `9bb8695f61e246cc96340f378413add67d298b50` completed successfully:
+- Linux `unittest`: success;
+- Windows/Python 3.14: success, including YouTube path, download-engine, manual-runner and validation-summary tests;
+- Docker build/preflight/health: success.
+
+This commit is the latest confirmed full-green automated YouTube checkpoint recorded in the handoff. Manual/live YT-P5/YT-P7 acceptance remains open.
+
+
+## 2026-09-26 — YT-P7 live candidate correction
+
+Started the real YT-P7 acceptance step by checking the previously documented smoke-test candidate.
+
+Finding:
+- `BaW_jenozKc` is no longer a valid live acceptance candidate; yt-dlp issue #12263 documents that the video became unavailable.
+
+Replaced it in `.codex/YOUTUBE_VALIDATION.md` with:
+- `w2S5Ov-7Mzo` — `Open Culture Voices Vlog Series "Introduction"`;
+- Wikimedia Commons records the source as a Creative Commons YouTube upload and preserves a 2m13s archived copy.
+
+Important:
+- this establishes a better rights/licensing candidate, not a completed Telegram Harbor live test;
+- the current chat web environment cannot fetch the YouTube watch page directly, so Streamlit/yt-dlp runtime accessibility still must be confirmed on a machine/container running Telegram Harbor;
+- no YT-P7 live checkbox was marked complete.
+
+
+## 2026-09-26 — Optional independent YouTube SOCKS5 support
+
+User changed the networking requirement: YouTube should also be able to use SOCKS5.
+
+Implemented on `feature/youtube-download`:
+- added validated `YouTubeProxyConfig` in the YouTube service layer;
+- SOCKS5 is disabled by default;
+- supports host/IP, port, optional username and optional password;
+- credentials are URL-encoded before passing to yt-dlp;
+- IPv6 proxy hosts are bracketed correctly;
+- invalid host/port/password-without-username configurations fail with normalized `proxy_invalid`;
+- Inspect and Download both use the same first-class proxy contract;
+- generic yt-dlp `extra_options["proxy"]` remains forbidden so callers cannot bypass validation;
+- YouTube UI has its own `YouTube network / SOCKS5` expander;
+- changing any proxy setting invalidates the previous Inspect metadata and acknowledgement;
+- Telegram SOCKS5 state is not reused automatically or modified;
+- proxy password is masked and session-only in Streamlit;
+- manual validation runner supports `--proxy-host`, `--proxy-port`, `--proxy-user` and reads the password from `YOUTUBE_SOCKS5_PASSWORD` (or `--proxy-password-env`);
+- validation JSON records only safe proxy metadata and never the password value.
+
+Regression coverage added for:
+- unauthenticated/authenticated SOCKS5 URLs;
+- credential URL encoding;
+- IPv6;
+- invalid proxy inputs;
+- safe/redacted proxy summaries;
+- Inspect backend proxy injection;
+- Download options/request proxy routing;
+- UI isolation/state invalidation;
+- manual-runner proxy evidence.
+
+A legacy UI smoke assertion still expected the old sidebar sentence and caused CI failures after the copy changed. The test was updated to the new independent-proxy contract; production behavior did not need rollback.
+
+Manual item still open:
+- verify one real YouTube Inspect and one real download through an actual SOCKS5 endpoint.
+
+
+## 2026-09-26 — YouTube SOCKS5 full-green automated checkpoint
+
+GitHub Actions run `36200616307` completed successfully on commit `47b11460dd407e475a84495e8f92d37d8cbeae8c`.
+
+Validated:
+- Linux unittest: success;
+- YouTube service SOCKS5 tests: success;
+- YouTube download-engine SOCKS5 tests: success;
+- YouTube UI/session-state proxy isolation tests: success;
+- manual-runner SOCKS5 Inspect/Download evidence tests: success;
+- validation-summary SOCKS5 release-gate tests: success;
+- UI smoke tests: success;
+- Windows/Python 3.14 YouTube path/download/manual-runner/summary tests: success;
+- Docker build, FFmpeg/FFprobe preflight, Streamlit start and health: success.
+
+The strict runner evidence gate now requires:
+- one successful SOCKS5 Inspect;
+- one successful SOCKS5 live Download.
+
+This automated checkpoint does not complete the real SOCKS5 acceptance item. A live proxy endpoint still needs to be exercised manually.
+
+
+## 2026-09-26 — YouTube anti-bot challenge separated from content authentication
+
+User observed:
+`This video requires authentication and is outside Telegram Harbor V1.`
+
+The tested content was not copyright-restricted.
+
+Root cause:
+- yt-dlp can return `Sign in to confirm you're not a bot` for otherwise public videos when YouTube challenges the current IP/connection;
+- this is commonly seen with flagged/shared/datacenter/proxy IPs;
+- Telegram Harbor previously matched the broad substring `sign in to confirm` and incorrectly normalized it as `login_required`.
+
+Fix:
+- added dedicated `bot_verification_required` classification before true login/auth rules;
+- recognizes straight/curly-apostrophe variants and YouTube's community-protection wording;
+- user-facing message explicitly states this is not a copyright determination;
+- suggests disabling/changing the YouTube SOCKS5 route or using another trusted IP when applicable;
+- keeps authenticated-cookie support outside current V1;
+- `access_restricted=false` for this connection-level anti-bot signal;
+- true private/member/DRM/age-auth/login-required states remain restricted;
+- removed the overly broad generic `sign in to confirm` match to prevent future false positives.
+
+Validation-summary structured failure evidence now recognizes `bot_verification_required`.
+
+
+## 2026-09-26 — Optional YouTube authenticated cookie session
+
+User requested YouTube login if required.
+
+Current yt-dlp/YouTube constraint:
+- direct username/password login is not the supported path;
+- YouTube OAuth login is no longer supported by yt-dlp;
+- yt-dlp recommends authenticated cookies when a signed-in session is required.
+
+Implemented:
+- `YouTubeAuthConfig` accepts only a Mozilla/Netscape-format `cookies.txt`;
+- accepted cookie rows are restricted to `youtube.com` domains;
+- maximum cookie upload size is bounded;
+- cookie data is not persisted to SQLite/logs/reports;
+- each Inspect/Download materializes a restrictive temporary cookie file, passes it to yt-dlp as `cookiefile`, then removes it;
+- generic `extra_options["cookiefile"]` / `cookiesfrombrowser` remain forbidden;
+- UI adds **YouTube sign-in / cookies** and **Use authenticated YouTube session**;
+- uploaded cookies are scoped to the active Streamlit session;
+- changing the auth state/file invalidates previously inspected metadata;
+- Inspect and Download use the same authenticated-session contract;
+- CLI validation supports `--cookies-file` and does not record its path or contents;
+- validation summary tracks authenticated Inspect and authenticated live Download and requires both for strict runner release evidence;
+- authenticated cookies do not override private/member-only/premium/DRM product blocks.
+
+Automated checkpoint:
+- commit `f95ac4bfe04a933f600848119ad0b3ad57ca14c8`;
+- Linux unittest: success;
+- Windows/Python 3.14: success;
+- Docker build/preflight/health: success;
+- service/download/UI/manual-runner/validation-summary auth tests: success.
+
+Manual item still open:
+- validate one real authenticated Inspect and one real authenticated Download with a YouTube `cookies.txt` from a session the user controls.
+
+
+## 2026-09-26 — YouTube cookie-auth full-green checkpoint
+
+GitHub Actions run `36201744180` completed successfully on commit `bfc5fef7960e96563d2ddf4a3a3870d37886f49d`.
+
+Validated:
+- Linux unittest: success;
+- Windows/Python 3.14: success;
+- Docker build/preflight/health: success;
+- ephemeral cookie authentication service tests: success;
+- authenticated download cookie routing tests: success;
+- session-only UI contract tests: success;
+- manual-runner auth evidence tests: success;
+- validation-summary authenticated Inspect/Download release-evidence tests: success;
+- anti-bot error guidance now points to fresh `youtube.com cookies.txt` as an optional recovery path instead of incorrectly claiming auth is unsupported.
+
+The remaining authentication item is real/manual validation with a fresh YouTube cookie export from a session the user controls.
+
+
+## 2026-09-26 — Browser-session-first YouTube authentication
+
+User requested that Telegram Harbor reuse the user's existing browser login so normal local users do not have to export/import cookies manually.
+
+Implemented:
+- YouTube auth remains optional and disabled by default;
+- no Google username/password collection;
+- no YouTube OAuth flow;
+- local **Browser session** is now the preferred auth source;
+- supported browser choices: Auto, Chrome, Firefox, Edge, Brave, Chromium, Vivaldi, Opera, Safari and Whale;
+- optional browser profile name/path;
+- Auto performs best-effort detection from standard local profile directories without reading cookie contents;
+- Inspect passes a validated yt-dlp `cookiesfrombrowser` tuple;
+- Download uses the same validated browser-session tuple;
+- no browser cookie values are copied into SQLite, logs, or validation reports;
+- reports contain only source/browser and whether a profile was configured; profile path itself is excluded;
+- browser-cookie extraction/decryption failures are normalized as `youtube_browser_session_unavailable`;
+- `login_required` is now retryable and tells the user to enable Browser Session or cookies.txt fallback instead of saying the content is outside V1;
+- private/member-only/premium/DRM states remain blocked;
+- Browser Session and independent YouTube SOCKS5 can be combined.
+
+Remote/Docker fallback:
+- youtube.com-only Netscape `cookies.txt` remains supported;
+- it is session-only;
+- temporary materialization is removed after the yt-dlp operation.
+
+Automated checkpoint:
+- commit `7d63e279dc3925d64987bdff49cc1f06df86fb90` completed GitHub Actions successfully with the Browser Session implementation and tests included.
+
+Manual acceptance still open:
+- one local Browser Session Inspect;
+- one local Browser Session download;
+- cookies.txt fallback validation for remote/Docker topology if that deployment mode is required.
+
+
+## 2026-09-26 — Browser Session auth policy completion
+
+A remaining policy gap was found after Browser Session support was implemented:
+- yt-dlp could successfully Inspect a signed-in video and return `availability=needs_auth`;
+- Telegram Harbor's policy still treated that metadata state as blocked even when a validated Browser Session/cookies.txt auth source was configured;
+- this could allow authenticated Inspect but prevent the following Download.
+
+Fix:
+- `evaluate_download_policy(..., authenticated_session=True)` now allows `needs_auth` metadata after configured authentication;
+- the user still sees an explicit signed-in-access warning and must acknowledge the normal rights/service notice;
+- without an authenticated session, `needs_auth` remains blocked and guides the user to Browser Session/cookies.txt;
+- private, subscriber/member-only, premium-only and DRM states remain blocked even with authentication;
+- UI, Download engine and manual validation runner pass the authenticated-session state into policy;
+- anti-bot guidance now prefers Browser Session, then direct/alternate SOCKS5/IP, with cookies.txt as the remote/Docker fallback;
+- README, Persian plan, decision records and next-chat contract were reconciled with the current Browser Session V1 scope.
+
+Automated checkpoint:
+- commit `e85a2a087419280b9dce0f61a1ad1d305498ac22`;
+- GitHub Actions run `36202880405`;
+- Linux unittest: success;
+- YouTube service/download/UI/manual-runner/validation-summary tests: success;
+- UI smoke tests: success;
+- Windows/Python 3.14 YouTube engine/manual-runner/summary tests: success;
+- Docker build, FFmpeg preflight and Streamlit health: success.
+
+Manual acceptance still open:
+- one real local Browser Session Inspect;
+- one real local Browser Session Download;
+- cookies.txt fallback on remote/Docker if required;
+- real SOCKS5 validation;
+- remaining YT-P7 media/subtitle/UI/Windows/Docker acceptance.
+
+
+## 2026-09-27 — YouTube cancel, folder picker and per-format downloads
+
+User confirmed live YouTube download works with the current authenticated-cookie + SOCKS5 + Deno setup and requested three follow-up UX capabilities.
+
+Implemented:
+- downloads now run as cancellable background jobs;
+- yt-dlp progress/post-processing hooks cooperatively stop when cancellation is requested;
+- the UI exposes a live `Cancel download` action while a job is active;
+- Save directory defaults to the current OS user's `Downloads` directory;
+- local installs can open a native folder chooser via `Browse…`;
+- headless/remote deployments keep the manual path field and receive a clear picker-unavailable warning;
+- the last selected Save directory is persisted locally in `~/.telegram_harbor/preferences.json`;
+- inspected formats are presented with per-row quick actions;
+- Video + Audio uses the selected video format ID and merges best audio when the selected row is video-only;
+- Audio uses the selected audio format ID and converts to MP3 through the existing FFmpeg path;
+- Subtitle downloads only the selected subtitle/caption track and preserves manual/automatic provenance plus SRT/VTT fallback behavior;
+- quick actions only accept format IDs from the current inspected metadata;
+- the existing simple mode/quality Download workflow remains available.
+
+Validation:
+- GitHub Actions run `36277332726` completed successfully at `b0294672c1a86a211251fed46fa9496d1fb35ecc`;
+- Linux unittest, Windows/Python 3.14 and Docker jobs are all green;
+- live/manual UI acceptance for Cancel, native Browse persistence and all three per-format actions remains pending user verification.
+
+Branch remains `feature/youtube-download`; no merge to `main` was performed.
+
+
+## 2026-09-28 — Correct YouTube format table and unify SOCKS5
+
+User corrected two implementation mistakes:
+- video formats must not disappear from the YouTube format list;
+- each format row needs one Download menu, not three separate action columns;
+- Telegram and YouTube should share one SOCKS5 configuration in the Sidebar.
+
+Corrections:
+- removed the 40-format UI cap and render every normalized format returned by the current Inspect result;
+- restored the `Available formats / quality information` section;
+- each row now has one `Download` popover containing all three choices: `Video + Audio`, `Audio`, and `Subtitle`;
+- incompatible choices remain visible but disabled for that row;
+- removed the separate `YouTube network / SOCKS5` UI and all `youtube_proxy_*` session-state fields;
+- YouTube now builds `YouTubeProxyConfig` from the same `use_proxy/proxy_host/proxy_port/proxy_user/proxy_pass` state used by Telegram;
+- the shared `Network & proxy` Sidebar control is visible in both workspaces;
+- changing shared proxy settings invalidates stale YouTube Inspect metadata and acknowledgement.
+
+This supersedes the earlier independent-YouTube-proxy UI decision. The manual validation runner keeps explicit proxy arguments because it is a standalone validation tool, not the Streamlit UI.
+
+
+## 2026-09-28 — Corrected YouTube format UI and shared proxy
+
+User reported that the first per-format implementation hid video formats, did not provide the intended per-row Download menu, duplicated SOCKS5 settings between Telegram and YouTube, and did not offer subtitle language selection at download time.
+
+Corrections:
+- YouTube now uses the same Sidebar SOCKS5 state as Telegram; the separate YouTube proxy controls/state are removed.
+- Enabling the shared proxy fills `127.0.0.1` and port `1080` when the corresponding values are empty/invalid.
+- All inspected formats are rendered; the previous first-40 truncation is removed.
+- Each format row has a single `Download` popover.
+- The popover contains `Video + Audio`, `Audio`, and `Subtitle`; unavailable media actions remain visible but disabled for incompatible rows.
+- Subtitle language is selected inside the same row Download popover immediately before the Subtitle action.
+- The standalone subtitle/caption table, global Output/Quality controls, global subtitle checkbox/selector, and global Download button were removed because they duplicated the per-format workflow.
+- The native folder picker uses a pending state applied before the Save-directory widget is created, avoiding Streamlit's widget-instantiated session-state exception.
+- touched YouTube/Sidebar controls use the current Streamlit `width` API instead of deprecated `use_container_width`.
+
+Validation:
+- GitHub Actions run `36479282936` completed successfully.
+- Linux unittest, Windows/Python 3.14, and Docker jobs are green.
+- Branch remains `feature/youtube-download`; `main` was not modified.
+
+
+## 2026-09-29 — Product renamed to YARA
+
+User selected **YARA** as the new product name.
+
+Canonical meaning:
+- **YARA = Your Archive & Retrieval Assistant**
+
+Applied:
+- runtime product branding now uses `YARA`;
+- page/login/sidebar branding derives from `PRODUCT_NAME = "YARA"`;
+- product slug is `yara`;
+- README and current product/docs context use YARA;
+- YouTube runtime copy and validation helpers use YARA;
+- GitHub repository name remains `telegram_aranger` for compatibility;
+- selected legacy technical identifiers, environment-variable prefixes and existing persisted paths are intentionally retained where renaming them could break existing installs;
+- historical session notes that describe the former Telegram Harbor branding remain historical records and should not be interpreted as the current product name.
+
+Branch remains `feature/youtube-download`; no merge to `main` was performed.

@@ -7,3 +7,6 @@ telegram_manager.db
 *.db-wal
 .cache/telegram_media/
 backups/
+
+# Local/manual validation output
+validation-reports/

@@ -2,12 +2,15 @@
 
 ## Repository
 - Repository: `majiddarvishan/telegram_aranger`
-- Current working branch: `main`
-- Current phase status: GUI redesign, peer persistence, responsive validation, and v1.1.0 release preparation are complete.
-- The completed `gui` branch was fast-forward merged into `main`; `main` is the source of truth.
+- Current working branch: `feature/youtube-download`
+- Current phase status: YouTube V1 implementation and automated readiness hardening are substantially complete. The latest confirmed full-green checkpoint during this handoff is `e85a2a087419280b9dce0f61a1ad1d305498ac22`. Newer hardening exists after that checkpoint and branch HEAD must always be re-checked before edits. One shared Sidebar SOCKS5 configuration is used by both Telegram and YouTube; Browser Session-first YouTube authentication (with cookies.txt fallback) is implemented. Remaining product acceptance is manual YT-P5 Light/Dark/narrow review, YT-P7 real YouTube/Windows/Docker/UI validation, real SOCKS5 Inspect/Download validation, and final merge/release review.
+- Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
+- Latest confirmed full-green YouTube checkpoint in this handoff: `e85a2a087419280b9dce0f61a1ad1d305498ac22`.
+- Handoff HEAD after additional hardening: `8b1e39a4d23e9d2a666843100a4cfd9309c35ee1` (re-check GitHub because the branch may advance again).
+- The completed `gui` branch is already merged into `main`.
 
 ## What the project is
-**Telegram Harbor** is a modular Streamlit Telegram message and media manager using Pyrogram.
+**YARA** is a modular Streamlit Telegram message and media manager using Pyrogram.
 
 It provides:
 - local multi-user Web authentication;
@@ -28,7 +31,7 @@ It provides:
 - Docker/Compose deployment;
 - automated GitHub Actions regression tests.
 
-The product name is **Telegram Harbor**. The GitHub repository name remains `telegram_aranger` for now.
+The product name is **YARA** — **Your Archive & Retrieval Assistant**. The GitHub repository name remains `telegram_aranger` for compatibility.
 
 ## Current implementation status
 Completed:
@@ -47,17 +50,20 @@ Validation status:
 `docs/MANUAL_TESTING.md` remains the repeatable acceptance checklist for future regressions.
 
 ## Read order for future work
-1. `.codex/GUI_PLAN.md`
-2. `.codex/PROJECT_CONTEXT.md`
-3. `.codex/ARCHITECTURE.md`
-4. `.codex/DECISIONS.md`
-5. `.codex/TASKS.md`
-6. `.codex/SESSION.md`
-7. `docs/MANUAL_TESTING.md`
-8. `docs/GUI_DESIGN_PLAN_FA.md`
+1. `.codex/NEXT_CHAT_PROMPT.md`
+2. `.codex/YOUTUBE_PLAN.md`
+3. `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
+4. `.codex/PROJECT_CONTEXT.md`
+5. `.codex/ARCHITECTURE.md`
+6. `.codex/DECISIONS.md`
+7. `.codex/TASKS.md`
+8. `.codex/SESSION.md`
+9. `docs/MANUAL_TESTING.md`
+10. `.codex/GUI_PLAN.md`
 
 ## Important rules
-- Work on `main` unless the user explicitly requests a new branch.
+- Work on `feature/youtube-download` for this feature until the user explicitly requests merge/switch.
+- The user explicitly approved implementation. YT-P1 through YT-P6 are implemented. Do not repeat them; continue with the remaining YT-P5 visual review and YT-P7 manual/live validation unless the user changes priority.
 - Re-fetch branch HEAD before editing; do not assume these notes are newer than Git.
 - Never commit Telegram API credentials, Fernet keys, session strings, phone codes, 2FA passwords, proxy passwords, browser remember tokens, SQLite data files, downloaded media, or backup artifacts.
 - Preserve Web-user ownership checks for Telegram accounts and chat-scoped identity for tags/media.
@@ -68,7 +74,7 @@ Validation status:
 ## Local run
 
 ```bash
-git checkout main
+git checkout feature/youtube-download
 python -m venv .venv
 # activate the virtual environment
 pip install -r requirements.txt
