@@ -3,15 +3,15 @@
 ## Product purpose
 **YARA** is a local/self-hosted Streamlit Telegram message and media manager using Pyrogram.
 
-The product supports Saved Messages plus private chats, groups, supergroups, and channels. The GitHub repository remains `majiddarvishan/telegram_aranger` for compatibility/history.
+The product supports Saved Messages plus private chats, groups, supergroups, and channels. The GitHub repository has been renamed from `majiddarvishan/telegram_aranger` to `majiddarvishan/yara`.
 
 ## Current branch
-- Working branch: `feature/youtube-download`
-- Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
-- YouTube V1 implementation and extensive automated readiness hardening are present. Latest confirmed full-green checkpoint in this handoff is `c33bb39ebfd46cd06065a6653e0b1714da7624b3`; re-check current branch HEAD/CI because newer hardening may be present. Manual YT-P5 visual review and YT-P7 live/UI/platform acceptance remain open.
-- The completed `gui` redesign is already merged into `main`.
-- Latest confirmed full-green YouTube checkpoint in this handoff: `c33bb39ebfd46cd06065a6653e0b1714da7624b3`.
-- Re-check GitHub branch HEAD before making future edits.
+- Source-of-truth branch: `main`.
+- The YouTube feature has already been merged into `main`.
+- Merge checkpoint at the prior handoff: `main@0934e67401e078bc57f0f4acddffd1f72bf6a768`.
+- The former `feature/youtube-download` branch is merged and behind main; do not use it as the base for new work.
+- Re-check GitHub `main` HEAD and CI before future edits because documentation handoff commits may advance main further.
+- For new code changes, create a fresh branch from current main unless the user explicitly requests direct-main work.
 
 ## Current capabilities
 - Local Web user registration/login.
@@ -22,7 +22,7 @@ The product supports Saved Messages plus private chats, groups, supergroups, and
 - Multiple Telegram accounts per Web user.
 - Telegram phone login, code verification, and 2FA.
 - Fernet-encrypted exported Telegram session strings.
-- SOCKS5 proxy configuration.
+- One shared SOCKS5 proxy configuration for Telegram and YouTube; defaults normalize to `127.0.0.1:1080` when enabled with blank/invalid values.
 - Private/group/supergroup/channel dialog discovery with persistent per-account SQLite dialog caching and bounded Telegram refresh.
 - Date-range message history starting from the selected range end.
 - Explicit **Load More Messages** pagination.
@@ -213,23 +213,19 @@ Real Telegram/browser validation has been completed successfully with no issues 
 
 
 ## YouTube download implementation status
-- Working branch: `feature/youtube-download`.
+- The YouTube feature is merged into `main`; `main` is now the source of truth.
 - YT-P1 service foundation is implemented with an isolated yt-dlp backend, offline URL validation/metadata normalization, subtitle/format normalization, FFmpeg detection, normalized downloader errors, and no-live-network unit tests.
 - YT-P2 filesystem safety is implemented in `utils/download_paths.py`: absolute host paths, optional explicit directory creation, writable probing, configured allowed roots, symlink-aware containment, cross-platform title sanitization, matched media/subtitle basenames, and grouped collision suffixing.
 - YT-P3 policy is implemented in `services/youtube_policy.py`: a general rights/service notice always requires acknowledgement; metadata restriction signals produce stronger warnings; accessible public content remains allowed after acknowledgement; private/membership/premium/authentication/DRM/unavailable states remain blocked without any bypass behavior.
 - YT-P4 download engine is implemented in `services/youtube_download.py`: video+audio MP4 output, audio-only MP3 output, quality presets, one optional manual/automatic subtitle, SRT-preferred conversion with explicit original/VTT fallback, normalized progress/post-processing state, isolated temp downloads, grouped no-overwrite final naming, cleanup on failure, and final output-path reporting.
-- YT-P5 Streamlit UI is implemented in `ui/youtube.py` with independent workspace routing, Inspect, metadata/thumbnail/formats/subtitle display, output/quality controls, save-directory UI, rights/restriction acknowledgement, FFmpeg capability state, normalized progress and final output reporting. Manual Light/Dark/responsive review remains open.
+- YT-P5 Streamlit UI is implemented in `ui/youtube.py` with independent workspace routing, Inspect, metadata/thumbnail preview, complete per-format rows, one Download menu per row, Video + Audio / Audio / Subtitle actions, subtitle-language selection inside the row menu, save-directory UI, rights/restriction acknowledgement, FFmpeg capability state, cancellable progress and final output reporting. Redundant global Output/Quality/subtitle controls were removed after user review. Manual visual/live re-check remains open.
 - YT-P6 platform/docs is implemented: Docker installs FFmpeg/FFprobe, Docker/Compose default to `/data/youtube` as the allowed root, Windows/remote-host guidance is documented, CI includes YouTube UI/offline tests and Docker FFmpeg verification.
 - YT-P7 validation/readiness work is active: `.codex/YOUTUBE_VALIDATION.md` and `scripts/youtube_manual_validate.py` provide repeatable manual evidence; CI is explicitly guarded against live YouTube calls; unknown downloader/UI errors are sanitized; downloader-returned output paths must resolve inside the per-job temp directory; responsive YouTube layout is structurally hardened; Windows/Python 3.14 offline coverage now includes the download engine and manual runner. Manual Light/Dark/narrow screenshots and real YouTube/Windows/Docker download acceptance remain open. Additional hardening now includes canonical downloader URLs, explicit downloader-option/access-control boundaries, fail-closed availability, URL/metadata/downloader video-ID invariants, non-empty media/subtitle acceptance, executable FFmpeg/FFprobe preflight, traceable single-commit validation reports, strict runner-vs-full-release separation, and UTF-16/UTF-8 filename budgets for Windows/Linux.
 - V1 scope: single public YouTube video URL.
-- User must provide a Save directory.
+- Save directory defaults to the local user's Downloads folder, can be entered manually or chosen via the native picker on local installs, and the last selected path is remembered.
 - On local installations the path is local to the user machine; on remote deployments it is a server-host path and must be labeled as such.
 - Hosted/multi-user mode should support allowed save roots.
-- Planned outputs:
-  - Video + audio;
-  - Audio only;
-  - optional single-track subtitle download;
-  - simple quality presets.
+- Download outputs are driven from the inspected format rows: Video + Audio, Audio, or one selected subtitle/caption language.
 - Metadata must be inspected before download.
 - Subtitle metadata distinguishes manual subtitles from auto-generated captions.
 - Preferred subtitle output is SRT with explicit fallback reporting when SRT conversion is unavailable.
@@ -242,9 +238,15 @@ Real Telegram/browser validation has been completed successfully with no issues 
 - Telegram and YouTube share one optional SOCKS5 configuration in the Sidebar. The same host/port/optional username/password route is used for Telegram and for YouTube Inspect/Download; YouTube does not have a duplicate proxy panel.
 - YouTube also supports optional session-only cookie authentication via a validated Netscape-format `cookies.txt`. YARA does not request Google username/password, does not use OAuth, does not persist cookie content, and removes the temporary cookie file after each operation.
 - V1 does not include DRM/paywall/private/member-only/login-protection bypass.
-- V1 does not include playlists, channels, browser-cookie import, batch queues, scheduling, automatic geo-bypass, or multiple subtitle languages in one job.
+- V1 does not include playlists, channels, batch queues, scheduling, automatic geo-bypass, multiple subtitle languages in one job, or private/member/premium/DRM bypass. Browser Session and youtube.com-only `cookies.txt` are supported only as authenticated session inputs for otherwise in-scope content.
 - FFmpeg is an expected operational dependency for merging/extraction.
 - Downloader behavior must be isolated behind a service layer; Streamlit UI must not depend directly on the downloader library.
 - Detailed plans:
   - `.codex/YOUTUBE_PLAN.md`
   - `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
+
+
+## YouTube Windows runtime note
+Live Windows testing showed that modern YouTube extraction may require JavaScript challenge solving. The known-working setup used Deno 2.9.7 with yt-dlp 2026.08.19. Deno is required/recommended for the current Windows YouTube flow when yt-dlp reports JavaScript/n-challenge failures.
+
+Chrome browser-cookie extraction on current Windows may fail because of Chromium database locking and App-Bound/DPAPI encryption. Do not assume Browser Session via Chrome is reliable; the validated youtube.com-only `cookies.txt` fallback remains important.
