@@ -1,4 +1,4 @@
-# Telegram Harbor Dependency Policy
+# YARA Dependency Policy
 
 ## Update policy
 
@@ -36,7 +36,7 @@ For bounded dependencies:
 
 ## Telegram crypto acceleration
 
-Telegram Harbor installs `tgcrypto2>=1.3.6,<2`.
+YARA installs `tgcrypto2>=1.3.6,<2`.
 
 `tgcrypto2` is a maintained fork of the archived original `TgCrypto` project. Its PyPI package name is `tgcrypto2`, but it intentionally keeps the Python import name `tgcrypto` for drop-in compatibility with Pyrogram.
 
@@ -61,7 +61,7 @@ Do not silently switch Telegram client libraries merely to receive updates. Sess
 
 ## YouTube downloader and FFmpeg
 
-Telegram Harbor uses `yt-dlp` only behind the YouTube service abstraction. Streamlit UI code must not depend on yt-dlp internals.
+YARA uses `yt-dlp` only behind the YouTube service abstraction. Streamlit UI code must not depend on yt-dlp internals.
 
 The Python dependency is kept inside the bounded 2026 major range in `requirements.txt`. Downloader updates can change extractor behavior, metadata fields, format selection and error text, so update it through the normal dependency-review flow and run the YouTube service/download regression suite.
 
@@ -75,14 +75,14 @@ The Docker image installs FFmpeg directly. Native Windows/Linux installations mu
 
 ## YouTube browser-session authentication
 
-Browser-session authentication uses yt-dlp's `cookies-from-browser` integration and therefore depends on the browser profile and OS credential store being readable by the Telegram Harbor process.
+Browser-session authentication uses yt-dlp's `cookies-from-browser` integration and therefore depends on the browser profile and OS credential store being readable by the YARA process.
 
 Operational requirements:
-- Telegram Harbor and the selected browser profile must be on the same host.
-- Run Telegram Harbor under the same OS user that owns/decrypts the browser cookies.
+- YARA and the selected browser profile must be on the same host.
+- Run YARA under the same OS user that owns/decrypts the browser cookies.
 - Chromium-family cookies may depend on the platform credential store (for example Windows DPAPI or a Linux desktop keyring).
 - Firefox requires access to its local profile/cookie database.
 - Containers normally cannot access/decrypt the desktop browser profile unless it is deliberately mounted with the necessary host credentials; use the `cookies.txt` fallback instead.
 - Browser cookie extraction behavior is provided by the installed yt-dlp version; keep yt-dlp within the project's pinned supported range.
 
-If browser extraction fails, Telegram Harbor normalizes the error as `youtube_browser_session_unavailable` without displaying raw cookie/database paths.
+If browser extraction fails, YARA normalizes the error as `youtube_browser_session_unavailable` without displaying raw cookie/database paths.
