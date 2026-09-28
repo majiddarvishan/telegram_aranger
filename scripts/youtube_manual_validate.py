@@ -465,7 +465,7 @@ def _subtitle_selection(args, metadata: dict[str, Any]) -> SubtitleSelection | N
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Manual/live YouTube V1 validation helper for Telegram Harbor. "
+            "Manual/live YouTube V1 validation helper for YARA. "
             "This script is intentionally not used by CI."
         )
     )
