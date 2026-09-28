@@ -458,3 +458,20 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Replace touched Streamlit `use_container_width` usage with `width`.
 - [x] GitHub Actions run `36479282936` is green on Linux unittest, Windows/Python 3.14 and Docker.
 - [ ] Manually verify per-row Video + Audio, Audio and Subtitle-with-language downloads in the live UI.
+
+
+## YARA repository rename / final handoff — 2026-09-29
+- [x] Rename product to **YARA — Your Archive & Retrieval Assistant**.
+- [x] Rename GitHub repository from `majiddarvishan/telegram_aranger` to `majiddarvishan/yara`.
+- [x] Merge `feature/youtube-download` into `main` at merge commit `0934e67401e078bc57f0f4acddffd1f72bf6a768`.
+- [x] Treat `main` as the source of truth after the YouTube merge; do not continue new work on the old feature branch.
+- [x] Refresh `.codex/START_HERE.md`, `.codex/NEXT_CHAT_PROMPT.md`, `.codex/PROJECT_CONTEXT.md`, `.codex/DECISIONS.md`, and `.codex/YOUTUBE_PLAN.md` for the new repository/source-of-truth state.
+- [x] Record the approved YARA logo identity (dark central YARA/یارا mark with cyan/purple circuit-network artwork).
+- [ ] Upload the approved binary logo to the repository / GitHub Social Preview using a binary-capable or GitHub UI workflow. Current connector cannot perform that binary/social-preview mutation.
+- [ ] Manually re-verify shared proxy defaults are visibly `127.0.0.1:1080` after enabling SOCKS5 on Windows.
+- [ ] Manually re-verify native Save-directory Browse after the pending-state fix; no `StreamlitWidgetAlreadyInstantiatedError`.
+- [ ] Manually re-verify stale Inspect errors clear correctly after URL change/new Inspect.
+- [ ] Manually re-verify the full format list, pinned header, per-row Download menu, and subtitle language selection.
+- [ ] Manually re-verify Cancel during a live YouTube download.
+- [ ] Manually re-verify no deprecated `use_container_width` warnings remain in the touched YouTube/sidebar flow.
+- [ ] Decide next release version/tag only after the manual acceptance items above pass.
