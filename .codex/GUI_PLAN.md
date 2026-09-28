@@ -12,7 +12,7 @@ Target style:
 - calm visual hierarchy;
 - content-first message reading;
 - compact operational controls;
-- subtle Telegram Harbor identity;
+- subtle YARA identity;
 - minimal CSS fragility against Streamlit DOM changes.
 
 ## Main findings
@@ -82,7 +82,7 @@ Target style:
 
 ### GUI-P6 — Polish
 - [x] Subtle hover/transition behavior for buttons, cards, tags, links and expanders.
-- [x] Consistent icon treatment: remove application-added chat emoji and reserve the anchor mark for Telegram Harbor branding.
+- [x] Consistent icon treatment: remove application-added chat emoji and reserve the anchor mark for YARA branding.
 - [x] Microcopy cleanup for loading, navigation, account actions and destructive confirmation.
 - [x] Selected/active state polish for the active chat workspace and account/chat selectors.
 - [x] Add compact <=700px spacing refinement without overriding Streamlit's native stacking behavior.
@@ -139,5 +139,5 @@ Full Persian design audit:
 - GUI-P0 through GUI-P6 are complete.
 - Light, Dark, desktop and narrow-width validation passed.
 - The `gui` branch was fast-forward merged into `main`.
-- Release target: Telegram Harbor v1.1.0.
+- Release target: YARA v1.1.0.
 - Release checkpoint: `4b7325b06cb92c32b56fc8a9a82388f547492ae8`.
