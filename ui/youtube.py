@@ -759,9 +759,11 @@ def render_youtube(settings) -> None:
         "YouTube URL",
         key="youtube_url",
         placeholder="https://www.youtube.com/watch?v=...",
+        on_change=_invalidate_youtube_inspection,
     )
 
     if st.button("Inspect", key="youtube-inspect", type="primary"):
+        st.session_state.youtube_error = None
         st.session_state.youtube_metadata = None
         st.session_state.youtube_download_result = None
         st.session_state.youtube_acknowledged = False
