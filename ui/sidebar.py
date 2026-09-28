@@ -128,16 +128,21 @@ def _invalidate_youtube_network_context() -> None:
     st.session_state.youtube_inspected_url = ""
 
 
+def _ensure_shared_proxy_defaults() -> None:
+    if not str(st.session_state.get("proxy_host", "") or "").strip():
+        st.session_state.proxy_host = "127.0.0.1"
+
+    try:
+        port = int(st.session_state.get("proxy_port", 0) or 0)
+    except (TypeError, ValueError):
+        port = 0
+    if not (1 <= port <= 65535):
+        st.session_state.proxy_port = 1080
+
+
 def _on_shared_proxy_toggle() -> None:
     if st.session_state.get("use_proxy", False):
-        if not str(st.session_state.get("proxy_host", "") or "").strip():
-            st.session_state.proxy_host = "127.0.0.1"
-        try:
-            port = int(st.session_state.get("proxy_port", 0) or 0)
-        except (TypeError, ValueError):
-            port = 0
-        if not (1 <= port <= 65535):
-            st.session_state.proxy_port = 1080
+        _ensure_shared_proxy_defaults()
     _invalidate_youtube_network_context()
 
 
@@ -161,6 +166,7 @@ def _render_network_settings():
         )
 
         if st.session_state.use_proxy:
+            _ensure_shared_proxy_defaults()
             st.text_input(
                 "Proxy host / IP",
                 key="proxy_host",
