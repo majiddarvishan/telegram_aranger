@@ -1,4 +1,4 @@
-# Telegram Harbor Deployment
+# YARA Deployment
 
 ## Docker
 
@@ -78,7 +78,7 @@ Do not scale the current image to multiple replicas against the same local SQLit
 
 ## YouTube save paths
 
-The YouTube Save directory is always interpreted on the machine running Telegram Harbor.
+The YouTube Save directory is always interpreted on the machine running YARA.
 
 - Native/local installation: it is a local filesystem path on that machine.
 - Remote/server installation: it is a server-host path, not a browser-client path.
@@ -111,7 +111,7 @@ ffmpeg -version
 ffprobe -version
 ```
 
-Restart the shell and Telegram Harbor after changing `PATH`. The YouTube workspace reports FFmpeg/FFprobe capability before download.
+Restart the shell and YARA after changing `PATH`. The YouTube workspace reports FFmpeg/FFprobe capability before download.
 
 ## YouTube access boundary
 
