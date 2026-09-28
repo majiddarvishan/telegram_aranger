@@ -794,7 +794,7 @@ class YouTubeErrorNormalizationTests(unittest.TestCase):
         self.assertEqual(error.code, "login_required")
         self.assertFalse(error.access_restricted)
         self.assertIn("Browser session", error.message)
-        self.assertNotIn("outside Telegram Harbor V1", error.message)
+        self.assertNotIn("outside YARA V1", error.message)
 
     def test_maps_youtube_bot_verification_separately_from_content_auth(self):
         messages = (
