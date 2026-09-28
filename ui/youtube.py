@@ -534,26 +534,28 @@ def _render_format_downloads(
         current_job = st.session_state.get("youtube_download_job")
         busy = _job_is_active(current_job)
 
+        # Keep the header outside the scrollable rows container so it
+        # remains visible while the user scrolls through all formats.
+        header = st.columns(
+            [1.0, 0.8, 1.2, 0.6, 0.8, 0.8, 1.0, 1.1]
+        )
+        for col, label in zip(
+            header,
+            (
+                "Format",
+                "Ext",
+                "Resolution",
+                "FPS",
+                "Video",
+                "Audio",
+                "Size",
+                "Download",
+            ),
+        ):
+            col.markdown(f"**{label}**")
+
         table = st.container(height=560)
         with table:
-            header = st.columns(
-                [1.0, 0.8, 1.2, 0.6, 0.8, 0.8, 1.0, 1.1]
-            )
-            for col, label in zip(
-                header,
-                (
-                    "Format",
-                    "Ext",
-                    "Resolution",
-                    "FPS",
-                    "Video",
-                    "Audio",
-                    "Size",
-                    "Download",
-                ),
-            ):
-                col.markdown(f"**{label}**")
-
             for index, item in enumerate(formats):
                 if not isinstance(item, Mapping):
                     continue
