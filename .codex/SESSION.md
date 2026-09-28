@@ -2245,3 +2245,24 @@ Corrections:
 - changing shared proxy settings invalidates stale YouTube Inspect metadata and acknowledgement.
 
 This supersedes the earlier independent-YouTube-proxy UI decision. The manual validation runner keeps explicit proxy arguments because it is a standalone validation tool, not the Streamlit UI.
+
+
+## 2026-09-28 — Corrected YouTube format UI and shared proxy
+
+User reported that the first per-format implementation hid video formats, did not provide the intended per-row Download menu, duplicated SOCKS5 settings between Telegram and YouTube, and did not offer subtitle language selection at download time.
+
+Corrections:
+- YouTube now uses the same Sidebar SOCKS5 state as Telegram; the separate YouTube proxy controls/state are removed.
+- Enabling the shared proxy fills `127.0.0.1` and port `1080` when the corresponding values are empty/invalid.
+- All inspected formats are rendered; the previous first-40 truncation is removed.
+- Each format row has a single `Download` popover.
+- The popover contains `Video + Audio`, `Audio`, and `Subtitle`; unavailable media actions remain visible but disabled for incompatible rows.
+- Subtitle language is selected inside the same row Download popover immediately before the Subtitle action.
+- The standalone subtitle/caption table, global Output/Quality controls, global subtitle checkbox/selector, and global Download button were removed because they duplicated the per-format workflow.
+- The native folder picker uses a pending state applied before the Save-directory widget is created, avoiding Streamlit's widget-instantiated session-state exception.
+- touched YouTube/Sidebar controls use the current Streamlit `width` API instead of deprecated `use_container_width`.
+
+Validation:
+- GitHub Actions run `36479282936` completed successfully.
+- Linux unittest, Windows/Python 3.14, and Docker jobs are green.
+- Branch remains `feature/youtube-download`; `main` was not modified.
