@@ -1,12 +1,14 @@
-# Telegram Harbor
+# YARA
+
+**YARA = Your Archive & Retrieval Assistant**
 
 **Latest release:** `v1.1.0`
 
-**Telegram Harbor** is a self-hosted, multi-user Telegram message and media manager built with Streamlit and Pyrogram.
+**YARA** is a self-hosted archive and retrieval assistant for Telegram messages/media and YouTube downloads, built with Streamlit and Pyrogram.
 
 It provides one central place to connect multiple Telegram accounts, browse private chats, groups, supergroups, channels and Saved Messages, search and tag messages, preview media, play videos, and download Telegram video files.
 
-> Telegram Harbor is an independent project and is not affiliated with or endorsed by Telegram.
+> YARA is an independent project and is not affiliated with or endorsed by Telegram.
 
 ## Features
 
@@ -17,7 +19,7 @@ It provides one central place to connect multiple Telegram accounts, browse priv
 - Telegram logout and non-destructive disconnect.
 - Chat selector for private chats, groups, supergroups, and channels.
 - Saved Messages is selected by default when a Telegram account is opened.
-- Responsive Light/Dark Telegram Harbor interface with content-first message cards.
+- Responsive Light/Dark YARA interface with content-first message cards.
 - Date-range message filtering; defaults to the latest 7 calendar days.
 - Compact Previous/Next day navigation in the message filter header.
 - Search and per-message tags.
@@ -35,7 +37,7 @@ It provides one central place to connect multiple Telegram accounts, browse priv
 - Optional one-track subtitle/caption download with Manual / Auto-generated labeling.
 - Title-based non-overwriting output naming with matched media/subtitle basenames.
 - Host save-directory validation, optional allowed roots, and FFmpeg capability checks.
-- Optional independent SOCKS5 routing for YouTube Inspect and Download, with optional proxy authentication.
+- One shared optional SOCKS5 configuration in the Sidebar for both Telegram and YouTube, with optional proxy authentication.
 
 ## Project layout
 
@@ -141,7 +143,7 @@ Restart the terminal/Streamlit process after changing `PATH`.
 
 Telegram sessions are encrypted at rest with the Fernet key. Keep `TELEGRAM_SESSION_ENCRYPTION_KEY` secret and back it up securely. Losing it makes stored Telegram sessions undecryptable.
 
-Telegram Harbor deliberately uses its own local authentication instead of Keycloak.
+YARA deliberately uses its own local authentication instead of Keycloak.
 
 ## Web Login Remember Me
 
@@ -166,7 +168,7 @@ The project uses `extra-streamlit-components` for the browser cookie required to
 
 ### Remember Me / CookieManager
 
-Telegram Harbor keeps one CookieManager instance per Streamlit Web session and reuses it across reruns. This prevents `StreamlitDuplicateElementKey` errors caused by registering the same custom component key multiple times in one run.
+YARA keeps one CookieManager instance per Streamlit Web session and reuses it across reruns. This prevents `StreamlitDuplicateElementKey` errors caused by registering the same custom component key multiple times in one run.
 
 `tgcrypto2` is installed by this project's `requirements.txt`. It keeps the import name `tgcrypto`, so it is drop-in compatible with Pyrogram while providing modern Python/Windows wheels. See `docs/DEPENDENCIES.md`.
 
@@ -194,7 +196,7 @@ The YouTube workspace is separate from Telegram message cards.
 
 V1:
 - accepts one public YouTube video URL per job;
-- can optionally route YouTube Inspect and Download through an independent SOCKS5 proxy;
+- can optionally route YouTube Inspect and Download through the same shared Sidebar SOCKS5 proxy used by Telegram;
 - performs an Inspect step before downloading media;
 - supports Video + Audio and Audio-only output;
 - offers Best, max 1080p, max 720p and max 480p quality presets;
@@ -204,7 +206,7 @@ V1:
 - never overwrites an existing output automatically;
 - uses the sanitized video title as the shared media/subtitle basename.
 
-The Save directory belongs to the machine running Telegram Harbor. On a remote deployment it is a server path, not a path on the browser user's computer.
+The Save directory belongs to the machine running YARA. On a remote deployment it is a server path, not a path on the browser user's computer.
 
 For hosted/multi-user deployments, configure optional allowed roots:
 
@@ -214,11 +216,11 @@ YOUTUBE_DOWNLOAD_ROOTS=/srv/telegram-harbor/youtube
 
 Use the platform path separator for multiple roots. The Docker image defaults to `/data/youtube`.
 
-Telegram Harbor shows a rights/service notice and stronger restriction warnings where metadata exposes them. The warning is informational and does not make a legal determination. V1 supports optional signed-in session cookies for otherwise supported videos, but does not implement DRM bypass, paywall bypass, private/member-only/premium-content access, authenticated private-content support, or automatic geo-bypass.
+YARA shows a rights/service notice and stronger restriction warnings where metadata exposes them. The warning is informational and does not make a legal determination. V1 supports optional signed-in session cookies for otherwise supported videos, but does not implement DRM bypass, paywall bypass, private/member-only/premium-content access, authenticated private-content support, or automatic geo-bypass.
 
 FFmpeg and FFprobe are required for full output support.
 
-The YouTube SOCKS5 proxy is configured inside the YouTube workspace and is disabled by default. It does not automatically reuse the Telegram SOCKS5 settings. Proxy credentials remain session-only in the UI and are not persisted by Telegram Harbor.
+SOCKS5 is configured once in the Sidebar and shared by Telegram and YouTube. The default host/port are `127.0.0.1:1080`; optional proxy credentials remain session-only in the UI and are not persisted by YARA.
 
 ## Security
 
@@ -235,7 +237,7 @@ docker compose up -d --build
 
 The container exposes port 8501, runs as a non-root user, persists the database/media cache under `/data`, includes FFmpeg/FFprobe, provides `/data/youtube` as the default allowed YouTube save root, and uses Streamlit's `/_stcore/health` endpoint for its container health check.
 
-See `docs/DEPLOYMENT.md` for Telegram Harbor production deployment guidance.
+See `docs/DEPLOYMENT.md` for YARA production deployment guidance.
 
 
 ## Validation
@@ -247,7 +249,7 @@ For real Telegram/browser acceptance—photo preview, video playback, browser do
 
 ## Dialog cache
 
-Telegram Harbor caches the latest Telegram chat/dialog list in SQLite per Telegram account. Normal application startup reads that cache instead of calling Telegram `messages.GetDialogs` repeatedly.
+YARA caches the latest Telegram chat/dialog list in SQLite per Telegram account. Normal application startup reads that cache instead of calling Telegram `messages.GetDialogs` repeatedly.
 
 - The first uncached load fetches at most `TELEGRAM_DIALOG_LIMIT` dialogs (default: 100).
 - Dialog cache rows persist Pyrogram peer type/access-hash metadata so channel/supergroup peers can be restored after process restart.
@@ -259,7 +261,7 @@ Telegram Harbor caches the latest Telegram chat/dialog list in SQLite per Telegr
 
 ### YouTube authenticated session
 
-Telegram Harbor can optionally reuse a signed-in browser session for YouTube Inspect/Download when the browser profile exists on the same machine and under the same OS user as Telegram Harbor.
+YARA can optionally reuse a signed-in browser session for YouTube Inspect/Download when the browser profile exists on the same machine and under the same OS user as YARA.
 
 - No Google username/password is requested.
 - OAuth is not used.
@@ -268,6 +270,6 @@ Telegram Harbor can optionally reuse a signed-in browser session for YouTube Ins
 - An optional browser profile name/path can be supplied.
 - Browser cookie values are not persisted to SQLite, logs, or validation reports.
 - For Docker/remote deployments, where the user's browser is on another machine, a youtube.com-only Netscape `cookies.txt` upload remains available as a fallback.
-- Authenticated mode can be combined with the independent YouTube SOCKS5 proxy.
+- Authenticated mode can be combined with the shared Sidebar SOCKS5 proxy.
 - Private/member-only/premium/DRM content remains blocked by product policy.
 
