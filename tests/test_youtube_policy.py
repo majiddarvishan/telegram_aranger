@@ -104,7 +104,7 @@ class YouTubePolicyTests(unittest.TestCase):
         self.assertTrue(policy.blocked)
         self.assertEqual(policy.block_code, "login_required")
         self.assertIn("Browser session", policy.block_message)
-        self.assertNotIn("outside Telegram Harbor V1", policy.block_message)
+        self.assertNotIn("outside YARA V1", policy.block_message)
 
     def test_needs_auth_is_allowed_when_authenticated_session_is_configured(self):
         policy = evaluate_download_policy(
