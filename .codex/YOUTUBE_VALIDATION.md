@@ -22,7 +22,7 @@ At the validation-start HEAD, GitHub Actions completed successfully for:
   - warning/policy tests;
   - download-engine tests with fake downloader behavior;
   - YouTube UI smoke/formatting tests;
-  - existing Telegram Harbor regression tests.
+  - existing YARA regression tests.
 - `windows-python314`
   - dependency installation;
   - crypto acceleration;
@@ -97,7 +97,7 @@ Use:
 
 `https://www.youtube.com/watch?v=w2S5Ov-7Mzo`
 
-Runtime accessibility must still be confirmed by Telegram Harbor Inspect at test time. Do not add this or any other live URL to CI.
+Runtime accessibility must still be confirmed by YARA Inspect at test time. Do not add this or any other live URL to CI.
 
 For manual/auto subtitle cases, use public videos where the tester has permission to save the media/captions and where the required track type is visibly reported by Inspect.
 
@@ -339,7 +339,7 @@ Every manual-runner JSON report records a safe environment summary:
 - CPU architecture;
 - Python version;
 - whether the runner detected Docker;
-- Telegram Harbor `VERSION`;
+- YARA `VERSION`;
 - source commit SHA when available.
 
 The report deliberately does **not** record hostname, username, environment variables, credentials or network-interface identity.
@@ -432,7 +432,7 @@ YT-P7 validation now requires:
 - final media size > 0 bytes;
 - requested subtitle/caption size > 0 bytes.
 
-The download engine rejects zero-byte media/subtitle outputs before final acceptance. A zero-byte SRT created by FFmpeg is not treated as a successful conversion; Telegram Harbor falls back to the original non-empty subtitle format instead.
+The download engine rejects zero-byte media/subtitle outputs before final acceptance. A zero-byte SRT created by FFmpeg is not treated as a successful conversion; YARA falls back to the original non-empty subtitle format instead.
 
 
 ### Canonical YouTube URL boundary
@@ -521,7 +521,7 @@ Acceptance:
 
 ### Authenticated-session live validation
 
-Preferred local path: reuse a signed-in browser session on the same host/OS user as Telegram Harbor.
+Preferred local path: reuse a signed-in browser session on the same host/OS user as YARA.
 
 Inspect:
 
