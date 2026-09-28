@@ -28,7 +28,7 @@ def initialize_state():
         "message_auto_latest_chat_id": None,
         "media_files": {},
         "pending_delete_message": None,
-        "use_proxy": True,
+        "use_proxy": False,
         "proxy_host": "127.0.0.1",
         "proxy_port": 1080,
         "proxy_user": "",
