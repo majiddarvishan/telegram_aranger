@@ -406,6 +406,15 @@ class WorkspaceSidebarSmokeTests(unittest.TestCase):
         )
         self.assertIn("return workspace", source)
 
+    def test_shared_proxy_defaults_to_localhost_1080(self):
+        import inspect
+        from ui.sidebar import _on_shared_proxy_toggle
+
+        source = inspect.getsource(_on_shared_proxy_toggle)
+        self.assertIn('"127.0.0.1"', source)
+        self.assertIn("1080", source)
+        self.assertIn("_invalidate_youtube_network_context()", source)
+
     def test_sidebar_owns_workspace_selector(self):
         import inspect
         from ui.sidebar import render_sidebar
@@ -473,4 +482,4 @@ class SidebarWebAccountPolishTests(unittest.TestCase):
         source = inspect.getsource(_render_web_account)
 
         self.assertIn('key="sidebar-web-logout"', source)
-        self.assertIn("use_container_width=False", source)
+        self.assertIn('width="content"', source)
