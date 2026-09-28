@@ -97,7 +97,7 @@ def _render_web_account(settings, user: dict) -> None:
         if st.button(
             "Sign out",
             key="sidebar-web-logout",
-            use_container_width=False,
+            width="content",
         ):
             try:
                 runtime = st.session_state.get("telegram_runtime")
@@ -128,6 +128,19 @@ def _invalidate_youtube_network_context() -> None:
     st.session_state.youtube_inspected_url = ""
 
 
+def _on_shared_proxy_toggle() -> None:
+    if st.session_state.get("use_proxy", False):
+        if not str(st.session_state.get("proxy_host", "") or "").strip():
+            st.session_state.proxy_host = "127.0.0.1"
+        try:
+            port = int(st.session_state.get("proxy_port", 0) or 0)
+        except (TypeError, ValueError):
+            port = 0
+        if not (1 <= port <= 65535):
+            st.session_state.proxy_port = 1080
+    _invalidate_youtube_network_context()
+
+
 def _render_network_settings():
     proxy_tone = "info" if st.session_state.use_proxy else "neutral"
     proxy_label = "Proxy on" if st.session_state.use_proxy else "Proxy off"
@@ -143,8 +156,8 @@ def _render_network_settings():
         st.checkbox(
             "Enable SOCKS5 proxy",
             key="use_proxy",
-            on_change=_invalidate_youtube_network_context,
-            help="Shared by both Telegram and YouTube.",
+            on_change=_on_shared_proxy_toggle,
+            help="Shared by both Telegram and YouTube. Defaults to 127.0.0.1:1080.",
         )
 
         if st.session_state.use_proxy:
@@ -246,7 +259,7 @@ def _render_connected_account_actions(
         if st.button(
             "Refresh chats",
             key="sidebar-refresh-chats",
-            use_container_width=True,
+            width="stretch",
         ):
             st.session_state.dialogs = []
             st.session_state.force_refresh_dialogs = True
@@ -256,7 +269,7 @@ def _render_connected_account_actions(
         if st.button(
             "Add account",
             key="sidebar-add-account-connected",
-            use_container_width=True,
+            width="stretch",
         ):
             _start_login()
             st.rerun()
@@ -273,7 +286,7 @@ def _render_connected_account_actions(
         if st.button(
             "Disconnect",
             key="sidebar-disconnect-telegram",
-            use_container_width=True,
+            width="stretch",
         ):
             disconnect()
             st.session_state.telegram_user = None
@@ -283,7 +296,7 @@ def _render_connected_account_actions(
         if st.button(
             "Log out & remove",
             key="sidebar-logout-telegram",
-            use_container_width=True,
+            width="stretch",
         ):
             try:
                 logout()
@@ -322,7 +335,7 @@ def _render_account_selector(
         if st.sidebar.button(
             "Add Telegram account",
             key="sidebar-add-first-account",
-            use_container_width=True,
+            width="stretch",
         ):
             _start_login()
             st.rerun()
@@ -381,7 +394,7 @@ def _render_account_selector(
         if st.sidebar.button(
             "Add account",
             key="sidebar-add-account-disconnected",
-            use_container_width=True,
+            width="stretch",
         ):
             _start_login()
             st.rerun()
@@ -426,7 +439,7 @@ def _render_telegram_login(settings, user: dict, proxy) -> None:
             )
             submitted = st.form_submit_button(
                 "Send login code",
-                use_container_width=True,
+                width="stretch",
             )
 
         if submitted:
@@ -452,7 +465,7 @@ def _render_telegram_login(settings, user: dict, proxy) -> None:
             code = st.text_input("Telegram code")
             submitted = st.form_submit_button(
                 "Verify code",
-                use_container_width=True,
+                width="stretch",
             )
 
         if submitted:
@@ -501,7 +514,7 @@ def _render_telegram_login(settings, user: dict, proxy) -> None:
             if st.button(
                 "Resend code",
                 key="sidebar-resend-code",
-                use_container_width=True,
+                width="stretch",
             ):
                 try:
                     st.session_state.telegram_phone_code_hash = (
@@ -521,7 +534,7 @@ def _render_telegram_login(settings, user: dict, proxy) -> None:
             if st.button(
                 "Change phone",
                 key="sidebar-change-phone",
-                use_container_width=True,
+                width="stretch",
             ):
                 _reset_login()
                 st.session_state.telegram_login_active = True
@@ -538,7 +551,7 @@ def _render_telegram_login(settings, user: dict, proxy) -> None:
         )
         submitted = st.form_submit_button(
             "Login",
-            use_container_width=True,
+            width="stretch",
         )
 
     if submitted:
