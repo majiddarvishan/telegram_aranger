@@ -222,11 +222,15 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         sidebar_source = Path("ui/sidebar.py").read_text(encoding="utf-8")
         self.assertIn("def _invalidate_youtube_network_context()", sidebar_source)
         self.assertIn('st.session_state.youtube_inspected_url = ""', sidebar_source)
-        self.assertGreaterEqual(
+        self.assertEqual(
             sidebar_source.count(
                 "on_change=_invalidate_youtube_network_context"
             ),
-            5,
+            4,
+        )
+        self.assertIn(
+            "on_change=_on_shared_proxy_toggle",
+            sidebar_source,
         )
 
     def test_browse_uses_pending_state_before_widget_creation(self):
