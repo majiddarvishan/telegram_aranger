@@ -1,8 +1,8 @@
-# برنامه بازطراحی رابط کاربری Telegram Harbor
+# برنامه بازطراحی رابط کاربری YARA
 
 ## هدف
 
-این سند برای بازطراحی بصری Telegram Harbor روی شاخه `gui` تهیه شده است.
+این سند برای بازطراحی بصری YARA روی شاخه `gui` تهیه شده است.
 
 هدف، تغییر رفتار محصول نیست. قابلیت‌های فعلی باید حفظ شوند و تمرکز این مرحله روی موارد زیر است:
 
@@ -53,7 +53,7 @@
    Connected، Warning، Delete، Download، Refresh و Navigation بهتر است hierarchy رنگی مشخصی داشته باشند.
 
 8. **Login/Create Account صفحه‌ای کاربردی اما بدون هویت بصری قوی است.**
-   برند Telegram Harbor در آن حضور دارد، ولی landing/auth experience هنوز ساده است.
+   برند YARA در آن حضور دارد، ولی landing/auth experience هنوز ساده است.
 
 9. **Responsive behavior طراحی‌شده نیست؛ بیشتر سازگار شده است.**
    باید breakpointها و stacking رفتار کنترل‌ها صریح طراحی شوند.
@@ -72,7 +72,7 @@
 - مناسب استفاده طولانی‌مدت؛
 - تمرکز روی محتوا، نه decoration؛
 - الهام از ابزارهای مدرن مدیریت پیام و عملیات؛
-- هویت بصری دریایی Telegram Harbor به‌صورت subtle، نه theme نمایشی.
+- هویت بصری دریایی YARA به‌صورت subtle، نه theme نمایشی.
 
 از gradientهای زیاد، shadowهای سنگین و animationهای تزئینی باید پرهیز شود.
 
@@ -92,7 +92,7 @@
 - `--th-border`: border عمومی
 - `--th-text`: متن اصلی
 - `--th-text-muted`: caption/meta
-- `--th-accent`: رنگ اصلی Telegram Harbor
+- `--th-accent`: رنگ اصلی YARA
 - `--th-accent-soft`: پس‌زمینه accent
 - `--th-success`: connected/success
 - `--th-warning`: warning/fallback/cache state
@@ -148,7 +148,7 @@ Sidebar باید از حالت «فرم تنظیمات طولانی» به «nav
 بالا:
 
 - آیکون Anchor
-- Telegram Harbor
+- YARA
 - version کوچک
 
 Tagline دائمی ضروری نیست و می‌تواند حذف یا بسیار کم‌رنگ شود.
@@ -376,7 +376,7 @@ Login/Create Account می‌تواند بسیار حرفه‌ای‌تر شود.
 یک card مرکزی با max-width حدود 420–480px:
 
 - Anchor mark
-- Telegram Harbor
+- YARA
 - متن کوتاه
 - Login/Create Account tabs
 - فرم
@@ -475,7 +475,7 @@ GUI branch باید تا حد ممکن presentation-only باقی بماند.
 
 هدف: ساخت زیرساخت ظاهری بدون تغییر layout اصلی.
 
-- [ ] ایجاد یک فایل مرکزی style/theme برای Telegram Harbor.
+- [ ] ایجاد یک فایل مرکزی style/theme برای YARA.
 - [ ] تعریف design tokens برای color، spacing، radius، border، shadow و text.
 - [ ] حذف CSS پراکنده از `ui/main.py` و انتقال به style layer.
 - [ ] ایجاد helperهای reusable برای badge/status/chip/section title در حدی که Streamlit اجازه می‌دهد.
