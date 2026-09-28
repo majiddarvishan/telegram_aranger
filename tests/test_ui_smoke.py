@@ -408,6 +408,17 @@ class SharedProxyDefaultsTests(unittest.TestCase):
         self.assertIn('"proxy_port": 1080', state_source)
 
 
+    def test_network_settings_normalize_defaults_before_widgets(self):
+        import inspect
+        from ui.sidebar import _render_network_settings
+
+        source = inspect.getsource(_render_network_settings)
+        normalize_index = source.index("_ensure_shared_proxy_defaults()")
+        checkbox_index = source.index("st.checkbox(")
+
+        self.assertLess(normalize_index, checkbox_index)
+
+
 class WorkspaceSidebarSmokeTests(unittest.TestCase):
     def test_youtube_workspace_keeps_shared_network_controls(self):
         import inspect
