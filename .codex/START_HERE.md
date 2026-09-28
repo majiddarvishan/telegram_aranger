@@ -1,99 +1,146 @@
 # START HERE
 
-## Repository
-- Repository: `majiddarvishan/telegram_aranger`
-- Current working branch: `feature/youtube-download`
-- Current phase status: YouTube V1 implementation and automated readiness hardening are substantially complete. The latest confirmed full-green checkpoint during this handoff is `e85a2a087419280b9dce0f61a1ad1d305498ac22`. Newer hardening exists after that checkpoint and branch HEAD must always be re-checked before edits. One shared Sidebar SOCKS5 configuration is used by both Telegram and YouTube; Browser Session-first YouTube authentication (with cookies.txt fallback) is implemented. Remaining product acceptance is manual YT-P5 Light/Dark/narrow review, YT-P7 real YouTube/Windows/Docker/UI validation, real SOCKS5 Inspect/Download validation, and final merge/release review.
-- Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`.
-- Latest confirmed full-green YouTube checkpoint in this handoff: `e85a2a087419280b9dce0f61a1ad1d305498ac22`.
-- Handoff HEAD after additional hardening: `8b1e39a4d23e9d2a666843100a4cfd9309c35ee1` (re-check GitHub because the branch may advance again).
-- The completed `gui` branch is already merged into `main`.
+## Repository / source of truth
+- Product: **YARA — Your Archive & Retrieval Assistant**
+- Repository: `majiddarvishan/yara`
+- Source-of-truth branch: `main`
+- Current main HEAD at this handoff: `0934e67401e078bc57f0f4acddffd1f72bf6a768`
+- Merge commit: `Merge feature/youtube-download into main`
+- Former feature branch `feature/youtube-download` is already merged and is behind `main`; do not continue new work on it.
+- Latest confirmed CI on the merged/rename line is green. Re-check HEAD and Actions before editing because the repository may advance after this handoff.
 
-## What the project is
-**YARA** is a modular Streamlit Telegram message and media manager using Pyrogram.
+## Product identity
+YARA is the new permanent product name.
 
-It provides:
-- local multi-user Web authentication;
-- persistent Remember Me sessions;
+Expansion:
+**YARA = Your Archive & Retrieval Assistant**
+
+Repository rename is complete:
+- old: `majiddarvishan/telegram_aranger`
+- current: `majiddarvishan/yara`
+
+Persisted compatibility identifiers may still intentionally contain older names (for example existing database/preferences/build env identifiers) when changing them would break existing installations. Do not rename persisted identifiers blindly.
+
+## Logo decision
+The user selected the dark YARA artwork with:
+- central circular YARA wordmark;
+- Persian `یارا`;
+- dark navy/black background;
+- cyan/purple circuit/network accents.
+
+The image was supplied in ChatGPT and is the approved visual logo.
+
+Important status:
+- repository/product rename is complete;
+- the selected binary logo is **not present in the Git tree at this handoff**;
+- GitHub repository Social Preview / repository image still needs the approved image to be uploaded through GitHub UI or another binary-capable workflow;
+- the current GitHub connector can edit UTF-8 repository files but cannot upload this binary image or mutate GitHub Social Preview settings.
+Do not invent a different logo. Reuse the user-approved artwork if the user supplies/accesses it again.
+
+## Current major capabilities
+### Telegram
+- local Web authentication + Remember Me;
 - multiple Telegram accounts per Web user;
-- encrypted Telegram session storage;
-- private/group/supergroup/channel browsing;
-- date-range history with Load More pagination;
-- text search over loaded messages;
-- chat-scoped local tags;
-- Telegram message deletion with confirmation;
-- lazy photo preview;
-- inline video/video-note/animation playback;
-- browser video download;
-- interrupted-media recovery and explicit re-download;
-- SQLite persistence and schema migrations;
-- structured JSON logging;
-- Docker/Compose deployment;
-- automated GitHub Actions regression tests.
+- encrypted Pyrogram session storage;
+- Saved Messages/private/group/supergroup/channel browsing;
+- cached dialogs + persisted peer metadata;
+- date-range history + Load More;
+- local search and chat-scoped tags;
+- delete confirmation;
+- photo preview;
+- inline video/video-note/animation/audio/voice playback;
+- browser media download and interrupted-download recovery;
+- shared SOCKS5 proxy;
+- SQLite persistence, migrations, backup/restore;
+- Docker/Compose and GitHub Actions.
 
-The product name is **YARA** — **Your Archive & Retrieval Assistant**. The GitHub repository name remains `telegram_aranger` for compatibility.
+### YouTube
+YouTube is an independent workspace and the feature has been merged into `main`.
 
-## Current implementation status
-Completed:
-- P0 correctness fixes.
-- P1 media feature.
-- P1 regression/security hardening.
-- P2 performance/data lifecycle work.
-- P3 operations/UX work.
-- Docker build + Streamlit health check in CI.
-- Full automated regression suite in GitHub Actions.
+Implemented:
+- Inspect before download;
+- normalized metadata/formats/subtitles;
+- yt-dlp service abstraction;
+- FFmpeg/FFprobe integration;
+- Deno-compatible JavaScript challenge solving (Deno is required/recommended for the current YouTube flow on Windows);
+- optional Browser Session auth;
+- validated youtube.com-only Netscape `cookies.txt` fallback;
+- one shared Sidebar SOCKS5 configuration for Telegram + YouTube;
+- video+audio, audio-only, subtitle-only;
+- exact per-format download actions;
+- subtitle language selection inside the per-row Download menu;
+- cancellable background download job;
+- title-based non-overwriting output names;
+- Save-directory validation, native folder picker and remembered path;
+- normalized progress, errors and policy/rights acknowledgement.
 
-Validation status:
-- real Telegram/browser media validation has been completed successfully with no issues reported.
-- automated GitHub Actions regression and Docker health checks are green.
+## Recent YouTube UX fixes that require manual re-check
+Automated tests are green, but these specific items came from real Windows/UI feedback and should be manually re-verified before release:
 
-`docs/MANUAL_TESTING.md` remains the repeatable acceptance checklist for future regressions.
+1. **Shared SOCKS5 defaults**
+   - one proxy control in Sidebar for Telegram + YouTube;
+   - when enabled and values are empty/invalid, visible defaults must be `127.0.0.1` and `1080`.
+2. **Save-directory Browse**
+   - must not raise `StreamlitWidgetAlreadyInstantiatedError`;
+   - selected folder is applied on the next rerun using pending state;
+   - default is the OS user's Downloads folder;
+   - changed path persists across restart.
+3. **Inspect stale error**
+   - a previous `YouTube URL is required`/Inspect error must clear when a new Inspect starts or URL changes;
+   - old error must not remain under a successful/new inspection.
+4. **Formats table**
+   - do not truncate formats (no `formats[:40]`);
+   - video formats must remain visible;
+   - column header remains outside the scrollable rows so it stays visible while scrolling;
+   - each row has one `Download` popover/menu.
+5. **Per-row actions**
+   - menu contains `Video + Audio`, `Audio`, and `Subtitle`;
+   - invalid actions are disabled for that row;
+   - Subtitle offers language selection inside the menu before download.
+6. **Removed redundant controls**
+   - no standalone subtitle/caption metadata table in the main flow;
+   - no global Output radio / Quality dropdown / global subtitle checkbox / global Download button.
+7. **Cancel download**
+   - active download exposes Cancel;
+   - cancellation should stop safely and clean partial job state.
+8. **Streamlit API cleanup**
+   - touched UI uses `width="stretch"` / `width="content"` instead of deprecated `use_container_width`.
 
-## Read order for future work
-1. `.codex/NEXT_CHAT_PROMPT.md`
-2. `.codex/YOUTUBE_PLAN.md`
-3. `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
-4. `.codex/PROJECT_CONTEXT.md`
-5. `.codex/ARCHITECTURE.md`
-6. `.codex/DECISIONS.md`
-7. `.codex/TASKS.md`
-8. `.codex/SESSION.md`
+## YouTube environment learned from live Windows testing
+Known working local stack during validation:
+- Windows 11;
+- Python 3.14.7;
+- yt-dlp stable 2026.08.19;
+- FFmpeg/FFprobe 9.0.2;
+- Deno 2.9.7;
+- SOCKS5 example `127.0.0.1:1080`;
+- authenticated YouTube account cookies via `cookies.txt` worked with yt-dlp once Deno was available.
+
+Chrome Browser Session on Windows hit Chromium cookie-encryption issues:
+- first cookie DB lock;
+- then `Failed to decrypt with DPAPI` / App-Bound encryption.
+Therefore do not assume Chrome browser-cookie extraction is reliable on current Windows Chromium versions. `cookies.txt` remains an important fallback.
+
+## Read order in a new session
+1. `.codex/START_HERE.md`
+2. `.codex/NEXT_CHAT_PROMPT.md`
+3. `.codex/PROJECT_CONTEXT.md`
+4. `.codex/DECISIONS.md`
+5. `.codex/TASKS.md`
+6. `.codex/SESSION.md`
+7. `.codex/YOUTUBE_PLAN.md`
+8. `.codex/YOUTUBE_VALIDATION.md`
 9. `docs/MANUAL_TESTING.md`
-10. `.codex/GUI_PLAN.md`
 
-## Important rules
-- Work on `feature/youtube-download` for this feature until the user explicitly requests merge/switch.
-- The user explicitly approved implementation. YT-P1 through YT-P6 are implemented. Do not repeat them; continue with the remaining YT-P5 visual review and YT-P7 manual/live validation unless the user changes priority.
-- Re-fetch branch HEAD before editing; do not assume these notes are newer than Git.
-- Never commit Telegram API credentials, Fernet keys, session strings, phone codes, 2FA passwords, proxy passwords, browser remember tokens, SQLite data files, downloaded media, or backup artifacts.
-- Preserve Web-user ownership checks for Telegram accounts and chat-scoped identity for tags/media.
-- Database schema changes must increment/handle schema version and preserve existing data.
-- Horizontal multi-instance deployment is not supported by the current local SQLite/runtime/cache architecture.
-- Do not silently replace Pyrogram; its archived upstream status is documented and any replacement needs explicit session/behavior compatibility work.
-
-## Local run
-
-```bash
-git checkout feature/youtube-download
-python -m venv .venv
-# activate the virtual environment
-pip install -r requirements.txt
-cp .env.example .env
-# fill TELEGRAM_API_ID, TELEGRAM_API_HASH and TELEGRAM_SESSION_ENCRYPTION_KEY
-streamlit run app.py
-```
-
-Generate a Fernet key:
-
-```bash
-python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
-```
-
-## Docker run
-
-```bash
-docker compose up -d --build
-docker compose ps
-```
-
-See `docs/DEPLOYMENT.md`, `docs/SECURITY.md`, `docs/SCALING.md`, and `docs/BACKUP_RESTORE.md`.
+## Rules for future work
+- Start from current `main`; re-fetch HEAD first.
+- Do **not** use the already-merged `feature/youtube-download` as the base for new work.
+- For code changes, create a fresh branch from current `main` unless the user explicitly says to work directly on main.
+- Never merge to `main` unless the user explicitly requests it.
+- Keep YouTube behind the service abstraction; UI must not import yt-dlp directly.
+- Keep Telegram and YouTube on one shared Sidebar SOCKS5 configuration.
+- Do not persist proxy passwords or YouTube cookie contents.
+- Do not implement DRM/paywall/private/member access-control bypass.
+- CI must remain free of live YouTube network calls.
+- Do not mark live/manual acceptance complete from CI alone.
+- Update `.codex/TASKS.md` and `.codex/SESSION.md` after meaningful work.
