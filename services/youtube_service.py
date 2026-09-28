@@ -331,7 +331,7 @@ def materialize_youtube_cookie_file(
 
     data = auth.normalized_cookie_bytes()
     fd, path = tempfile.mkstemp(
-        prefix=".telegram-harbor-youtube-auth-",
+        prefix=".yara-youtube-auth-",
         suffix=".txt",
     )
     try:
@@ -665,7 +665,7 @@ def inspect_video(
 
 
 def normalize_metadata(raw: Mapping[str, Any]) -> dict[str, Any]:
-    """Normalize yt-dlp-shaped metadata into the Telegram Harbor service contract."""
+    """Normalize yt-dlp-shaped metadata into the YARA service contract."""
     formats = normalize_formats(raw.get("formats"))
     subtitles = normalize_subtitle_tracks(
         raw.get("subtitles"),
@@ -925,19 +925,19 @@ def normalize_downloader_error(error: Exception) -> YouTubeServiceError:
         (
             ("private video", "this video is private"),
             "private_content",
-            "This video is private and is outside Telegram Harbor V1.",
+            "This video is private and is outside YARA V1.",
             True,
         ),
         (
             ("members-only", "members only", "join this channel"),
             "members_only",
-            "This video requires channel membership and is outside Telegram Harbor V1.",
+            "This video requires channel membership and is outside YARA V1.",
             True,
         ),
         (
             ("drm", "digital rights management"),
             "drm_protected",
-            "This video is DRM-protected and cannot be downloaded by Telegram Harbor.",
+            "This video is DRM-protected and cannot be downloaded by YARA.",
             True,
         ),
         (
