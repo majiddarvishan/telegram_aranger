@@ -1,4 +1,4 @@
-# NEXT CHAT PROMPT — Telegram Harbor / YouTube Download
+# NEXT CHAT PROMPT — YARA / YouTube Download
 
 Use the following prompt in a new ChatGPT conversation:
 
@@ -8,7 +8,7 @@ We are continuing work on the private GitHub repository:
 
 `majiddarvishan/telegram_aranger`
 
-Project name: **Telegram Harbor**
+Project name: **YARA**
 
 Work on branch:
 
@@ -30,7 +30,7 @@ Important: implementation has been explicitly approved. YT-P1 through YT-P6 and 
 
 Confirmed YouTube V1 requirements:
 
-- Add YouTube download as an **independent workspace** inside Telegram Harbor, separate from Telegram message cards.
+- Add YouTube download as an **independent workspace** inside YARA, separate from Telegram message cards.
 - V1 handles a **single public YouTube video URL** per job.
 - First perform **Inspect** / metadata retrieval without downloading media.
 - Show title, channel/uploader, thumbnail, duration, video ID, availability/restriction signals, formats/quality information, estimated size when available, and subtitle/caption tracks.
@@ -39,7 +39,7 @@ Confirmed YouTube V1 requirements:
   - Audio-only download.
   - Simple quality presets such as Best, max 1080p, max 720p, max 480p.
 - User must explicitly provide the **Save directory**.
-- On local installation the path is on the local machine running Telegram Harbor.
+- On local installation the path is on the local machine running YARA.
 - On remote/server deployment the path belongs to the server host, not the browser client; the UI must say this clearly.
 - Hosted/multi-user deployments should support configured allowed roots so users cannot write to arbitrary server locations.
 - Validate and normalize the save path, verify it is writable, prevent path traversal/output escape, and handle Windows/Linux paths.
