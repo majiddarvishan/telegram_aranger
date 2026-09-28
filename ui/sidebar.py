@@ -291,7 +291,7 @@ def _render_connected_account_actions(
     ):
         st.caption(
             "Disconnect keeps this account saved. "
-            "Log out removes it from Telegram Harbor."
+            "Log out removes it from YARA."
         )
 
         if st.button(
