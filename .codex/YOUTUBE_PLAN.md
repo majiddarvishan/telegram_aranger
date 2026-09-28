@@ -14,7 +14,7 @@ Latest confirmed full-green readiness checkpoint in this handoff: `c33bb39ebfd46
 
 ## Confirmed user requirements
 
-- Add YouTube download capability to Telegram Harbor.
+- Add YouTube download capability to YARA.
 - Ask the user for the save location.
 - Support optional subtitle download.
 - Keep the saved media filename based on the sanitized YouTube video title.
@@ -48,7 +48,7 @@ V1 uses a required filesystem path field.
 
 Important:
 - On a local installation, this is the user's local machine path.
-- On a remotely hosted installation, this is a path on the host running Telegram Harbor.
+- On a remotely hosted installation, this is a path on the host running YARA.
 - UI must state this explicitly.
 - A browser-native directory picker is deferred because Streamlit does not provide one as a stable built-in abstraction for arbitrary local filesystem write access.
 
@@ -73,7 +73,7 @@ V1 behavior:
 - Existing Telegram media cache must not be silently reused for YouTube downloads.
 - Save-path handling must be isolated in filesystem utilities.
 - Support optional authenticated YouTube sessions.
-- Prefer local browser-session cookies when Telegram Harbor and the browser run on the same host/user.
+- Prefer local browser-session cookies when YARA and the browser run on the same host/user.
 - Keep a youtube.com-only `cookies.txt` fallback for Docker/remote deployments.
 - Support an optional independent YouTube SOCKS5 proxy.
 - Do not collect Google username/password or use YouTube OAuth.
@@ -216,7 +216,7 @@ When continuing this feature in another ChatGPT conversation:
 - Implementation is active on this branch after explicit user approval.
 - YT-P1 through YT-P6 are implemented; do not re-implement them. Continue from remaining YT-P5 visual review and YT-P7 manual/live validation unless the user changes priority.
 - Read this file and `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md` before proposing changes.
-- Preserve existing Telegram Harbor behavior and architecture.
+- Preserve existing YARA behavior and architecture.
 - Continue implementation phase-by-phase from the next incomplete YouTube phase.
 - Keep each YouTube phase separately reviewable and update `.codex/TASKS.md` / `.codex/SESSION.md` as work progresses.
 - Do not merge to `main` unless the user explicitly asks.
