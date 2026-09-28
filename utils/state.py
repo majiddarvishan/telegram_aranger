@@ -52,6 +52,7 @@ def initialize_state():
             "youtube_save_directory",
             default_download_directory(),
         ),
+        "youtube_pending_save_directory": None,
         "youtube_create_directory": False,
         "youtube_acknowledged": False,
         "youtube_use_auth": False,
