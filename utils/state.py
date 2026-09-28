@@ -44,10 +44,6 @@ def initialize_state():
         "youtube_error": None,
         "youtube_download_result": None,
         "youtube_download_job": None,
-        "youtube_mode": "Video + Audio",
-        "youtube_quality_key": "best",
-        "youtube_subtitles_enabled": False,
-        "youtube_subtitle_index": 0,
         "youtube_save_directory": load_preference(
             "youtube_save_directory",
             default_download_directory(),
