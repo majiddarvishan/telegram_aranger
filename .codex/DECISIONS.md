@@ -1,6 +1,6 @@
 # Decisions / Observed Design Choices
 
-These are the current implementation/architecture decisions for **Telegram Harbor** on `main`. Update this file when the user changes a requirement or a later phase supersedes one.
+These are the current implementation/architecture decisions for **YARA** on `main`. Update this file when the user changes a requirement or a later phase supersedes one.
 
 ## D-001 — Streamlit is the application shell
 Status: current
@@ -107,10 +107,10 @@ Status: current
 
 The supported container model is a single non-root Streamlit instance with persistent state under /data and health checking through Streamlit /_stcore/health. Telegram connectivity is user/session-specific and is not part of process readiness.
 
-## D-021 — Product name is Telegram Harbor
+## D-021 — Product name is YARA
 Status: current
 
-The product is named **Telegram Harbor** and behaves as a general Telegram message/media manager for private chats, groups, supergroups, channels, and Saved Messages.
+The product is named **YARA** and behaves as a general Telegram message/media manager for private chats, groups, supergroups, channels, and Saved Messages.
 
 The GitHub repository name remains `telegram_aranger` for now. Persisted compatibility identifiers such as the existing cookie name, default database filename, and Docker volume name are intentionally retained to avoid breaking login persistence or hiding existing data.
 
@@ -140,14 +140,14 @@ Status: implemented on `feature/youtube-download`
 
 V1 requires the user to provide a filesystem save directory before download.
 
-On a local installation this is a path on the local machine. On a remotely hosted installation this path belongs to the host running Telegram Harbor, not the browser client. The UI must state this clearly.
+On a local installation this is a path on the local machine. On a remotely hosted installation this path belongs to the host running YARA, not the browser client. The UI must state this clearly.
 
 Hosted/multi-user deployments should support configured allowed roots so Web users cannot write to arbitrary server paths.
 
 ## D-027 — Rights/service warning is informational, not a legal determination
 Status: implemented in policy layer on `feature/youtube-download`
 
-Telegram Harbor cannot reliably determine copyright ownership from YouTube metadata. V1 therefore:
+YARA cannot reliably determine copyright ownership from YouTube metadata. V1 therefore:
 - always presents a concise rights/service notice;
 - may show stronger warnings when metadata/downloader state indicates restrictions;
 - requires explicit user acknowledgement before download;
@@ -207,7 +207,7 @@ Status: implemented in filesystem layer on `feature/youtube-download`
 
 Automatic overwrite is not the default.
 
-If the target basename already exists, Telegram Harbor chooses one collision suffix for the whole output group and applies it consistently.
+If the target basename already exists, YARA chooses one collision suffix for the whole output group and applies it consistently.
 
 Example:
 - `My Video (2).mp4`
@@ -219,7 +219,7 @@ This preserves the requirement that media and subtitle files remain obviously pa
 ## D-034 — SOCKS5 is shared by Telegram and YouTube
 Status: implemented on `feature/youtube-download`
 
-Telegram Harbor exposes one SOCKS5 configuration in the Sidebar under `Network & proxy`.
+YARA exposes one SOCKS5 configuration in the Sidebar under `Network & proxy`.
 
 The shared proxy contract:
 - one enable/disable switch and one host/port/optional username/password set;
@@ -237,11 +237,11 @@ This proxy support is ordinary network routing only. It does not enable DRM, pri
 ## D-035 — YouTube authentication prefers local browser session
 Status: implemented on `feature/youtube-download`
 
-YouTube authenticated access is cookie-session based. Telegram Harbor does not collect Google username/password and does not implement YouTube OAuth.
+YouTube authenticated access is cookie-session based. YARA does not collect Google username/password and does not implement YouTube OAuth.
 
 Preferred local mode:
 - use yt-dlp's supported browser-cookie integration;
-- browser profile must exist on the same host and under the same OS user as Telegram Harbor;
+- browser profile must exist on the same host and under the same OS user as YARA;
 - UI offers Auto plus explicit supported browsers and an optional profile field;
 - Auto checks only standard browser-profile locations before an explicit authenticated operation;
 - no browser cookie values are persisted to SQLite, logs, or validation reports.
