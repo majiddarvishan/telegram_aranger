@@ -2286,3 +2286,58 @@ Applied:
 - historical session notes that describe the former Telegram Harbor branding remain historical records and should not be interpreted as the current product name.
 
 Branch remains `feature/youtube-download`; no merge to `main` was performed.
+
+
+## 2026-09-29 — YARA repository rename, merge and new-chat handoff
+
+Final repository/product state:
+- product name: **YARA**;
+- expansion: **Your Archive & Retrieval Assistant**;
+- GitHub repository renamed from `majiddarvishan/telegram_aranger` to `majiddarvishan/yara`;
+- YouTube feature merged into `main`;
+- merge commit: `0934e67401e078bc57f0f4acddffd1f72bf6a768`;
+- the former `feature/youtube-download` branch is an ancestor of main and should not be used for new work;
+- future code changes should start from current main on a fresh branch unless the user says otherwise.
+
+Recent real Windows/YouTube findings preserved for future sessions:
+- yt-dlp 2026.08.19 + FFmpeg/FFprobe 9.0.2 + Deno 2.9.7 successfully solved YouTube JavaScript challenges;
+- authenticated youtube.com `cookies.txt` plus SOCKS5 `127.0.0.1:1080` worked in direct yt-dlp testing;
+- Chrome Browser Session on Windows first hit cookie DB locking and then DPAPI/App-Bound cookie decryption failure, so `cookies.txt` remains an important fallback;
+- a missing JS runtime caused `n challenge solving failed` / `The page needs to be reloaded`; installing Deno fixed that test without adding a PO Token provider.
+
+Recent UI corrections already implemented with automated coverage:
+- one shared Sidebar SOCKS5 configuration for Telegram + YouTube;
+- default shared proxy normalization to `127.0.0.1:1080` when enabled with blank/invalid values;
+- all inspected formats shown with no first-40 truncation;
+- format header outside the scrollable rows so it remains visible;
+- one Download popover per format row;
+- Video + Audio / Audio / Subtitle actions inside the menu;
+- subtitle language selection inside the row menu;
+- redundant global Output/Quality/subtitle controls and standalone subtitle/caption table removed;
+- cancellable background downloads;
+- native Save-directory Browse uses pending state so widget state is not modified after instantiation;
+- stale Inspect feedback is cleared/reset on URL change/new Inspect;
+- touched Streamlit controls migrated from deprecated `use_container_width` to `width`.
+
+Manual acceptance still required:
+- proxy defaults on real Windows UI;
+- native Browse + persistence after restart;
+- stale error clearing;
+- format header/menu/language flow;
+- live Cancel;
+- live per-format video/audio/subtitle actions.
+
+Branding/logo:
+- user approved the dark YARA artwork with central YARA wordmark, Persian `یارا`, and cyan/purple circuit/network background;
+- repository rename is complete;
+- the binary artwork is not currently present in the Git tree and GitHub Social Preview still needs the approved image uploaded using GitHub UI or another binary-capable workflow;
+- do not substitute a different logo without user approval.
+
+Handoff docs refreshed on main:
+- `.codex/START_HERE.md`
+- `.codex/NEXT_CHAT_PROMPT.md`
+- `.codex/PROJECT_CONTEXT.md`
+- `.codex/DECISIONS.md`
+- `.codex/TASKS.md`
+- `.codex/YOUTUBE_PLAN.md`
+- this `.codex/SESSION.md`
