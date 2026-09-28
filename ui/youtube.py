@@ -762,18 +762,23 @@ def render_youtube(settings) -> None:
         on_change=_invalidate_youtube_inspection,
     )
 
+    inspect_feedback = st.empty()
+
     if st.button("Inspect", key="youtube-inspect", type="primary"):
         st.session_state.youtube_error = None
         st.session_state.youtube_metadata = None
         st.session_state.youtube_download_result = None
         st.session_state.youtube_acknowledged = False
+        st.session_state.youtube_inspected_url = ""
+
         try:
-            with st.spinner("Inspecting YouTube metadata…"):
-                metadata = inspect_video(
-                    url,
-                    proxy=_youtube_proxy_config(),
-                    auth=_youtube_auth_config(),
-                )
+            with inspect_feedback.container():
+                with st.spinner("Inspecting YouTube metadata…"):
+                    metadata = inspect_video(
+                        url,
+                        proxy=_youtube_proxy_config(),
+                        auth=_youtube_auth_config(),
+                    )
         except YouTubeServiceError as exc:
             st.session_state.youtube_error = exc.as_dict()
         except Exception:
@@ -787,13 +792,17 @@ def render_youtube(settings) -> None:
             st.session_state.youtube_metadata = metadata
             st.session_state.youtube_inspected_url = url.strip()
 
-    error = st.session_state.get("youtube_error")
-    if error:
-        st.error(error.get("message") or "YouTube inspection failed.")
+        inspect_feedback.empty()
 
+    error = st.session_state.get("youtube_error")
     metadata = st.session_state.get("youtube_metadata")
-    if not isinstance(metadata, Mapping):
-        st.info(
+
+    if error:
+        inspect_feedback.error(
+            error.get("message") or "YouTube inspection failed."
+        )
+    elif not isinstance(metadata, Mapping):
+        inspect_feedback.info(
             "Inspect a public YouTube video first. No media is downloaded during "
             "the Inspect step."
         )
