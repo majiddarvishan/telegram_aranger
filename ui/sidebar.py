@@ -147,6 +147,11 @@ def _on_shared_proxy_toggle() -> None:
 
 
 def _render_network_settings():
+    # Normalize legacy/blank proxy state before any proxy widget is instantiated.
+    # This guarantees the visible defaults are 127.0.0.1:1080 when enabled,
+    # while preserving any valid values the user has already chosen.
+    _ensure_shared_proxy_defaults()
+
     proxy_tone = "info" if st.session_state.use_proxy else "neutral"
     proxy_label = "Proxy on" if st.session_state.use_proxy else "Proxy off"
 
