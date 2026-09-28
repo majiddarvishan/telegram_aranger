@@ -110,7 +110,7 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         self.assertIn('key="youtube-thumbnail"', source)
         self.assertIn('key="youtube-metadata-metrics"', source)
-        self.assertIn('key="youtube-output-controls"', source)
+        self.assertNotIn('key="youtube-output-controls"', source)
         self.assertIn('key="youtube-save-controls"', source)
         self.assertIn('width="stretch"', source)
         self.assertNotIn("use_container_width=", source)
@@ -269,17 +269,44 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn('"Video + Audio"', source)
         self.assertIn('"Audio"', source)
         self.assertIn('"Subtitle"', source)
+        self.assertIn('"Subtitle language"', source)
+        self.assertIn("subtitle_label=subtitle_label", source)
         self.assertNotIn("formats[:40]", source)
+        self.assertNotIn('"Output"', source)
+        self.assertNotIn('"Quality"', source)
+        self.assertNotIn(
+            '"Download one subtitle / caption track"',
+            source,
+        )
         self.assertIn("format_id=format_id", source)
         self.assertIn("download_subtitle", source)
         self.assertIn('"youtube_download_job": None', state_source)
+
+    def test_subtitle_language_is_selected_inside_each_download_menu(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+
+        renderer_start = source.index("def _render_format_downloads(")
+        renderer_end = source.index(
+            "\n\ndef _start_download(",
+            renderer_start,
+        )
+        renderer = source[renderer_start:renderer_end]
+
+        self.assertIn('"Subtitle language"', renderer)
+        self.assertIn("labels = [_subtitle_label(track)", renderer)
+        self.assertIn("subtitle_label = st.selectbox(", renderer)
+        self.assertIn("subtitle_label=subtitle_label", renderer)
+        self.assertNotIn(
+            "Subtitle track used by Download → Subtitle",
+            renderer,
+        )
 
     def test_ui_contains_v1_safety_and_progress_contract(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         self.assertIn("Save directory", source)
         self.assertIn("server host", source)
         self.assertIn("rights/service notice", source)
-        self.assertIn("Subtitle / caption tracks", source)
+        self.assertNotIn("Subtitle / caption tracks", source)
         self.assertIn("st.progress", source)
         self.assertIn("FFmpeg and FFprobe", source)
 
