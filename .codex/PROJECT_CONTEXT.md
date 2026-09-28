@@ -1,7 +1,7 @@
 # Project Context
 
 ## Product purpose
-**Telegram Harbor** is a local/self-hosted Streamlit Telegram message and media manager using Pyrogram.
+**YARA** is a local/self-hosted Streamlit Telegram message and media manager using Pyrogram.
 
 The product supports Saved Messages plus private chats, groups, supergroups, and channels. The GitHub repository remains `majiddarvishan/telegram_aranger` for compatibility/history.
 
@@ -193,7 +193,7 @@ Real Telegram/browser validation has been completed successfully with no issues 
 
 ## Pyrogram peer persistence
 - Exported Pyrogram session strings contain authentication/session data but do not contain Pyrogram's peer cache.
-- Telegram Harbor therefore persists peer metadata with each dialog-cache snapshot:
+- YARA therefore persists peer metadata with each dialog-cache snapshot:
   - canonical Pyrogram peer ID;
   - peer type;
   - access hash where required;
@@ -205,10 +205,10 @@ Real Telegram/browser validation has been completed successfully with no issues 
 
 
 ## Automatic empty-range fallback
-- When a chat is selected for the first time in the current UI session, Telegram Harbor first tries the currently selected date range.
+- When a chat is selected for the first time in the current UI session, YARA first tries the currently selected date range.
 - If that range contains no messages and the Telegram request itself succeeded, the app fetches only the newest `default_message_limit` messages for that chat.
 - The visible Date range is then synchronized to the oldest/newest dates represented by that latest-message batch.
-- The fallback is one-shot per chat selection. If the user later manually chooses an empty range, Telegram Harbor preserves that choice instead of jumping away from it.
+- The fallback is one-shot per chat selection. If the user later manually chooses an empty range, YARA preserves that choice instead of jumping away from it.
 - The startup/default chat remains Saved Messages when it is available.
 
 
@@ -238,9 +238,9 @@ Real Telegram/browser validation has been completed successfully with no issues 
 - Collision suffixes are applied to the complete output group so paired files remain aligned.
 - UI should show a general copyright/service notice and stronger restriction warnings where signals exist.
 - Warning remains non-blocking for ordinarily accessible public content after acknowledgement.
-- YouTube supports optional Browser Session authentication on local installs, with a youtube.com-only `cookies.txt` fallback for Docker/remote deployments. Browser/account cookie values are never persisted by Telegram Harbor.
+- YouTube supports optional Browser Session authentication on local installs, with a youtube.com-only `cookies.txt` fallback for Docker/remote deployments. Browser/account cookie values are never persisted by YARA.
 - Telegram and YouTube share one optional SOCKS5 configuration in the Sidebar. The same host/port/optional username/password route is used for Telegram and for YouTube Inspect/Download; YouTube does not have a duplicate proxy panel.
-- YouTube also supports optional session-only cookie authentication via a validated Netscape-format `cookies.txt`. Telegram Harbor does not request Google username/password, does not use OAuth, does not persist cookie content, and removes the temporary cookie file after each operation.
+- YouTube also supports optional session-only cookie authentication via a validated Netscape-format `cookies.txt`. YARA does not request Google username/password, does not use OAuth, does not persist cookie content, and removes the temporary cookie file after each operation.
 - V1 does not include DRM/paywall/private/member-only/login-protection bypass.
 - V1 does not include playlists, channels, browser-cookie import, batch queues, scheduling, automatic geo-bypass, or multiple subtitle languages in one job.
 - FFmpeg is an expected operational dependency for merging/extraction.
