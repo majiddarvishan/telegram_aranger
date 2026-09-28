@@ -238,7 +238,7 @@ def download_video(
     successful = False
     try:
         with tempfile.TemporaryDirectory(
-            prefix=".telegram-harbor-youtube-",
+            prefix=".yara-youtube-",
             dir=save_directory,
         ) as temp_root:
             temp_directory = Path(temp_root)
@@ -653,7 +653,7 @@ def download_subtitle(
     final_group: OutputGroup | None = None
     try:
         with tempfile.TemporaryDirectory(
-            prefix=".telegram-harbor-youtube-",
+            prefix=".yara-youtube-",
             dir=save_directory,
         ) as temp_root:
             temp_directory = Path(temp_root)
