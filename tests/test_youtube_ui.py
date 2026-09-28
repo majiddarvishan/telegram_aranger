@@ -337,6 +337,15 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
             renderer,
         )
 
+    def test_inspect_feedback_replaces_stale_error_during_retry(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+
+        self.assertIn("inspect_feedback = st.empty()", source)
+        self.assertIn("with inspect_feedback.container():", source)
+        self.assertIn("inspect_feedback.empty()", source)
+        self.assertIn("inspect_feedback.error(", source)
+        self.assertIn("inspect_feedback.info(", source)
+
     def test_ui_contains_v1_safety_and_progress_contract(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
         self.assertIn("Save directory", source)
