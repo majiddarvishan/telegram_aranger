@@ -109,7 +109,7 @@ def validate_save_directory(
     if not candidate.is_absolute():
         raise DownloadPathError(
             "save_directory_not_absolute",
-            "Save directory must be an absolute path on the Telegram Harbor host.",
+            "Save directory must be an absolute path on the YARA host.",
         )
 
     try:
@@ -247,7 +247,7 @@ def _verify_directory_writable(directory: Path) -> None:
     try:
         with tempfile.NamedTemporaryFile(
             dir=directory,
-            prefix=".telegram-harbor-write-",
+            prefix=".yara-write-",
             delete=True,
         ):
             pass
