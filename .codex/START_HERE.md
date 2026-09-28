@@ -10,7 +10,7 @@
 - The completed `gui` branch is already merged into `main`.
 
 ## What the project is
-**Telegram Harbor** is a modular Streamlit Telegram message and media manager using Pyrogram.
+**YARA** is a modular Streamlit Telegram message and media manager using Pyrogram.
 
 It provides:
 - local multi-user Web authentication;
@@ -31,7 +31,7 @@ It provides:
 - Docker/Compose deployment;
 - automated GitHub Actions regression tests.
 
-The product name is **Telegram Harbor**. The GitHub repository name remains `telegram_aranger` for now.
+The product name is **YARA** — **Your Archive & Retrieval Assistant**. The GitHub repository name remains `telegram_aranger` for compatibility.
 
 ## Current implementation status
 Completed:
