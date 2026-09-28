@@ -1,4 +1,4 @@
-# برنامه قابلیت دانلود YouTube برای Telegram Harbor
+# برنامه قابلیت دانلود YouTube برای YARA
 
 ## وضعیت
 
@@ -11,7 +11,7 @@
 
 ## هدف
 
-اضافه کردن یک ابزار مستقل داخل Telegram Harbor برای دریافت محتوای عمومی YouTube، با این قابلیت‌ها:
+اضافه کردن یک ابزار مستقل داخل YARA برای دریافت محتوای عمومی YouTube، با این قابلیت‌ها:
 
 - دریافت URL از کاربر؛
 - نمایش اطلاعات محتوا قبل از دانلود؛
@@ -225,7 +225,7 @@
 
 UI باید واضح بنویسد:
 
-`Files are saved on the machine running Telegram Harbor.`
+`Files are saved on the machine running YARA.`
 
 برای browser-side folder picker می‌توان در فاز بعد custom Streamlit component بررسی کرد، اما scope نسخه اول نیست.
 
@@ -350,7 +350,7 @@ Raw yt-dlp log نباید مستقیم داخل UI dump شود.
 
 # امنیت فایل‌سیستم
 
-Telegram Harbor multi-user Web login دارد، بنابراین arbitrary path نوشتن روی یک server مشترک ریسک دارد.
+YARA multi-user Web login دارد، بنابراین arbitrary path نوشتن روی یک server مشترک ریسک دارد.
 
 پیشنهاد:
 
@@ -678,7 +678,7 @@ CI نباید به YouTube live network وابسته باشد.
 
 ## احراز هویت YouTube
 
-برای اجرای Local، روش اصلی **Browser Session** است. Telegram Harbor با استفاده از قابلیت `cookies-from-browser` خود yt-dlp از Session مرورگری که روی همان Host/OS User اجرا می‌شود استفاده می‌کند و Username/Password گوگل را دریافت نمی‌کند.
+برای اجرای Local، روش اصلی **Browser Session** است. YARA با استفاده از قابلیت `cookies-from-browser` خود yt-dlp از Session مرورگری که روی همان Host/OS User اجرا می‌شود استفاده می‌کند و Username/Password گوگل را دریافت نمی‌کند.
 
 برای Docker/Server که Browser روی سیستم دیگری است، `cookies.txt` فقط به‌عنوان fallback باقی می‌ماند.
 
