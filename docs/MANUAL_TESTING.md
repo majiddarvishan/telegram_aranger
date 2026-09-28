@@ -1,4 +1,4 @@
-# Telegram Harbor Manual Validation Checklist
+# YARA Manual Validation Checklist
 
 This checklist covers behavior that automated tests cannot fully prove because it requires a real Telegram account, browser, and media transfer.
 
@@ -439,7 +439,7 @@ Use this only when guest access is insufficient or YouTube requests a signed-in 
 #### Preferred local flow — Browser session
 
 Requirements:
-- Telegram Harbor runs on the same machine as the signed-in browser;
+- YARA runs on the same machine as the signed-in browser;
 - it runs under the same OS user that owns the browser profile.
 
 UI:
