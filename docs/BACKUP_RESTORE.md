@@ -1,4 +1,4 @@
-# Telegram Harbor Backup and Restore
+# YARA Backup and Restore
 
 ## What must be protected together
 
