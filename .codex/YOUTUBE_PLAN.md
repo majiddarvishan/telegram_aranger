@@ -1,16 +1,15 @@
 # YouTube Download Feature Plan
 
-Branch: `feature/youtube-download`
-Baseline: `main@ff7422284c7850ece9f3db9816cf600ff911a560`
+Source of truth: `main`
 
-Status: YT-P1 through YT-P6 plus extensive automated YT-P7 readiness hardening are implemented. Latest confirmed full-green checkpoint in this handoff is `c33bb39ebfd46cd06065a6653e0b1714da7624b3`; newer commits may exist and must be checked directly. Remaining acceptance is manual Light/Dark/narrow review, real YouTube/Windows/Docker/UI validation, and final merge/release review.
+Status: the YouTube feature has been implemented and merged into `main`. The former `feature/youtube-download` branch is already merged and must not be used as the base for new work. Re-check current `main` HEAD and CI before edits. Remaining work is manual/live UX acceptance and any defects found there.
 
 Primary Persian design document:
 `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md`
 
 Validation matrix: `.codex/YOUTUBE_VALIDATION.md`
 
-Latest confirmed full-green readiness checkpoint in this handoff: `c33bb39ebfd46cd06065a6653e0b1714da7624b3`
+Merged checkpoint before handoff-doc updates: `main@0934e67401e078bc57f0f4acddffd1f72bf6a768`. Re-check current main because documentation commits may be newer.
 
 ## Confirmed user requirements
 
@@ -34,7 +33,7 @@ Latest confirmed full-green readiness checkpoint in this handoff: `c33bb39ebfd46
 - Manual subtitles and auto-generated captions are identified separately.
 - Default subtitle output target is SRT; fallback format must be reported when conversion is unavailable.
 - Simple quality presets.
-- User-supplied save directory.
+- Save directory defaults to the local user's Downloads folder, supports native Browse on local installs, and remembers the last selected path.
 - Title-based matched output naming.
 - Progress and post-processing state.
 - Warning / acknowledgement flow.
@@ -44,13 +43,13 @@ Latest confirmed full-green readiness checkpoint in this handoff: `c33bb39ebfd46
 
 ## Save-location decision
 
-V1 uses a required filesystem path field.
+V1 uses a host filesystem path field with a sensible local default (`Downloads`). The user may type a path or use the native folder picker on local installs.
 
 Important:
 - On a local installation, this is the user's local machine path.
 - On a remotely hosted installation, this is a path on the host running YARA.
 - UI must state this explicitly.
-- A browser-native directory picker is deferred because Streamlit does not provide one as a stable built-in abstraction for arbitrary local filesystem write access.
+- A local native directory picker is implemented via the host OS dialog; remote/headless deployments retain the manual path field.
 
 Hosted deployments should support configured allowed roots so a Web user cannot write to arbitrary server locations.
 
@@ -75,9 +74,9 @@ V1 behavior:
 - Support optional authenticated YouTube sessions.
 - Prefer local browser-session cookies when YARA and the browser run on the same host/user.
 - Keep a youtube.com-only `cookies.txt` fallback for Docker/remote deployments.
-- Support an optional independent YouTube SOCKS5 proxy.
+- Use one shared Sidebar SOCKS5 configuration for both Telegram and YouTube.
+- Do not render a duplicate YouTube proxy panel.
 - Do not collect Google username/password or use YouTube OAuth.
-- Do not automatically reuse the Telegram SOCKS5 proxy.
 - No playlist/channel/batch download in V1.
 - Production implementation is now present on `feature/youtube-download`; preserve the service/UI boundary and completed phase behavior.
 
@@ -140,7 +139,7 @@ Names may change during implementation if the existing project structure suggest
 - [x] Tests for warning states.
 
 ### YT-P4 — Download engine
-- [x] Optional independent SOCKS5 proxy for Inspect and Download.
+- [x] Shared Sidebar SOCKS5 proxy for Telegram and YouTube Inspect/Download.
 - [x] Optional authenticated session for Inspect and Download, preferring local Browser Session with `cookies.txt` fallback.
 - [x] Video + audio.
 - [x] Audio only.
@@ -158,10 +157,10 @@ Names may change during implementation if the existing project structure suggest
 - [x] Independent YouTube workspace.
 - [x] URL input + Inspect action.
 - [x] Metadata/thumbnail preview.
-- [x] Mode/quality controls.
-- [x] Subtitle enable/disable control.
-- [x] Subtitle language selector with Manual / Auto-generated labeling.
-- [x] Subtitle format display/selection according to supported V1 behavior.
+- [x] Complete per-format table with one Download menu per row.
+- [x] Per-row Video + Audio / Audio / Subtitle actions.
+- [x] Subtitle language selection inside the row Download menu with Manual / Auto-generated labeling.
+- [x] Remove redundant global Output/Quality/subtitle controls after user review.
 - [x] Save directory input.
 - [x] Warning/acknowledgement UI.
 - [x] Download progress.
@@ -191,7 +190,8 @@ Names may change during implementation if the existing project structure suggest
 - [ ] Docker.
 - [ ] Warning flow.
 - [ ] Error scenarios.
-- [ ] Merge/release review.
+- [x] Merge YouTube feature into `main`.
+- [ ] Final manual/live release acceptance.
 
 ## Deferred
 
@@ -212,9 +212,9 @@ Names may change during implementation if the existing project structure suggest
 
 When continuing this feature in another ChatGPT conversation:
 
-- Branch is `feature/youtube-download`.
-- Implementation is active on this branch after explicit user approval.
-- YT-P1 through YT-P6 are implemented; do not re-implement them. Continue from remaining YT-P5 visual review and YT-P7 manual/live validation unless the user changes priority.
+- Source of truth is `main`; the old `feature/youtube-download` branch is already merged.
+- For new code work, create a fresh branch from current main unless the user explicitly requests direct-main changes.
+- YT-P1 through YT-P6 are implemented and merged; do not re-implement them. Continue from manual/live validation or defects exposed by it.
 - Read this file and `docs/YOUTUBE_DOWNLOAD_PLAN_FA.md` before proposing changes.
 - Preserve existing YARA behavior and architecture.
 - Continue implementation phase-by-phase from the next incomplete YouTube phase.
