@@ -112,7 +112,8 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn('key="youtube-metadata-metrics"', source)
         self.assertIn('key="youtube-output-controls"', source)
         self.assertIn('key="youtube-save-controls"', source)
-        self.assertIn("use_container_width=True", source)
+        self.assertIn('width="stretch"', source)
+        self.assertNotIn("use_container_width=", source)
 
     def test_rights_notice_is_visible_before_inspection(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
@@ -226,6 +227,28 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
                 "on_change=_invalidate_youtube_network_context"
             ),
             5,
+        )
+
+    def test_browse_uses_pending_state_before_widget_creation(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+        state_source = Path("utils/state.py").read_text(encoding="utf-8")
+
+        self.assertIn("def _apply_pending_youtube_save_directory()", source)
+        self.assertIn(
+            "st.session_state.youtube_pending_save_directory = selected",
+            source,
+        )
+        self.assertIn(
+            "_apply_pending_youtube_save_directory()",
+            source[source.index("def render_youtube(settings)"):]
+        )
+        self.assertNotIn(
+            "st.session_state.youtube_save_directory = selected",
+            source[source.index("def _browse_youtube_save_directory"):source.index("def _invalidate_youtube_inspection")]
+        )
+        self.assertIn(
+            '"youtube_pending_save_directory": None',
+            state_source,
         )
 
     def test_ui_supports_cancel_browse_and_per_format_actions(self):
