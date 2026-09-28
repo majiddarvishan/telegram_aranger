@@ -112,7 +112,7 @@ Status: current
 
 The product is named **YARA** and behaves as a general Telegram message/media manager for private chats, groups, supergroups, channels, and Saved Messages.
 
-The GitHub repository name remains `telegram_aranger` for now. Persisted compatibility identifiers such as the existing cookie name, default database filename, and Docker volume name are intentionally retained to avoid breaking login persistence or hiding existing data.
+The GitHub repository has been renamed to `majiddarvishan/yara`. Persisted compatibility identifiers such as existing cookie/database/preferences/build identifiers may intentionally retain older names where renaming would break existing installations or hide existing data.
 
 ## D-022 — Permanent message deletion requires confirmation
 Status: current
@@ -126,17 +126,17 @@ Tags remain comma-separated SQLite text for the current feature scope. Values ar
 
 
 ## D-024 — YouTube download is an independent workspace
-Status: implemented on `feature/youtube-download`
+Status: implemented and merged into `main`
 
 YouTube functionality is isolated from Telegram message browsing. The Streamlit UI should expose a separate workspace/tool rather than embedding YouTube download controls inside Telegram message cards.
 
 ## D-025 — YouTube download uses a service abstraction
-Status: implemented on `feature/youtube-download`
+Status: implemented and merged into `main`
 
 The UI must not call the downloader library directly. URL validation, metadata inspection, format selection, download execution, progress hooks, post-processing, and error normalization belong behind a dedicated service layer.
 
 ## D-026 — Save directory is user-supplied
-Status: implemented on `feature/youtube-download`
+Status: implemented and merged into `main`
 
 V1 requires the user to provide a filesystem save directory before download.
 
@@ -145,7 +145,7 @@ On a local installation this is a path on the local machine. On a remotely hoste
 Hosted/multi-user deployments should support configured allowed roots so Web users cannot write to arbitrary server paths.
 
 ## D-027 — Rights/service warning is informational, not a legal determination
-Status: implemented in policy layer on `feature/youtube-download`
+Status: implemented and merged into `main`
 
 YARA cannot reliably determine copyright ownership from YouTube metadata. V1 therefore:
 - always presents a concise rights/service notice;
@@ -154,27 +154,27 @@ YARA cannot reliably determine copyright ownership from YouTube metadata. V1 the
 - does not block ordinarily accessible public content solely because a warning is shown.
 
 ## D-028 — No technical access-control bypass
-Status: enforced by policy/service behavior on `feature/youtube-download`
+Status: enforced in merged `main` policy/service behavior
 
 V1 must not introduce mechanisms that bypass DRM, paywalls, private/member-only access controls, login protection, or comparable technical restrictions.
 
 The baseline scope is public content that the downloader can access normally without bypass behavior.
 
 ## D-029 — YouTube V1 is single-video and non-batch
-Status: implemented/enforced on `feature/youtube-download`
+Status: implemented/enforced in merged `main`
 
 V1 intentionally excludes playlists, full channels, private/member-only/premium content, DRM/access-control bypass, batch queues, scheduling, and automatic geo-bypass.
 
 Optional cookie-session authentication is supported for otherwise in-scope videos that YouTube requires a signed-in session to access. Local Browser Session is preferred; youtube.com-only Netscape `cookies.txt` is the remote/Docker fallback.
 
 ## D-030 — FFmpeg is an operational dependency for full YouTube output support
-Status: implemented on `feature/youtube-download`; Docker/Windows platform setup documented
+Status: implemented and merged into `main`; Docker/Windows platform setup documented
 
 FFmpeg must be treated as a platform dependency for video/audio merging and audio extraction where required. Windows and Docker setup, capability detection, and user-facing failure messages are part of the feature definition.
 
 
 ## D-031 — YouTube V1 includes one optional subtitle track
-Status: implemented in engine and UI on `feature/youtube-download`
+Status: implemented and merged into `main`
 
 V1 includes optional subtitle download for a single selected language/track per download job.
 
@@ -189,7 +189,7 @@ The preferred subtitle output is SRT. If conversion is unavailable, the actual f
 Multiple subtitle languages in one job are deferred so the V1 filename requirement can remain deterministic.
 
 ## D-032 — YouTube output basename comes from the video title
-Status: implemented in filesystem layer on `feature/youtube-download`
+Status: implemented and merged into `main`
 
 The default output basename is the sanitized YouTube video title, not the video ID.
 
@@ -203,7 +203,7 @@ When a subtitle is included, the media and subtitle files must use the same base
 Sanitization must preserve a readable title while producing valid Windows/Linux filenames.
 
 ## D-033 — Filename collisions are resolved as one output group
-Status: implemented in filesystem layer on `feature/youtube-download`
+Status: implemented and merged into `main`
 
 Automatic overwrite is not the default.
 
@@ -217,7 +217,7 @@ This preserves the requirement that media and subtitle files remain obviously pa
 
 
 ## D-034 — SOCKS5 is shared by Telegram and YouTube
-Status: implemented on `feature/youtube-download`
+Status: implemented and merged into `main`
 
 YARA exposes one SOCKS5 configuration in the Sidebar under `Network & proxy`.
 
@@ -235,7 +235,7 @@ This proxy support is ordinary network routing only. It does not enable DRM, pri
 
 
 ## D-035 — YouTube authentication prefers local browser session
-Status: implemented on `feature/youtube-download`
+Status: implemented and merged into `main`
 
 YouTube authenticated access is cookie-session based. YARA does not collect Google username/password and does not implement YouTube OAuth.
 
@@ -259,3 +259,21 @@ Security/scope:
 - private/member-only/premium/DRM states remain blocked even if the authenticated account could access them;
 - browser/account cookies are secrets and authenticated mode is opt-in.
 
+
+
+## D-036 — Deno is the preferred YouTube JavaScript runtime
+Status: current
+
+Live Windows testing with yt-dlp 2026.08.19 showed that YouTube extraction can fail at the JavaScript/n-challenge stage when no supported JS runtime is available. Deno 2.9.7 successfully solved the challenge in the validated setup.
+
+Operational rule:
+- detect/document Deno for the YouTube workflow;
+- when yt-dlp reports JavaScript challenge failures, guide the user to install/enable Deno before adding more authentication or PO-token complexity;
+- do not treat a JS challenge failure as a copyright determination.
+
+## D-037 — Approved YARA logo artwork
+Status: approved visual identity; repository image upload still pending
+
+The user approved the dark YARA artwork with a central circular YARA wordmark, Persian `یارا`, and cyan/purple circuit/network accents as the project logo.
+
+The repository was renamed to `majiddarvishan/yara`, but the approved binary artwork is not present in the Git tree at this handoff and GitHub Social Preview/repository image still requires a binary-capable/UI upload workflow. Future sessions must reuse the approved artwork rather than generating or substituting a different logo without user approval.
