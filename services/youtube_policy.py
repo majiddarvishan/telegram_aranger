@@ -14,15 +14,15 @@ GENERAL_RIGHTS_NOTICE = (
 _BLOCKED_AVAILABILITY = {
     "private": (
         "private_content",
-        "This video is private and is outside Telegram Harbor V1.",
+        "This video is private and is outside YARA V1.",
     ),
     "premium_only": (
         "premium_only",
-        "This video requires paid/premium access and is outside Telegram Harbor V1.",
+        "This video requires paid/premium access and is outside YARA V1.",
     ),
     "subscriber_only": (
         "members_only",
-        "This video requires channel membership and is outside Telegram Harbor V1.",
+        "This video requires channel membership and is outside YARA V1.",
     ),
     "needs_auth": (
         "login_required",
@@ -103,7 +103,7 @@ def evaluate_download_policy(
         return _blocked(
             acknowledged,
             "drm_protected",
-            "This video is DRM-protected and cannot be downloaded by Telegram Harbor.",
+            "This video is DRM-protected and cannot be downloaded by YARA.",
         )
 
     if availability == "needs_auth" and authenticated_session:
@@ -114,7 +114,7 @@ def evaluate_download_policy(
                 code="signed_in_access",
                 message=(
                     "YouTube reports that this video requires a signed-in session. "
-                    "Telegram Harbor is using the configured Browser session/cookies "
+                    "YARA is using the configured Browser session/cookies "
                     "for this request."
                 ),
                 signal="availability",
@@ -137,7 +137,7 @@ def evaluate_download_policy(
             acknowledged,
             "restricted_availability",
             "YouTube reports a restricted or unsupported availability state "
-            "that is outside Telegram Harbor V1.",
+            "that is outside YARA V1.",
         )
 
     warnings = _restriction_warnings(info, availability)
