@@ -1,4 +1,4 @@
-# Telegram Harbor Architecture
+# YARA Architecture
 
 ## High-level flow
 
