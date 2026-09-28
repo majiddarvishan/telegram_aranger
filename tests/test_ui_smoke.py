@@ -387,6 +387,27 @@ class SidebarHierarchySmokeTests(unittest.TestCase):
         self.assertEqual(WEB_ACCOUNT_CARD_KEY, "web-account-card")
 
 
+class SharedProxyDefaultsTests(unittest.TestCase):
+    def test_shared_proxy_defaults_to_localhost_1080_when_enabled(self):
+        import inspect
+        from ui.sidebar import (
+            _ensure_shared_proxy_defaults,
+            _on_shared_proxy_toggle,
+        )
+
+        sidebar_source = inspect.getsource(_ensure_shared_proxy_defaults)
+        toggle_source = inspect.getsource(_on_shared_proxy_toggle)
+
+        self.assertIn('"127.0.0.1"', sidebar_source)
+        self.assertIn("1080", sidebar_source)
+        self.assertIn("_ensure_shared_proxy_defaults()", toggle_source)
+
+        state_source = open("utils/state.py", encoding="utf-8").read()
+        self.assertIn('"use_proxy": False', state_source)
+        self.assertIn('"proxy_host": "127.0.0.1"', state_source)
+        self.assertIn('"proxy_port": 1080', state_source)
+
+
 class WorkspaceSidebarSmokeTests(unittest.TestCase):
     def test_youtube_workspace_keeps_shared_network_controls(self):
         import inspect
