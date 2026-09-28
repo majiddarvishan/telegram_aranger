@@ -2266,3 +2266,23 @@ Validation:
 - GitHub Actions run `36479282936` completed successfully.
 - Linux unittest, Windows/Python 3.14, and Docker jobs are green.
 - Branch remains `feature/youtube-download`; `main` was not modified.
+
+
+## 2026-09-29 — Product renamed to YARA
+
+User selected **YARA** as the new product name.
+
+Canonical meaning:
+- **YARA = Your Archive & Retrieval Assistant**
+
+Applied:
+- runtime product branding now uses `YARA`;
+- page/login/sidebar branding derives from `PRODUCT_NAME = "YARA"`;
+- product slug is `yara`;
+- README and current product/docs context use YARA;
+- YouTube runtime copy and validation helpers use YARA;
+- GitHub repository name remains `telegram_aranger` for compatibility;
+- selected legacy technical identifiers, environment-variable prefixes and existing persisted paths are intentionally retained where renaming them could break existing installs;
+- historical session notes that describe the former Telegram Harbor branding remain historical records and should not be interpreted as the current product name.
+
+Branch remains `feature/youtube-download`; no merge to `main` was performed.
