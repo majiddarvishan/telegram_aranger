@@ -282,6 +282,22 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn("download_subtitle", source)
         self.assertIn('"youtube_download_job": None', state_source)
 
+    def test_format_header_stays_outside_scroll_container(self):
+        source = Path("ui/youtube.py").read_text(encoding="utf-8")
+        renderer_start = source.index("def _render_format_downloads(")
+        renderer_end = source.index(
+            "\n\ndef _start_download(",
+            renderer_start,
+        )
+        renderer = source[renderer_start:renderer_end]
+
+        header_index = renderer.index("header = st.columns(")
+        table_index = renderer.index("table = st.container(height=560)")
+        rows_index = renderer.index("for index, item in enumerate(formats):")
+
+        self.assertLess(header_index, table_index)
+        self.assertLess(table_index, rows_index)
+
     def test_subtitle_language_is_selected_inside_each_download_menu(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
 
