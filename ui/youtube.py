@@ -111,7 +111,7 @@ def _render_youtube_auth_settings() -> None:
         )
         st.caption(
             "No Google username/password is requested. For local installs, "
-            "Telegram Harbor can use the signed-in session from a browser on "
+            "YARA can use the signed-in session from a browser on "
             "the same host. cookies.txt remains a fallback for Docker/servers."
         )
 
@@ -120,7 +120,7 @@ def _render_youtube_auth_settings() -> None:
 
         st.warning(
             "Browser/account cookies are sensitive and YouTube may rotate them. "
-            "Use authentication only when needed. Telegram Harbor does not store "
+            "Use authentication only when needed. YARA does not store "
             "the cookie values in its database or validation reports."
         )
 
@@ -153,7 +153,7 @@ def _render_youtube_auth_settings() -> None:
                     "reading cookie contents. On Windows, Firefox is preferred because "
                     "modern Chromium browsers may use App-Bound cookie encryption that "
                     "yt-dlp cannot decrypt directly. The selected browser must exist on "
-                    "the same machine/user account that runs Telegram Harbor."
+                    "the same machine/user account that runs YARA."
                 ),
             )
             st.text_input(
@@ -739,7 +739,7 @@ def render_youtube(settings) -> None:
     st.title(WORKSPACE_TITLE)
     st.caption(
         "Download one public YouTube video per job. Files are saved on the machine "
-        "running Telegram Harbor. On a remote/server installation, this is the "
+        "running YARA. On a remote/server installation, this is the "
         "server host — not your browser device."
     )
     st.info(GENERAL_RIGHTS_NOTICE)
@@ -750,7 +750,7 @@ def render_youtube(settings) -> None:
     else:
         st.warning(
             "FFmpeg and FFprobe are required for video/audio merging and audio "
-            "extraction. Install them on the machine running Telegram Harbor."
+            "extraction. Install them on the machine running YARA."
         )
 
     _render_youtube_auth_settings()
@@ -825,7 +825,7 @@ def render_youtube(settings) -> None:
                 key="youtube_save_directory",
                 on_change=_remember_youtube_save_directory,
                 help=(
-                    "Absolute path on the machine running Telegram Harbor. "
+                    "Absolute path on the machine running YARA. "
                     "The default is your Downloads folder and the last selected "
                     "path is remembered across restarts."
                 ),
