@@ -38,13 +38,21 @@ def _remember_youtube_save_directory() -> None:
         save_preference("youtube_save_directory", value)
 
 
+def _apply_pending_youtube_save_directory() -> None:
+    selected = st.session_state.get("youtube_pending_save_directory")
+    if not selected:
+        return
+    st.session_state.youtube_save_directory = str(selected)
+    st.session_state.youtube_pending_save_directory = None
+
+
 def _browse_youtube_save_directory() -> None:
     current = str(
         st.session_state.get("youtube_save_directory", "") or ""
     ).strip()
     selected = choose_directory(current)
     if selected:
-        st.session_state.youtube_save_directory = selected
+        st.session_state.youtube_pending_save_directory = selected
         save_preference("youtube_save_directory", selected)
 
 
@@ -290,7 +298,7 @@ def _render_metadata(metadata: Mapping[str, Any]) -> None:
     thumbnail = metadata.get("thumbnail")
     if thumbnail:
         with st.container(key="youtube-thumbnail"):
-            st.image(str(thumbnail), use_container_width=True)
+            st.image(str(thumbnail), width="stretch")
 
     with st.container(key="youtube-metadata-metrics"):
         first, second, third, fourth = st.columns(4)
@@ -336,7 +344,7 @@ def _render_metadata(metadata: Mapping[str, Any]) -> None:
                     for track in tracks
                     if isinstance(track, Mapping)
                 ],
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
             )
 
@@ -607,13 +615,13 @@ def _render_format_downloads(
 
                 with row[7].popover(
                     "Download",
-                    use_container_width=True,
+                    width="stretch",
                 ):
                     video_clicked = st.button(
                         "Video + Audio",
                         key=f"youtube-format-video-{index}-{format_id}",
                         disabled=not can_start or busy or not has_video,
-                        use_container_width=True,
+                        width="stretch",
                         help=(
                             "Use this exact video format and merge the best "
                             "available audio when the row has no audio."
@@ -623,7 +631,7 @@ def _render_format_downloads(
                         "Audio",
                         key=f"youtube-format-audio-{index}-{format_id}",
                         disabled=not can_start or busy or not has_audio,
-                        use_container_width=True,
+                        width="stretch",
                         help=(
                             "Use this exact audio-capable format and extract "
                             "an MP3 output."
@@ -633,7 +641,7 @@ def _render_format_downloads(
                         "Subtitle",
                         key=f"youtube-format-subtitle-{index}-{format_id}",
                         disabled=not can_start or busy or not tracks,
-                        use_container_width=True,
+                        width="stretch",
                         help=(
                             "Download only the subtitle/caption track selected "
                             "above. The media format ID does not affect subtitles."
@@ -741,6 +749,7 @@ def _render_download_job_status() -> None:
 
 
 def render_youtube(settings) -> None:
+    _apply_pending_youtube_save_directory()
     st.title(WORKSPACE_TITLE)
     st.caption(
         "Download one public YouTube video per job. Files are saved on the machine "
@@ -887,7 +896,7 @@ def render_youtube(settings) -> None:
             if st.button(
                 "Browse…",
                 key="youtube-browse-save-directory",
-                use_container_width=True,
+                width="stretch",
             ):
                 try:
                     _browse_youtube_save_directory()
