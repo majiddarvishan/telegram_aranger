@@ -137,7 +137,29 @@ def _ensure_shared_proxy_defaults() -> None:
     except (TypeError, ValueError):
         port = 0
     if not (1 <= port <= 65535):
-        st.session_state.proxy_port = 1080
+        port = 1080
+    st.session_state.proxy_port = port
+
+    try:
+        visible_port = int(
+            st.session_state.get("proxy_port_input", 0) or 0
+        )
+    except (TypeError, ValueError):
+        visible_port = 0
+    if not (1 <= visible_port <= 65535) or visible_port != port:
+        st.session_state.proxy_port_input = port
+
+
+def _on_shared_proxy_port_change() -> None:
+    try:
+        port = int(st.session_state.get("proxy_port_input", 1080))
+    except (TypeError, ValueError):
+        port = 1080
+    if not (1 <= port <= 65535):
+        port = 1080
+    st.session_state.proxy_port = port
+    st.session_state.proxy_port_input = port
+    _invalidate_youtube_network_context()
 
 
 def _on_shared_proxy_toggle() -> None:
@@ -179,10 +201,11 @@ def _render_network_settings():
             )
             st.number_input(
                 "Proxy port",
-                key="proxy_port",
+                key="proxy_port_input",
                 min_value=1,
                 max_value=65535,
-                on_change=_invalidate_youtube_network_context,
+                step=1,
+                on_change=_on_shared_proxy_port_change,
             )
             st.text_input(
                 "Username (optional)",

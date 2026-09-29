@@ -440,9 +440,9 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Keep exact-format selection constrained to format IDs returned by the current Inspect result.
 - [x] Add regression coverage for cancellation, exact-format selection and the new UI controls.
 - [x] GitHub Actions run `36277332726` is green on Linux unittest, Windows/Python 3.14 and Docker at `b0294672c1a86a211251fed46fa9496d1fb35ecc`.
-- [ ] Manually verify Cancel during a real YouTube download.
-- [ ] Manually verify native Browse + persisted Save directory after app restart on Windows.
-- [ ] Manually verify per-format Video + Audio, Audio and Subtitle actions with live YouTube.
+- [x] Manually verify Cancel during a real YouTube download; user confirmed it works.
+- [ ] Manually verify native Browse + persisted Save directory after app restart on Windows; restart persistence is still failing and is being fixed on `fix/youtube-manual-ux`.
+- [x] Manually verify per-format Video + Audio, Audio and Subtitle actions with live YouTube; user confirmed they work.
 
 
 ### YouTube format UI correction — 2026-09-28
@@ -457,7 +457,7 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Keep native Browse selection pending until before the Save-directory widget is instantiated.
 - [x] Replace touched Streamlit `use_container_width` usage with `width`.
 - [x] GitHub Actions run `36479282936` is green on Linux unittest, Windows/Python 3.14 and Docker.
-- [ ] Manually verify per-row Video + Audio, Audio and Subtitle-with-language downloads in the live UI.
+- [x] Manually verify per-row Video + Audio, Audio and Subtitle-with-language downloads in the live UI; user confirmed the format/menu/language flow works.
 
 
 ## YARA repository rename / final handoff — 2026-09-29
@@ -468,10 +468,10 @@ YT-P7 automated baseline (not a substitute for manual completion):
 - [x] Refresh `.codex/START_HERE.md`, `.codex/NEXT_CHAT_PROMPT.md`, `.codex/PROJECT_CONTEXT.md`, `.codex/DECISIONS.md`, and `.codex/YOUTUBE_PLAN.md` for the new repository/source-of-truth state.
 - [x] Record the approved YARA logo identity (dark central YARA/یارا mark with cyan/purple circuit-network artwork).
 - [ ] Upload the approved binary logo to the repository / GitHub Social Preview using a binary-capable or GitHub UI workflow. Current connector cannot perform that binary/social-preview mutation.
-- [ ] Manually re-verify shared proxy defaults are visibly `127.0.0.1:1080` after enabling SOCKS5 on Windows.
-- [ ] Manually re-verify native Save-directory Browse after the pending-state fix; no `StreamlitWidgetAlreadyInstantiatedError`.
-- [ ] Manually re-verify stale Inspect errors clear correctly after URL change/new Inspect.
-- [ ] Manually re-verify the full format list, pinned header, per-row Download menu, and subtitle language selection.
-- [ ] Manually re-verify Cancel during a live YouTube download.
-- [ ] Manually re-verify no deprecated `use_container_width` warnings remain in the touched YouTube/sidebar flow.
+- [ ] Manually re-verify shared proxy defaults are visibly `127.0.0.1:1080` after enabling SOCKS5 on Windows; the port was still blank in the user's real UI and a visible-widget-state fix is implemented on `fix/youtube-manual-ux`.
+- [ ] Manually re-verify native Save-directory Browse/persistence after restart; the saved path was still blank after restart and startup restoration is fixed on `fix/youtube-manual-ux`.
+- [ ] Manually re-verify stale Inspect errors clear correctly after URL change/new Inspect; URL-bound error-state handling is fixed on `fix/youtube-manual-ux`.
+- [x] Manually re-verify the full format list, pinned header, per-row Download menu, and subtitle language selection; user confirmed this flow works.
+- [x] Manually re-verify Cancel during a live YouTube download; user confirmed it works.
+- [x] Manually re-verify no deprecated `use_container_width` warnings remain in the touched YouTube/sidebar flow; user did not encounter the warning in the validated flow.
 - [ ] Decide next release version/tag only after the manual acceptance items above pass.

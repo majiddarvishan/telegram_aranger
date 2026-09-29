@@ -5,6 +5,13 @@ import streamlit as st
 from utils.preferences import default_download_directory, load_preference
 
 
+def _preferred_youtube_save_directory() -> str:
+    saved = str(
+        load_preference("youtube_save_directory", "") or ""
+    ).strip()
+    return saved or default_download_directory()
+
+
 def initialize_state():
     today = date.today()
     defaults = {
@@ -31,6 +38,7 @@ def initialize_state():
         "use_proxy": False,
         "proxy_host": "127.0.0.1",
         "proxy_port": 1080,
+        "proxy_port_input": 1080,
         "proxy_user": "",
         "proxy_pass": "",
         "message_date_range": (today - timedelta(days=6), today),
@@ -42,12 +50,11 @@ def initialize_state():
         "youtube_inspected_url": "",
         "youtube_metadata": None,
         "youtube_error": None,
+        "youtube_error_url": "",
         "youtube_download_result": None,
         "youtube_download_job": None,
-        "youtube_save_directory": load_preference(
-            "youtube_save_directory",
-            default_download_directory(),
-        ),
+        "youtube_save_directory": _preferred_youtube_save_directory(),
+        "_youtube_save_directory_initialized": False,
         "youtube_pending_save_directory": None,
         "youtube_create_directory": False,
         "youtube_acknowledged": False,
@@ -59,3 +66,19 @@ def initialize_state():
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
+
+    # Streamlit can rehydrate a widget key with an empty string before the
+    # application initializer runs after a process restart. Restore the saved
+    # path exactly once before the Save-directory widget is instantiated.
+    if not st.session_state.get(
+        "_youtube_save_directory_initialized",
+        False,
+    ):
+        current = str(
+            st.session_state.get("youtube_save_directory", "") or ""
+        ).strip()
+        if not current:
+            st.session_state.youtube_save_directory = (
+                _preferred_youtube_save_directory()
+            )
+        st.session_state._youtube_save_directory_initialized = True
