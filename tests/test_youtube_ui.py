@@ -226,7 +226,11 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
             sidebar_source.count(
                 "on_change=_invalidate_youtube_network_context"
             ),
-            4,
+            3,
+        )
+        self.assertIn(
+            "on_change=_on_shared_proxy_port_change",
+            sidebar_source,
         )
         self.assertIn(
             "on_change=_on_shared_proxy_toggle",
@@ -274,6 +278,15 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
             "st.session_state.youtube_error = None",
             inspect_block,
         )
+        self.assertIn(
+            'st.session_state.youtube_error_url = ""',
+            inspect_block,
+        )
+        self.assertIn(
+            'st.session_state.get("youtube_error_url", "")',
+            source,
+        )
+        self.assertIn("error_url != current_url", source)
 
     def test_ui_supports_cancel_browse_and_per_format_actions(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
@@ -345,6 +358,29 @@ class YouTubeUiArchitectureTests(unittest.TestCase):
         self.assertIn("inspect_feedback.empty()", source)
         self.assertIn("inspect_feedback.error(", source)
         self.assertIn("inspect_feedback.info(", source)
+        self.assertIn('inspect_feedback.success("Inspection completed.")', source)
+        self.assertIn("error_url != current_url", source)
+
+    def test_save_directory_restart_restores_persisted_value_once(self):
+        source = Path("utils/state.py").read_text(encoding="utf-8")
+
+        self.assertIn("def _preferred_youtube_save_directory()", source)
+        self.assertIn(
+            '"_youtube_save_directory_initialized": False',
+            source,
+        )
+        self.assertIn(
+            'st.session_state.get("youtube_save_directory", "")',
+            source,
+        )
+        self.assertIn(
+            "st.session_state.youtube_save_directory = (",
+            source,
+        )
+        self.assertIn(
+            "st.session_state._youtube_save_directory_initialized = True",
+            source,
+        )
 
     def test_ui_contains_v1_safety_and_progress_contract(self):
         source = Path("ui/youtube.py").read_text(encoding="utf-8")
