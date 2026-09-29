@@ -2341,3 +2341,37 @@ Handoff docs refreshed on main:
 - `.codex/TASKS.md`
 - `.codex/YOUTUBE_PLAN.md`
 - this `.codex/SESSION.md`
+
+
+## 2026-09-29 — Follow-up fixes from real Windows/UI validation
+
+User manually re-tested the post-merge YouTube flow.
+
+Confirmed working:
+- complete format list and pinned header;
+- one Download menu per format row;
+- Video + Audio, Audio and Subtitle actions;
+- subtitle language selection inside the row menu;
+- live Cancel download;
+- no deprecated `use_container_width` warning was observed in the tested YouTube/sidebar flow.
+
+Still failing before this branch:
+- shared SOCKS5 host appeared but the port was not visibly populated with `1080`;
+- YouTube Save directory was blank again after application restart;
+- stale Inspect error feedback still remained on screen.
+
+Fresh branch:
+- `fix/youtube-manual-ux` from `main@856124ef21d86107183c3d97216eab15540208cc`.
+
+Implemented fixes:
+- separated the visible proxy-port widget state from the normalized internal `proxy_port` state and keep both synchronized, guaranteeing a visible `1080` default when enabled/invalid;
+- added one-time startup restoration for `youtube_save_directory` so an empty Streamlit-rehydrated widget key cannot mask the persisted preference/default Downloads path;
+- bound Inspect errors to the URL that produced them, clear mismatched stale error state, and render an explicit successful Inspect replacement message;
+- expanded regression tests for proxy-port widget state, save-directory restart restoration, and stale Inspect feedback handling.
+
+Manual re-test still required for only these three defects before closing them:
+1. visible SOCKS5 port `1080`;
+2. Save-directory persistence across restart;
+3. stale Inspect error clearing.
+
+No merge to `main` has been performed.
