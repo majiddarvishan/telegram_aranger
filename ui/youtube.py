@@ -62,6 +62,7 @@ def _invalidate_youtube_inspection() -> None:
         active_job.request_cancel()
     st.session_state.youtube_metadata = None
     st.session_state.youtube_error = None
+    st.session_state.youtube_error_url = ""
     st.session_state.youtube_download_result = None
     st.session_state.youtube_acknowledged = False
     st.session_state.youtube_inspected_url = ""
@@ -766,6 +767,7 @@ def render_youtube(settings) -> None:
 
     if st.button("Inspect", key="youtube-inspect", type="primary"):
         st.session_state.youtube_error = None
+        st.session_state.youtube_error_url = ""
         st.session_state.youtube_metadata = None
         st.session_state.youtube_download_result = None
         st.session_state.youtube_acknowledged = False
@@ -781,21 +783,33 @@ def render_youtube(settings) -> None:
                     )
         except YouTubeServiceError as exc:
             st.session_state.youtube_error = exc.as_dict()
+            st.session_state.youtube_error_url = url.strip()
         except Exception:
             st.session_state.youtube_error = {
                 "code": "inspect_failed",
                 "message": "YouTube inspection failed unexpectedly.",
                 "access_restricted": False,
             }
+            st.session_state.youtube_error_url = url.strip()
         else:
             st.session_state.youtube_error = None
+            st.session_state.youtube_error_url = ""
             st.session_state.youtube_metadata = metadata
             st.session_state.youtube_inspected_url = url.strip()
 
         inspect_feedback.empty()
 
+    current_url = url.strip()
     error = st.session_state.get("youtube_error")
+    error_url = str(
+        st.session_state.get("youtube_error_url", "") or ""
+    ).strip()
     metadata = st.session_state.get("youtube_metadata")
+
+    if error and error_url != current_url:
+        st.session_state.youtube_error = None
+        st.session_state.youtube_error_url = ""
+        error = None
 
     if error:
         inspect_feedback.error(
@@ -807,6 +821,8 @@ def render_youtube(settings) -> None:
             "the Inspect step."
         )
         return
+    else:
+        inspect_feedback.success("Inspection completed.")
 
     if st.session_state.get("youtube_inspected_url") != url.strip():
         st.warning(
