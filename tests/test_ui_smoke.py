@@ -406,6 +406,7 @@ class SharedProxyDefaultsTests(unittest.TestCase):
         self.assertIn('"use_proxy": False', state_source)
         self.assertIn('"proxy_host": "127.0.0.1"', state_source)
         self.assertIn('"proxy_port": 1080', state_source)
+        self.assertIn('"proxy_port_input": 1080', state_source)
 
 
     def test_network_settings_normalize_defaults_before_widgets(self):
@@ -417,6 +418,11 @@ class SharedProxyDefaultsTests(unittest.TestCase):
         checkbox_index = source.index("st.checkbox(")
 
         self.assertLess(normalize_index, checkbox_index)
+        self.assertIn('key="proxy_port_input"', source)
+        self.assertIn(
+            "on_change=_on_shared_proxy_port_change",
+            source,
+        )
 
 
 class WorkspaceSidebarSmokeTests(unittest.TestCase):
@@ -449,6 +455,7 @@ class WorkspaceSidebarSmokeTests(unittest.TestCase):
         toggle_source = inspect.getsource(_on_shared_proxy_toggle)
         self.assertIn('"127.0.0.1"', helper_source)
         self.assertIn("1080", helper_source)
+        self.assertIn("proxy_port_input", helper_source)
         self.assertIn("_ensure_shared_proxy_defaults()", toggle_source)
         self.assertIn("_invalidate_youtube_network_context()", toggle_source)
 
